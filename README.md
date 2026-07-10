@@ -14,3 +14,5 @@ I do not intend to add support for windows. If you would like, you can make a pu
 3. Run `injector` with root permissions
 
 This will load the mod into the game client, and automatically enable everything.
+
+![Crabussy](media/crabussy.png)
