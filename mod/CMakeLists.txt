@@ -4,6 +4,7 @@ project(mod LANGUAGES CXX)
 add_library(mod SHARED
     src/main.cpp
     src/cachy.cpp
+    src/not_cachy.cpp
     src/process.cpp
 )
 

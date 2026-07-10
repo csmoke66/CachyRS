@@ -1,4 +1,5 @@
 #include "cachy.h"
+#include "not_cachy.h"
 
 #include <unistd.h>
 
@@ -261,28 +262,13 @@ Globals *CachyRS::get_globals()
 
 bool CachyRS::project_to_screen(Vec3<float> scene, Vec2<float> *out)
 {
-    auto globals = get_globals();
-    auto engine = globals->engine;
-    if (!engine)
-    {
-        return false;
-    }
-
-    auto scene_001 = engine->scene_001;
-    if (!scene_001)
-    {
-        return false;
-    }
-
-    auto scene_002 = scene_001->scene_002.reference(scene_001->scene_index);
-    auto scene_003 = scene_002->scene_003;
+    auto scene_003 = NRS.scene_003();
     if (!scene_003)
     {
         return false;
     }
-
+    
     auto matrix = scene_003->projection_matrix;
-
     auto bounds = ImGui::GetIO().DisplaySize;
 
     Vec3<float> clip;
