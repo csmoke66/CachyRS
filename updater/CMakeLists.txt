@@ -3,6 +3,9 @@ project(updater LANGUAGES CXX)
 
 add_executable(updater
     src/main.cpp
+    src/pattern.cpp
+    src/updater.cpp
+    src/header_compiler.cpp
 )
 
 target_include_directories(updater PRIVATE include)
