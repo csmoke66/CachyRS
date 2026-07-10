@@ -4,6 +4,7 @@ add_library(imgui
     src/imgui_tables.cpp
     src/imgui_widgets.cpp
     src/imgui.cpp
+    src/imgui_impl_sdl2.cpp
 )
 
 set_property(TARGET imgui PROPERTY POSITION_INDEPENDENT_CODE ON)

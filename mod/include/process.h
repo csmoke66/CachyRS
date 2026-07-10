@@ -27,6 +27,9 @@ private:
     std::vector<ImportedFunction> imports;
 
 public:
+    Elf64_Addr game_base();
+
+public:
     const std::vector<ImportedFunction> &import_view();
     bool find_import(const std::string& symbol, ImportedFunction* out);
 

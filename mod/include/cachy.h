@@ -1,6 +1,6 @@
 #pragma once
 #include "process.h"
-#include "reverse.h"
+#include "reversed.h"
 
 #include <fstream>
 
@@ -16,6 +16,7 @@ public:
 
 public:
     FnEglSwapBuffers real_eglSwapBuffers;
+    FnSDL_PollEvent real_SDL_PollEvent;
 
 private:
     void init_logging();
@@ -27,6 +28,12 @@ public:
 
 public:
     void hook_import(const std::string &symbol, void **original, void *target);
+
+public:
+    Globals *get_globals();
+
+public:
+    bool project_to_screen(Vec3<float> scene, Vec2<float> *out);
 
 public:
     void init();

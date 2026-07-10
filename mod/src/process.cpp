@@ -6,6 +6,11 @@
 #include <fstream>
 #include <sstream>
 
+Elf64_Addr ProcessInterface::game_base()
+{
+    return game_handle;
+}
+
 const std::vector<ImportedFunction> &ProcessInterface::import_view()
 {
     return imports;
