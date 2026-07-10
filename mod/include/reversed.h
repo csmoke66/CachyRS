@@ -6,6 +6,11 @@
 #include "reversed_util.h"
 #include "reversed_manual_base.h"
 
+struct Linux005;
+struct Linux004;
+struct Linux003;
+struct Linux002;
+struct Linux001;
 struct WindowState;
 struct WorldNode;
 struct Scene002;
@@ -25,6 +30,46 @@ enum class EntityType : uint8_t
 #include "reversed_generated.h"
 
 #pragma pack(push, 1)
+struct Linux005
+{
+	// 0x0
+	PAD(0x28);
+	// 0x28
+	SDL_Window* sdl_window;
+};
+
+struct Linux004
+{
+	// 0x0
+	PAD(0x90);
+	// 0x90
+	Linux005* linux_005;
+};
+
+struct Linux003
+{
+	// 0x0
+	PAD(0x8);
+	// 0x8
+	Linux004* linux_004;
+};
+
+struct Linux002
+{
+	// 0x0
+	PAD(0x30);
+	// 0x30
+	Linux003* linux_003;
+};
+
+struct Linux001
+{
+	// 0x0
+	PAD(0x1b8);
+	// 0x1b8
+	Linux002* linux_002;
+};
+
 struct WindowState
 {
 	// 0x0

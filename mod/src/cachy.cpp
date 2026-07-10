@@ -143,13 +143,17 @@ void CachyRS::init_imgui()
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
 
-    auto a = *(uint64_t*)((uint64_t)RS.get_globals() + 0x1692e98);
-    auto b = *(uint64_t*)((uint64_t)a + 0x1b8);
-    auto c = *(uint64_t*)((uint64_t)b + 0x30);
-    auto d = *(uint64_t*)((uint64_t)c + 0x8);
-    auto e = *(uint64_t*)((uint64_t)d + 0x90);
-    auto f = *(SDL_Window**)((uint64_t)e + 0x28);
-    ImGui_ImplSDL2_InitForOpenGL(f, nullptr);
+    if (auto sdl_window = dref<SDL_Window *>(
+            get_globals(),
+            {off(Globals, linux_001),
+             off(Linux001, linux_002),
+             off(Linux002, linux_003),
+             off(Linux003, linux_004),
+             off(Linux004, linux_005),
+             off(Linux005, sdl_window)}))
+    {
+        ImGui_ImplSDL2_InitForOpenGL(sdl_window, nullptr);
+    }
 
     auto style = &ImGui::GetStyle();
     auto colors = style->Colors;

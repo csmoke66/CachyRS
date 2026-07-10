@@ -32,6 +32,12 @@ std::vector<PatternObject> build_pattern_objects()
             compile_ida_pattern("E8 ? ? ? ? E9 ? ? ? ? 45 8B AF"),
             {"char", 1},
             new ImmExtractor(0x1, 0x5, 4, true)},
+
+        new DefaultPattern{
+            "linux_001",
+            compile_ida_pattern("48 8B 2D ? ? ? ? 48 83 BD ? ? ? ? ? 74 ? 48 89 FB"),
+            { "Linux001*", 8 },
+            new ImmExtractor(0x3, 0x7, 4, true)},
     }});
     
     objects.push_back({"Engine", {

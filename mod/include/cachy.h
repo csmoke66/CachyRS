@@ -4,7 +4,23 @@
 
 #include <fstream>
 
+#include <stdarg.h>
+
 #define LOG(LVL, ...) RS.log_stream << "[" << __FUNCTION__ << "][" << #LVL << "] " << __VA_ARGS__ << std::dec << std::endl
+
+#define off(t, f) offsetof(t, f)
+
+template<typename T, typename... A>
+FINLINE T dref(void* obj, std::initializer_list<uint64_t> args)
+{
+    void* last = obj;
+    for (auto a : args) 
+    {
+        last = *((void**)((char*)last + a));
+    }
+    
+    return (T)last;
+}
 
 class CachyRS
 {

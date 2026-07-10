@@ -12,9 +12,12 @@ struct Globals
 	char menu_execute;
 	PAD(0x12b959f);
 	Engine* engine;
+	PAD(0x249fa0);
+	Linux001* linux_001;
 };
 static_assert(offsetof(Globals, menu_execute) == 0x18f950, "Invalid offset");
 static_assert(offsetof(Globals, engine) == 0x1448ef0, "Invalid offset");
+static_assert(offsetof(Globals, linux_001) == 0x1692e98, "Invalid offset");
 
 struct Engine
 {
