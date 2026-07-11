@@ -7,9 +7,9 @@ A third party client for RS3 (and eventually, OSRS.) This is under active develo
 `git clone https://github.com/csmoke66/CachyRS`  
 `cd CachyRS && mkdir build && cd build`  
 `cmake ..`  
-`make`
-`cd ..`
-`mkdir ~/.local/share/cachy-rs`
+`make`  
+`cd ..`  
+`mkdir ~/.local/share/cachy-rs`  
 `cp -r config/* ~/.local/share/cachy-rs`
 ``
 
