@@ -11,8 +11,6 @@ A third party client for RS3 (and eventually, OSRS.) This is under active develo
 `cd ..`  
 `mkdir ~/.local/share/cachy-rs`  
 `cp -r config/* ~/.local/share/cachy-rs`
-### Windows
-I do not intend to add support for windows. If you would like, you can make a pull request to add support.
 ## Usage
 1. Run the native RS3 linux client
 2. Place `injector` and `libmod.so` into the same directories
@@ -21,3 +19,5 @@ I do not intend to add support for windows. If you would like, you can make a pu
 This will load the mod into the game client, and automatically enable everything.
 
 ![Crabussy](media/crabussy.png)
+## Feature Requests
+I expect people to request things like Windows support, or language bindings. This is currently outside of the scope of the project as I only run Linux on my machines. I will happily work with people to add support and accept pull requests.
