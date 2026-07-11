@@ -1,0 +1,3 @@
+#pragma once
+
+#define CACHYRS_VERSION "@GIT_VERSION@"

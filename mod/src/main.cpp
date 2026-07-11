@@ -1,13 +1,13 @@
 #include "cachy.h"
+#include <thread>
 
-void* init_async(void* arg) 
+void init_async() 
 {
     RS.init();
-    return nullptr;
 }
 
 __attribute__((constructor)) void entry()
 {
-    pthread_t thread_id; 
-    pthread_create(&thread_id, NULL, init_async, nullptr);
+    std::thread thr(init_async);
+    thr.detach();
 }

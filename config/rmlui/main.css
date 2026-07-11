@@ -1,0 +1,195 @@
+body {
+    --bg-color-primary: #353535;
+    --bg-color-secondary: #42424271;
+    --control: #42424271;
+    --control-hover: #34343471;
+    --control-active: #12121271;
+}
+
+body {
+    margin: 0;
+    background: transparent;
+
+    font-family: "Roboto Mono";
+    font-size: 14dp;
+    color: white;
+}
+
+div {
+    display: block;
+}
+
+h2 {
+    font-size: 16px;
+    color: #b0b0cf;
+}
+
+p {
+    display: block;
+}
+
+button {
+    display: inline-block;
+    padding: 6dp;
+
+    color: white;
+
+    background-color: var(--control);
+
+    border: 1px #292929;
+    border-radius: 2px;
+
+    box-shadow: #1a1a1a 1px 1px 1px;
+}
+
+button:hover {
+    background-color: var(--control-hover);
+}
+
+button:active {
+    background-color: var(--control-active);
+}
+
+input[type="checkbox"] {
+    width: 14dp;
+    height: 14dp;
+    align-items: center;
+
+    background-color: var(--control);
+    border: 1dp #666;
+}
+
+input[type="checkbox"]:hover {
+    background-color: var(--control-hover);
+}
+
+input[type="checkbox"]:checked {
+    background-color: var(--control-active);
+}
+
+.checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 4dp;
+    padding: 4px;
+}
+
+.window {
+    position: absolute;
+    left: 50dp;
+    top: 50dp;
+
+    width: 340dp;
+    padding: 0dp;
+
+    background-color: var(--bg-color-primary);
+
+    border: 1px #292929;
+    border-radius: 2px;
+
+    box-shadow: #000a 3px 3px 3px;
+}
+
+.titlebar {
+    display: flex;
+    align-items: center;
+    padding: 6px;
+
+    background-color: var(--bg-color-secondary);
+
+    border: 1px #292929;
+    border-radius: 4px;
+    
+}
+
+.title-icon {
+    width: 32dp;
+    height: 32dp;
+    margin-right: 8dp;
+}
+
+.title {
+    display: inline-block;
+
+    color: #b0b0cf;
+    font-size: 22dp;
+}
+
+.title-version {
+    display: inline-block;
+    font-size: 12dp;
+    padding-left: 12dp;
+}
+
+.content {
+    padding: 8px;
+    font-size: 12px;
+}
+
+.hr-custom {
+    display: block;
+    border-top: 2px #292929;
+}
+
+.tabbar {
+    display: flex;
+    
+    margin-bottom: 2px;
+
+    color: white;
+
+    background-color: #42424271;
+
+    border-bottom: 1px #292929;
+    border-radius: 1px;
+}
+
+.tabbutton {
+    display: inline-block;
+    flex: 1;
+    padding: 4px;
+
+    justify-content: center;
+    align-items: center;
+
+    text-align: center;
+    vertical-align: middle;
+
+    color: white;
+
+    border-radius: 1px;
+
+    box-shadow: none;
+}
+
+.tabbutton.ending {
+    border-right: 1px #292929;
+    border-right: 1px #292929;
+    border-top: 0;
+    border-bottom: 0;
+}
+
+.tabbutton.left {
+    border-left: 0;
+    border-right: 1px #292929;
+    border-top: 0;
+    border-bottom: 0;
+}
+
+.tabbutton.center {
+    border-left: 0;
+    border-right: 0;
+    border-top: 0;
+    border-bottom: 0;
+}
+
+.tabbutton.right {
+    border-left: 1px #292929;
+    border-right: 0;
+    border-top: 0;
+    border-bottom: 0;
+}
+
+.tabbutton-selected {
+    background-color: var(--control-active);
+}

@@ -1,4 +1,4 @@
-add_library(imgui
+add_library(imgui STATIC
     src/imgui_draw.cpp
     src/imgui_impl_opengl3.cpp
     src/imgui_tables.cpp

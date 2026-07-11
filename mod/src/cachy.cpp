@@ -1,17 +1,23 @@
 #include "cachy.h"
 #include "not_cachy.h"
 
-#include <unistd.h>
+#include <format>
+#include <filesystem>
 
+#include <unistd.h>
 #include <sys/mman.h>
 
 #include <GL/gl.h>
 #include <GL/glx.h>
 #include <EGL/egl.h>
 
+#include <RmlUi_Platform_SDL.h>
+
 #include <imgui.h>
 #include <imgui_impl_opengl3.h>
 #include <imgui_impl_sdl2.h>
+
+#include "cachy_rmlui.h"
 
 CachyRS RS;
 
@@ -31,21 +37,27 @@ void iterate_entities(WorldNode *node, FN fn)
 
 uint64_t hook_eglSwapBuffers(EGLDisplay dpy, EGLSurface surface)
 {
+#define FLUSH_GL_ERRORS() while (glGetError() != GL_NO_ERROR)
+
     static EGLint cached_width, cached_height;
     static bool is_first_run = true;
 
-    ImGuiIO &io = ImGui::GetIO();
-
-    if (is_first_run)
-    {
-        ImGui_ImplOpenGL3_Init("#version 330"); // TODO FIXME check error
-
-        is_first_run = false;
-    }
+    auto& io = ImGui::GetIO();
 
     EGLint width, height;
     eglQuerySurface(dpy, surface, EGL_WIDTH, &width);
     eglQuerySurface(dpy, surface, EGL_HEIGHT, &height);
+
+    if (is_first_run)
+    {
+        ImGui_ImplOpenGL3_Init("#version 330"); // TODO FIXME check error
+        RS.init_rmlui(width, height);
+
+        // flush OpenGL errors so they don't propagate to rmlui
+        FLUSH_GL_ERRORS();
+
+        is_first_run = false;
+    }
 
     if (cached_width != width || cached_height != height)
     {
@@ -56,73 +68,93 @@ uint64_t hook_eglSwapBuffers(EGLDisplay dpy, EGLSurface surface)
         io.DeltaTime = 1.0f / 60.0f;
     }
 
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui::NewFrame();
-
-    ImGui::SetNextWindowSize(ImVec2(500, 500));
-    if (ImGui::Begin("CachyRS"))
+    // clang-format off
+    RS.event_ring_buffer.process([](auto& event)
     {
-        auto globals = (Globals *)RS.pi.game_base();
-        if (auto engine = globals->engine)
+        ImGui_ImplSDL2_ProcessEvent(&event);
+        RS.rmlui_wants_input = !RmlSDL::InputEventHandler(RS.rmlui_context, NRS.sdl_window(), event);
+    });
+    // clang-format on
+
+    { /* imgui */
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui::NewFrame();
+        if (ImGui::Begin("Developer"))
         {
-            ImGui::Text("Engine: %p", engine);
-            if (auto scene_001 = engine->scene_001)
+            if (ImGui::Button("Reload UI"))
             {
-                ImGui::Text("Entity_A: %p %d", scene_001, scene_001->scene_index);
-
-                if (auto scene_002 = scene_001->scene_002.reference(scene_001->scene_index))
-                {
-                    ImGui::Text("Entity_B: %p", scene_002);
-
-                    if (auto scene_003 = scene_002->scene_003)
-                    {
-                        ImGui::Text("Entity_C: %p", scene_003);
-
-                        auto &m = scene_003->projection_matrix;
-                        ImGui::Text("%f %f %f %f", m.flat[0], m.flat[1], m.flat[2], m.flat[3]);
-                        ImGui::Text("%f %f %f %f", m.flat[4], m.flat[5], m.flat[6], m.flat[7]);
-                        ImGui::Text("%f %f %f %f", m.flat[8], m.flat[9], m.flat[10], m.flat[113]);
-                        ImGui::Text("%f %f %f %f", m.flat[12], m.flat[13], m.flat[14], m.flat[15]);
-
-                        if (auto root = scene_003->world_root)
-                        {
-                            ImGui::Text("World_Root: %p", root);
-
-                            // clang-format off
-                            iterate_entities(root, [](Entity* entity) 
-                            {
-                                if (entity->type == EntityType::player)
-                                {
-                                    Vec2<float> screen_pos;
-                                    if (RS.project_to_screen(entity->position, &screen_pos))
-                                    {
-                                        ImDrawList* draw_list = ImGui::GetBackgroundDrawList();
-                                        draw_list->AddText(ImVec2(screen_pos.x, screen_pos.y), 0xff00ffff, entity->name.c_str());
-                                    }
-                                    ImGui::Text("%s %p", entity->name.c_str(), entity);
-                                }
-                            });
-                            // clang-format on
-                        }
-                    }
-                }
+                RS.reload_ui();
             }
         }
-    }
-    ImGui::End();
 
-    ImGui::Render();
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        if (RS.player_overlay_on)
+        {
+            if (auto root = NRS.root_node())
+            {
+                // clang-format off
+                iterate_entities(root, [](Entity *entity) 
+                {
+                    if (entity->type == EntityType::player)
+                    {
+                        Vec2<float> screen_pos;
+                        if (RS.project_to_screen(entity->position, &screen_pos))
+                        {
+                            auto bg = ImGui::GetBackgroundDrawList();
+                            bg->AddText(ImVec2(screen_pos.x, screen_pos.y), IM_COL32(255, 0, 0, 170), entity->name.c_str());
+                        }
+                    }
+                });
+                // clang-format on
+            }
+        }
+        ImGui::End();
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    }
+
+    // flush OpenGL errors so they don't propagate to rmlui
+    FLUSH_GL_ERRORS();
+
+    { /* rmlui */
+        RS.update_rmlui();
+        RS.rmlui_context->Update();
+
+        Backend::BeginFrame();
+        RS.rmlui_context->Render();
+        Backend::PresentFrame();
+    }
 
     return RS.real_eglSwapBuffers(dpy, surface);
 }
 
-int hook_SDL_PollEvent(SDL_Event *event)
+static int hook_SDL_PollEvent(SDL_Event *event)
 {
     auto ret = RS.real_SDL_PollEvent(event);
     if (ret)
     {
-        ImGui_ImplSDL2_ProcessEvent(event);
+        RS.event_ring_buffer.push(*event);
+
+        auto steal_processing = false;
+        auto &io = ImGui::GetIO();
+        if (io.WantCaptureMouse || io.WantCaptureKeyboard)
+        {
+            steal_processing = true;
+        }
+
+        if (RS.rmlui_wants_input)
+        {
+            steal_processing = true;
+        }
+
+        if (steal_processing)
+        {
+            while (RS.real_SDL_PollEvent(event))
+            {
+                RS.event_ring_buffer.push(*event);
+            }
+
+            return 0;
+        }
     }
 
     return ret;
@@ -144,14 +176,7 @@ void CachyRS::init_imgui()
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
 
-    if (auto sdl_window = dref<SDL_Window *>(
-            get_globals(),
-            {off(Globals, linux_001),
-             off(Linux001, linux_002),
-             off(Linux002, linux_003),
-             off(Linux003, linux_004),
-             off(Linux004, linux_005),
-             off(Linux005, sdl_window)}))
+    if (auto sdl_window = NRS.sdl_window())
     {
         ImGui_ImplSDL2_InitForOpenGL(sdl_window, nullptr);
     }
@@ -238,6 +263,16 @@ void CachyRS::flush_logs()
     log_stream.flush();
 }
 
+std::string CachyRS::get_configuration_dir()
+{
+    return interop_get_home_directory() + std::string("/.local/share/cachy-rs/");
+}
+
+std::string CachyRS::resolve_configuration(const std::string &file)
+{
+    return get_configuration_dir() + file;
+}
+
 void CachyRS::hook_import(const std::string &symbol, void **original, void *target)
 {
     ImportedFunction fn;
@@ -267,7 +302,7 @@ bool CachyRS::project_to_screen(Vec3<float> scene, Vec2<float> *out)
     {
         return false;
     }
-    
+
     auto matrix = scene_003->projection_matrix;
     auto bounds = ImGui::GetIO().DisplaySize;
 
@@ -296,6 +331,9 @@ bool CachyRS::project_to_screen(Vec3<float> scene, Vec2<float> *out)
 void CachyRS::init()
 {
     init_logging();
+
+    LOG(DEBUG, "Initializing configuration directory at " << get_configuration_dir());
+    std::filesystem::create_directories(std::filesystem::path(get_configuration_dir()));
 
     LOG(INFO, "Initializing process info...");
     init_process_info();

@@ -1,0 +1,43 @@
+<rml>
+
+    <head>
+        <link type="text/rcss" href="main.css" />
+    </head>
+
+    <body>
+        <div class="window">
+            <div class="titlebar">
+                <img class="title-icon" src="assets/logo.svg" />
+                <span class="title">CachyRS</span>
+                <span class="title-version" id="title-version"></span>
+            </div>
+            <div class="tabbar">
+                <button class="tabbutton left" id="home_tab_button">
+                    Home
+                </button>
+                <button class="tabbutton center" id="plugins_tab_button">
+                    Plugins
+                </button>
+                <button class="tabbutton right" id="debug_tab_button">
+                    Debug
+                </button>
+            </div>
+            <div class="content" style="display:none;" id="home_content">
+                <p>Welcome to CachyRS :) WIP.</p>
+            </div>
+            <div class="content" style="display:none;" id="plugins_content">
+
+            </div>
+            <div class="content" style="display:none;" id="debug_content">
+                <div class="checkbox-row">
+                    <input type="checkbox" id="player_overlay_checkbox" />
+                    <div>Player Overlay</div>
+                </div>
+
+                <h2>Projection Matrix</h2>
+                <span class="hr-custom"></span>
+                <pre id="projection"></pre>
+            </div>
+        </div>
+    </body>
+</rml>

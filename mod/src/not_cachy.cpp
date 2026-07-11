@@ -20,4 +20,21 @@ Scene003* NotCachyRS::scene_003()
     return scene_002->scene_003;
 }
 
+WorldNode* NotCachyRS::root_node()
+{
+    return dref<WorldNode*>(scene_003(), {off(Scene003, world_root)});
+}
+
+SDL_Window* NotCachyRS::sdl_window()
+{
+    return dref<SDL_Window *>(
+            RS.get_globals(),
+            {off(Globals, linux_001),
+             off(Linux001, linux_002),
+             off(Linux002, linux_003),
+             off(Linux003, linux_004),
+             off(Linux004, linux_005),
+             off(Linux005, sdl_window)});
+}
+
 NotCachyRS NRS;
