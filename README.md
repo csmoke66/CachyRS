@@ -11,8 +11,6 @@ A third party client for RS3 (and eventually, OSRS.) This is under active develo
 `cd ..`  
 `mkdir ~/.local/share/cachy-rs`  
 `cp -r config/* ~/.local/share/cachy-rs`
-``
-
 ### Windows
 I do not intend to add support for windows. If you would like, you can make a pull request to add support.
 ## Usage
