@@ -5,12 +5,9 @@ A third party client for RS3 (and eventually, OSRS.)
 ## Compiling
 ### Linux
 `git clone https://github.com/csmoke66/CachyRS`  
-`cd CachyRS && mkdir build && cd build`  
-`cmake ..`  
-`make`  
-`cd ..`  
-`mkdir ~/.local/share/cachy-rs`  
-`cp -r config/* ~/.local/share/cachy-rs`
+`cd CachyRS`  
+`chmod +x build.sh`  
+`./build.sh`  
 ## Usage
 1. Run the native RS3 linux client
 2. Place `injector` and `libmod.so` into the same directories

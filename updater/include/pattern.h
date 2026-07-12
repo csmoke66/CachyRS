@@ -7,6 +7,11 @@
 
 #include "type.h"
 
+#include <capstone.h>
+
+//
+// Extracts something specific out of a blob of data.
+//
 template <typename T>
 class Extractor
 {
@@ -14,6 +19,12 @@ public:
     virtual T extract(uint64_t rva, const uint8_t *data) = 0;
 };
 
+//
+// Returns an immediate value extracted from a pattern, usually code.
+//
+// Allows for relative RIP resolving as one of the primary uses of this
+// is extracting relative movs/leas that access data within the binary.
+//
 class ImmExtractor : public Extractor<uint64_t>
 {
 private:
@@ -26,9 +37,45 @@ public:
     ImmExtractor(uint64_t offset_to_data, uint64_t offset, size_t data_size, bool factor_in_rip = false);
 
 public:
-    virtual uint64_t extract(uint64_t rva, const uint8_t *data);
+    uint64_t extract(uint64_t rva, const uint8_t *data) override;
 };
 
+//
+// Returns the RVA of the found pattern + offset.
+//
+class DirectExtractor : public Extractor<uint64_t>
+{
+    uint64_t offset;
+
+public:
+    DirectExtractor(uint64_t offset);
+
+public:
+    uint64_t extract(uint64_t rva, const uint8_t *data) override;
+};
+
+//
+// Exracts menu action handler functions by decoding instructions
+// and counting LEAs until the specific LEA loading the function 
+// is found.
+//
+class MenuActionHandlerExtractor : public Extractor<uint64_t>
+{
+private:
+    csh capstone_handle;
+    uint64_t lea_offset;
+
+public:
+    MenuActionHandlerExtractor(csh capstone_handle, uint64_t lea_offset);
+
+public:
+    uint64_t extract(uint64_t rva, const uint8_t *data) override;
+};
+
+//
+// A non-templated extractor that simply passes extraction into
+// an inner extractor so there's no need to deal with generics.
+//
 class GenericExtractor : public Extractor<uint64_t>
 {
 public:
@@ -38,9 +85,13 @@ public:
     GenericExtractor(void *extractor);
 
 public:
-    virtual uint64_t extract(uint64_t rva, const uint8_t *data);
+    uint64_t extract(uint64_t rva, const uint8_t *data) override;
 };
 
+//
+// An extractor that always returns a constant value. Useful for
+// inserting static fields into generated structs.
+//
 class DummyExtractor : public Extractor<uint64_t>
 {
 private:
@@ -50,9 +101,16 @@ public:
     DummyExtractor(uint64_t v);
 
 public:
-    virtual uint64_t extract(uint64_t rva, const uint8_t *data);
+    uint64_t extract(uint64_t rva, const uint8_t *data) override;
 };
 
+//
+// A pattern. This is simply the base type, so it contains no actual pattern data, 
+// but instead meta-data for the pattern.
+//
+// This includes the name of the found data, the type of the data, and the extractor
+// for extracting the data from the found pattern.
+//
 class Pattern
 {
 public:
@@ -67,6 +125,10 @@ public:
     virtual const uint8_t *find_result(uint8_t *text, Elf64_Shdr text_hdr) = 0;
 };
 
+//
+// A default pattern implementation that scans using integers, where -1 refers
+// to a wild card.
+//
 class DefaultPattern : public Pattern
 {
 public:
@@ -79,6 +141,9 @@ public:
     virtual const uint8_t *find_result(uint8_t *text, Elf64_Shdr text_hdr);
 };
 
+//
+// A dummy pattern. Always returns nullptr.
+//
 class DummyPattern : public Pattern
 {
 public:
@@ -88,6 +153,10 @@ public:
     virtual const uint8_t *find_result(uint8_t *text, Elf64_Shdr text_hdr);
 };
 
+//
+// A pattern object. This is a pattern representation of the fields
+// of an object (e.g. Engine, Entity, etc.)
+//
 struct PatternObject
 {
     std::string name;

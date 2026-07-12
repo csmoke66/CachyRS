@@ -11,14 +11,19 @@ Elf64_Addr ProcessInterface::game_base()
     return game_handle;
 }
 
+Elf64_Addr ProcessInterface::offset(void *a)
+{
+    return (Elf64_Addr)a - game_base();
+}
+
 const std::vector<ImportedFunction> &ProcessInterface::import_view()
 {
     return imports;
 }
 
-bool ProcessInterface::find_import(const std::string& symbol, ImportedFunction* out)
+bool ProcessInterface::find_import(const std::string &symbol, ImportedFunction *out)
 {
-    for (auto& i : imports)
+    for (auto &i : imports)
     {
         if (!i.name.compare(symbol))
         {
@@ -59,7 +64,7 @@ Elf64_Addr ProcessInterface::main_module_base()
         {
             continue;
         }
-        
+
         auto dash = range.find('-');
         return std::stoull(range.substr(0, dash), nullptr, 16);
     }

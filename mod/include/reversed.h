@@ -16,6 +16,21 @@ struct WorldNode;
 struct Scene002;
 struct Scene001;
 struct WorldA;
+class MenuActionTemplate;
+struct MenuActionContext;
+struct ActionMenuContext;
+class Cache003;
+struct Cache002;
+struct CacheBuffer;
+class CacheIndexInner;
+struct CacheIndex;
+struct Cache001;
+struct LocalPlayer;
+struct EntityUpdate;
+struct EntityUpdateCache;
+struct Item;
+struct ItemContainer;
+struct ItemCache;
 
 enum class EntityType : uint8_t
 {
@@ -97,27 +112,6 @@ struct WorldNode
 	// 0x1a0
 	Entity* entity;
 	// 0x1d8
-
-public:
-	__attribute__((always_inline)) inline Vec3<float> center()
-	{
-		return { min.x + (max.x - min.x), min.y + (max.y - min.y), min.z + (max.z - min.z) };
-	}
-
-	__attribute__((always_inline)) inline uint32_t tile_x()
-	{
-		return (uint32_t)(center().x / 512.f);
-	}
-
-	__attribute__((always_inline)) inline uint32_t tile_y()
-	{
-		return (uint32_t)(center().z / 512.f);
-	}
-
-	__attribute__((always_inline)) inline Vec2<uint32_t> tile()
-	{
-		return { tile_x(), tile_y() };
-	}
 };
 static_assert(offsetof(WorldNode, children) == 0x138, INVALID_OFFSET);
 static_assert(offsetof(WorldNode, entity) == 0x1a0, INVALID_OFFSET);
@@ -147,7 +141,219 @@ struct WorldA
 {
 
 };
+
+class MenuActionTemplate
+{
+public:
+	// 0x0
+	PAD(0x18);
+	// 0x18
+	void* handler;
+};
+
+struct MenuActionContext
+{
+	// 0x0
+	PAD(0x38);
+	// 0x38
+	MenuActionTemplate* tmpl;
+	// 0x40
+	PAD(0x8);
+	// 0x48
+	union
+	{
+		int32_t args[4];
+		struct 
+		{
+			uint32_t option_idx;
+			uint32_t sub_idx;
+			uint32_t widget_id;
+			uint32_t always_1;
+		} args_widget;
+		struct
+		{
+			uint32_t server_idx;
+			uint32_t always_0_0;
+			uint32_t always_0_1;
+			uint32_t always_1;
+		} args_npc;
+	};
+};
+
+struct ActionMenuContext
+{
+	// 0x0
+	PAD(0x8);
+	// 0x8
+	MenuActionContext* menu_action_context;
+	// 0x10
+};
+
+
+class Cache003
+{
+public:
+	// 0x0
+	PAD_VT();
+	// 0x8
+	PAD_VT();
+	// 0x10
+	PAD_VT();
+	// 0x18
+	PAD_VT();
+	// 0x20
+	PAD_VT();
+	// 0x28
+	PAD_VT();
+	// 0x30
+	PAD_VT();
+	// 0x38
+	virtual void* test(int id, bool unk) = 0;
+};
+
+struct Cache002
+{
+	// 0x0
+	PAD(0x40);
+	// 0x40
+	Cache003* cache_003;
+	// 0x48
+};
+
+struct CacheBuffer
+{
+	// 0x0
+	void* tag;
+	// 0x8
+	void* body;
+	// 0x10
+};
+
+class CacheIndexInner
+{
+private:
+	// 0x0
+	PAD_VT();
+	// 0x8
+	PAD_VT();
+	// 0x10
+	PAD_VT();
+	// 0x18
+	PAD_VT();
+	// 0x20
+	PAD_VT();
+	// 0x28
+	PAD_VT();
+	// 0x30
+	PAD_VT();
+
+public:
+	// 0x38
+	virtual void* get_cache_descriptor_by_index(uint32_t idx, bool unknown) = 0;
+
+public:
+	// 0x8
+	PAD(0x38);
+	// 0x40
+	uint64_t size;
+	// 0x48
+	JArray<CacheBuffer**> data_buffer;
+};
+
+struct CacheIndex
+{
+	// 0x0
+	PAD(0x30);
+	// 0x30
+	uint32_t current_size;
+	// 0x34
+	uint32_t max_size;
+	// 0x38
+	PAD(0x8);
+	// 0x40
+	CacheIndexInner* inner;
+	// 0x48
+};
+
+struct Cache001
+{
+	// 0x0
+	PAD(0xa8);
+	// 0xa8
+	CacheIndex** indices;
+	// 0xb0
+	PAD(0x110);
+	// 0x1c0
+	Cache002* cache_002;
+	// 0x1c8
+};
+
+struct LocalPlayer
+{
+	// 0x0
+	PAD(0x48);
+	// 0x48
+	int32_t entity_list_index;
+	// 0x4c
+	PAD(0x48);
+	// 0x68
+	const char name[64];
+};
+
+
+struct EntityUpdate
+{
+	// 0x0
+	PAD(0x38);
+	// 0x38
+	Entity* entity;
+	// 0x40
+};
+
+struct EntityUpdateCache
+{
+	// 0x0
+	PAD(0x10);
+	// 0x10
+	JArray<EntityUpdate*> updates;
+	// 0x20
+};
+struct Item
+{
+	// 0x0
+	int32_t id;
+	// 0x4
+	int32_t amount;
+	// 0xc
+};
+
+struct ItemContainer
+{
+	PAD(0x10);
+	// 0x10
+	uint32_t id;
+	// 0x14
+	PAD(0x4);
+	// 0x18
+	JArray<Item> items;
+	// 0x28
+	PAD(0x20);
+	// 0x48
+};
+static_assert(sizeof(ItemContainer) == 0x48, INVALID_SIZE);
+
+struct ItemCache
+{
+	// 0x0
+	PAD(0x8);
+	// 0x8
+	JArray<ItemContainer> containers;
+	// 0x18
+};
 #pragma pack(pop)
 
 typedef EGLBoolean (*FnEglSwapBuffers)(EGLDisplay dpy, EGLSurface surface);
 typedef int (*FnSDL_PollEvent)(SDL_Event* event);
+typedef void* (*FnMenuExecute)(void* menu_context, ActionMenuContext* context, void* unk_003);
+typedef void* (*FnHeapAllocate)(void* heap, size_t size, size_t alignment);
+typedef void* (*FnHeapAllocateAligned)(size_t size);

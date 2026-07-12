@@ -17,148 +17,7 @@
 #include <imgui_impl_opengl3.h>
 #include <imgui_impl_sdl2.h>
 
-#include "cachy_rmlui.h"
-
 CachyRS RS;
-
-template <typename FN>
-void iterate_entities(WorldNode *node, FN fn)
-{
-    if (auto entity = node->entity)
-    {
-        fn(entity);
-    }
-
-    for (auto c = node->children.begin; c != node->children.end; c++)
-    {
-        iterate_entities(*c, fn);
-    }
-}
-
-uint64_t hook_eglSwapBuffers(EGLDisplay dpy, EGLSurface surface)
-{
-#define FLUSH_GL_ERRORS() while (glGetError() != GL_NO_ERROR)
-
-    static EGLint cached_width, cached_height;
-    static bool is_first_run = true;
-
-    auto& io = ImGui::GetIO();
-
-    EGLint width, height;
-    eglQuerySurface(dpy, surface, EGL_WIDTH, &width);
-    eglQuerySurface(dpy, surface, EGL_HEIGHT, &height);
-
-    if (is_first_run)
-    {
-        ImGui_ImplOpenGL3_Init("#version 330"); // TODO FIXME check error
-        RS.init_rmlui(width, height);
-
-        // flush OpenGL errors so they don't propagate to rmlui
-        FLUSH_GL_ERRORS();
-
-        is_first_run = false;
-    }
-
-    if (cached_width != width || cached_height != height)
-    {
-        cached_width = width;
-        cached_height = height;
-
-        io.DisplaySize = ImVec2(width, height);
-        io.DeltaTime = 1.0f / 60.0f;
-    }
-
-    // clang-format off
-    RS.event_ring_buffer.process([](auto& event)
-    {
-        ImGui_ImplSDL2_ProcessEvent(&event);
-        RS.rmlui_wants_input = !RmlSDL::InputEventHandler(RS.rmlui_context, NRS.sdl_window(), event);
-    });
-    // clang-format on
-
-    { /* imgui */
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui::NewFrame();
-        if (ImGui::Begin("Developer"))
-        {
-            if (ImGui::Button("Reload UI"))
-            {
-                RS.reload_ui();
-            }
-        }
-
-        if (RS.player_overlay_on)
-        {
-            if (auto root = NRS.root_node())
-            {
-                // clang-format off
-                iterate_entities(root, [](Entity *entity) 
-                {
-                    if (entity->type == EntityType::player)
-                    {
-                        Vec2<float> screen_pos;
-                        if (RS.project_to_screen(entity->position, &screen_pos))
-                        {
-                            auto bg = ImGui::GetBackgroundDrawList();
-                            bg->AddText(ImVec2(screen_pos.x, screen_pos.y), IM_COL32(255, 0, 0, 170), entity->name.c_str());
-                        }
-                    }
-                });
-                // clang-format on
-            }
-        }
-        ImGui::End();
-        ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-    }
-
-    // flush OpenGL errors so they don't propagate to rmlui
-    FLUSH_GL_ERRORS();
-
-    { /* rmlui */
-        RS.update_rmlui();
-        RS.rmlui_context->Update();
-
-        Backend::BeginFrame();
-        RS.rmlui_context->Render();
-        Backend::PresentFrame();
-    }
-
-    return RS.real_eglSwapBuffers(dpy, surface);
-}
-
-static int hook_SDL_PollEvent(SDL_Event *event)
-{
-    auto ret = RS.real_SDL_PollEvent(event);
-    if (ret)
-    {
-        RS.event_ring_buffer.push(*event);
-
-        auto steal_processing = false;
-        auto &io = ImGui::GetIO();
-        if (io.WantCaptureMouse || io.WantCaptureKeyboard)
-        {
-            steal_processing = true;
-        }
-
-        if (RS.rmlui_wants_input)
-        {
-            steal_processing = true;
-        }
-
-        if (steal_processing)
-        {
-            while (RS.real_SDL_PollEvent(event))
-            {
-                RS.event_ring_buffer.push(*event);
-            }
-
-            return 0;
-        }
-    }
-
-    return ret;
-}
 
 void CachyRS::init_logging()
 {
@@ -273,23 +132,6 @@ std::string CachyRS::resolve_configuration(const std::string &file)
     return get_configuration_dir() + file;
 }
 
-void CachyRS::hook_import(const std::string &symbol, void **original, void *target)
-{
-    ImportedFunction fn;
-    if (pi.find_import(symbol, &fn))
-    {
-        auto page = (Elf64_Addr)fn.addr & ~(getpagesize() - 1);
-
-        mprotect((void *)page, getpagesize(), PROT_READ | PROT_WRITE);
-        if (original)
-        {
-            *original = (void *)*fn.addr;
-        }
-        *fn.addr = (Elf64_Addr)target;
-        mprotect((void *)page, getpagesize(), PROT_READ);
-    }
-}
-
 Globals *CachyRS::get_globals()
 {
     return (Globals *)pi.game_base();
@@ -341,7 +183,15 @@ void CachyRS::init()
     LOG(INFO, "Initializing ImGui...");
     init_imgui();
 
+    LOG(INFO, "Initializing UI...");
+    ui = new RmlUserInterface();
+
+    LOG(INFO, "Initializing capstone...");
+    asm_init();
+
     LOG(INFO, "Placing hooks...");
-    hook_import("eglSwapBuffers", (void **)&RS.real_eglSwapBuffers, (void *)&hook_eglSwapBuffers);
-    hook_import("SDL_PollEvent", (void **)&RS.real_SDL_PollEvent, (void *)&hook_SDL_PollEvent);
+    hook_manager = new HookManager(&pi);
+    hook_manager->iat("swap_buffers", "eglSwapBuffers", (Hook<void*>*)&hook_egl_swap_buffers);
+    hook_manager->iat("poll_event", "SDL_PollEvent", (Hook<void*>*)&hook_sdl_poll_event);
+    hook_manager->x86("menu_execute", &get_globals()->menu_execute, (Hook<void *> *)&hook_menu_execute);
 }

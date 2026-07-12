@@ -102,7 +102,14 @@ std::vector<Object> match_to_object(uint8_t *text, Elf64_Shdr text_hdr, std::vec
             auto file_offset = text_hdr.sh_offset + section_offset;
             auto vaddr = text_hdr.sh_addr + section_offset;
 
-            obj.fields.push_back({pattern->name, pattern->extractor->extract(vaddr, result), pattern->type});
+            auto extracted = pattern->extractor->extract(vaddr, result);
+            if (!extracted)
+            {
+                LOG(ERROR, "Failed to extract " << obj.name << "." << pattern->name);
+                continue;
+            }
+
+            obj.fields.push_back({pattern->name, extracted, pattern->type});
         }
         matched.push_back(obj);
     }

@@ -8,6 +8,11 @@ add_executable(updater
     src/header_compiler.cpp
 )
 
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(capstone REQUIRED IMPORTED_TARGET capstone)
+
 target_include_directories(updater PRIVATE include)
 
-target_link_libraries(updater)
+target_link_libraries(updater
+    PkgConfig::capstone
+)

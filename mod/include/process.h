@@ -28,7 +28,8 @@ private:
 
 public:
     Elf64_Addr game_base();
-
+    Elf64_Addr offset(void* a);
+    
 public:
     const std::vector<ImportedFunction> &import_view();
     bool find_import(const std::string& symbol, ImportedFunction* out);

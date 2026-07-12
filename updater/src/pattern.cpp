@@ -1,5 +1,7 @@
 #include "pattern.h"
 #include "updater.h"
+#include <cstring>
+#include <iostream>
 
 ImmExtractor::ImmExtractor(uint64_t offset_to_data, uint64_t offset, size_t data_size, bool factor_in_rip)
 {
@@ -39,6 +41,61 @@ uint64_t ImmExtractor::extract(uint64_t rva, const uint8_t *data)
     return v + offset;
 }
 
+DirectExtractor::DirectExtractor(uint64_t offset)
+{
+    this->offset = offset;
+}
+
+uint64_t DirectExtractor::extract(uint64_t rva, const uint8_t *data)
+{
+    return rva;
+}
+
+MenuActionHandlerExtractor::MenuActionHandlerExtractor(csh capstone_handle, uint64_t lea_offset)
+{
+    this->capstone_handle = capstone_handle;
+    this->lea_offset = lea_offset;
+}
+
+uint64_t MenuActionHandlerExtractor::extract(uint64_t rva, const uint8_t *data)
+{
+    uint64_t lea_count = 0;
+
+    size_t count;
+    cs_insn *insn;
+
+    auto ret = false;
+
+    while (!ret)
+    {
+        count = cs_disasm(capstone_handle, (const uint8_t *)data, 0x15, (uint64_t)rva, 0, &insn);
+
+        if (insn->id == X86_INS_LEA)
+        {
+            auto x86 = &(insn->detail->x86);
+            auto mem = x86->operands[1].mem;
+
+            auto rip = rva + mem.disp + 7;
+            std::cout << "LEA: 0x" << std::hex << rip << "@" << std::dec << lea_count << std::endl;
+            if (lea_count == lea_offset)
+            {
+                return rip;
+            }
+
+            lea_count += 1;
+        }
+        else if (insn->id == X86_INS_RET)
+        {
+            ret = true;
+        }
+
+        data += insn->size;
+        rva += insn->size;
+    }
+
+    return 0;
+}
+
 GenericExtractor::GenericExtractor(void *extractor)
 {
     this->nested = (Extractor<uint64_t> *)extractor;
@@ -73,7 +130,7 @@ DefaultPattern::DefaultPattern(std::string name, std::vector<int> pattern, Type 
 
 const uint8_t *DefaultPattern::find_result(uint8_t *text, Elf64_Shdr text_hdr)
 {
-    const uint8_t* found;
+    const uint8_t *found;
     pattern_scan(text, text_hdr.sh_size, pattern, &found);
     return found;
 }

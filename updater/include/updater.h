@@ -1,10 +1,13 @@
 #pragma once
 #include <string>
 #include <vector>
+#include <iostream>
 
 #include "type.h"
 #include "elf.h"
 #include "pattern.h"
+
+#define LOG(LEVEL, ...) std::cout << "[" << __FUNCTION__ << "]" << "[" << #LEVEL << "] " << __VA_ARGS__ << std::dec << std::endl
 
 enum class Status
 {
