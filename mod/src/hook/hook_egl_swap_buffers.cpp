@@ -10,7 +10,7 @@
 #define FLUSH_GL_ERRORS() while (glGetError() != GL_NO_ERROR) {}
 
 template <typename FN>
-void iterate_entities(WorldNode *node, FN fn)
+void iterate_entities(const WorldNode *node, FN fn)
 {
     if (auto entity = node->entity)
     {
@@ -77,7 +77,7 @@ void EglSwapBuffersHook::handler(CpuState *cpu_state)
             if (auto root = NRS.root_node())
             {
                 // clang-format off
-                iterate_entities(root, [](Entity *entity) 
+                iterate_entities(root, [](const Entity *entity) 
                 {
                     if (entity->type == EntityType::player)
                     {

@@ -3,10 +3,10 @@
 class NotCachyRS
 {
 public:
-    Scene003* scene_003();
-    WorldNode* root_node();
-    SDL_Window* sdl_window();
-    ItemCache* item_cache();
+    const Scene003* scene_003() const;
+    const WorldNode* root_node() const;
+    SDL_Window* sdl_window() const;
+    const ItemCache* item_cache() const;
 };
 
 extern NotCachyRS NRS;

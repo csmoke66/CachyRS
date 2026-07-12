@@ -130,47 +130,47 @@ std::vector<PatternObject> build_pattern_objects()
         
         new DummyPattern{
             "window_state",
-            { "WindowState*", 8},
+            { "const WindowState*", 8},
             new DummyExtractor(0x90)},
         new DefaultPattern{
             "time",
             compile_ida_pattern("44 2B A3 ? ? ? ? 41 83 FC ? 0F 87 ? ? ? ? 45 84 C9"),
-            { "uint32_t", 4, },
+            { "const uint32_t", 4, },
             new ImmExtractor(0x3, 0x0, 4)},
         new DefaultPattern{
             "state",
             compile_ida_pattern("83 BF ? ? ? ? ? 74 ? 6B D6 1E"),
-            { "GameState", 4 },
+            { "const GameState", 4 },
             new ImmExtractor(0x2, 0x0, 4)},
         new DefaultPattern{
             "cache",
             compile_ida_pattern("4C 8B 87 ? ? ? ? 48 8D 8F"),
-            { "Cache001*", 8, },
+            { "const Cache001*", 8, },
             new ImmExtractor(0x3, 0x0, 4)},
         new DefaultPattern{
             "item_cache",
             compile_ida_pattern("4C 8B AA ? ? ? ? 4D 8B 7D"),
-            { "ItemCache*", 8, },
+            { "const ItemCache*", 8, },
             new ImmExtractor(0x3, 0x0, 4)},
         new DefaultPattern{
             "local_player",
             compile_ida_pattern("48 8B BF ? ? ? ? 48 85 FF 74 ? 48 89 74 24"),
-            { "LocalPlayer*", 8, },
+            { "const LocalPlayer*", 8, },
             new ImmExtractor(0x3, 0x0, 4)},
         new DefaultPattern{
             "entity_update_cache",
             compile_ida_pattern("49 8B B4 24 ? ? ? ? 0F 84 ? ? ? ? 44 8B 4A"),
-            { "EntityUpdateCache*", 8, },
+            { "const EntityUpdateCache*", 8, },
             new ImmExtractor(0x4, 0x0, 4)},
         new DefaultPattern{
             "world_a",
             compile_ida_pattern("4D 8B B3 ? ? ? ? 41 80 BE"),
-            { "WorldA*", 8, },
+            { "const WorldA*", 8, },
             new ImmExtractor(0x3, 0x0, 4)},
         new DefaultPattern{
             "scene_001",
             compile_ida_pattern("4C 8B 95 ? ? ? ? 49 63 72"),
-            { "Scene001*", 8, },
+            { "const Scene001*", 8, },
             new ImmExtractor(0x3, 0x0, 4)},
     }});
     
@@ -178,12 +178,12 @@ std::vector<PatternObject> build_pattern_objects()
         new DefaultPattern{
             "projection_matrix",
             compile_ida_pattern("48 8D 96 ? ? ? ? 48 81 C6 ? ? ? ? 41 8B 88"),
-            { "Matrix4x4", 64, },
+            { "const Matrix4x4", 64, },
             new ImmExtractor(0x3, 0x0, 4)},
         new DefaultPattern{
             "world_root",
             compile_ida_pattern("48 8B AF ? ? ? ? 48 89 7C 24"),
-            { "WorldNode*", 8, },
+            { "const WorldNode*", 8, },
             new ImmExtractor(0x3, 0x0, 4)},
 
             
@@ -192,22 +192,22 @@ std::vector<PatternObject> build_pattern_objects()
     objects.push_back({"Entity", {
         new DummyPattern{
             "type",
-            { "EntityType", 1},
+            { "const EntityType", 1},
             new DummyExtractor(0x10)},
         new DefaultPattern{
             "position",
             compile_ida_pattern("F3 44 0F 11 83 ? ? ? ? F3 44 0F 11 8B ? ? ? ? F3 0F 11 83"),
-            { "Vec3<float>", 12, },
+            { "const Vec3<float>", 12, },
             new ImmExtractor(0x5, 0x0, 4)},
         new DefaultPattern{
             "name",
             compile_ida_pattern("48 8B 8B ? ? ? ? E9 ? ? ? ? 0F 1F 40 ? 44 8B 83"),
-            { "JString", 24, },
+            { "const JString", 24, },
             new ImmExtractor(0x3, 0x0, 4)},
         new DefaultPattern{
             "status",
             compile_ida_pattern("4D 8B 95 ? ? ? ? 89 C1"),
-            { "EntityStatus*", 4, },
+            { "const EntityStatus*", 4, },
             new ImmExtractor(0x3, 0x0, 4)},
 
             

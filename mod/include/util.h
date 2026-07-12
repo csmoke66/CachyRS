@@ -11,12 +11,12 @@ void* allocate_executable_memory(void* data, size_t size);
 void patch_non_writable_memory(void* target, void* data, size_t size, int prot);
 
 template <typename T, typename... A>
-FINLINE T dref(void *obj, std::initializer_list<uint64_t> args)
+FINLINE T dref(const void *obj, std::initializer_list<uint64_t> args)
 {
-    void *last = obj;
+    const void *last = obj;
     for (auto a : args)
     {
-        last = *((void **)((char *)last + a));
+        last = *((const void **)((const char *)last + a));
     }
 
     return (T)last;

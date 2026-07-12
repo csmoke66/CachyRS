@@ -13,7 +13,7 @@
 
 #include <stdarg.h>
 
-#define FEATURE_VERSION "0.0.9"
+#define FEATURE_VERSION "0.0.10"
 
 #define LOG(LVL, ...)                                                                                     \
     RS.log_mutex.lock();                                                                                  \
@@ -49,16 +49,16 @@ public:
     void flush_logs();
 
 public:
-    std::string get_configuration_dir();
-    std::string resolve_configuration(const std::string &file);
+    std::string get_configuration_dir() const;
+    std::string resolve_configuration(const std::string &file) const;
 
 public:
 
 public:
-    Globals *get_globals();
+    Globals *get_globals() const;
 
 public:
-    bool project_to_screen(Vec3<float> scene, Vec2<float> *out);
+    bool project_to_screen(const Vec3<float> scene, Vec2<float> *out) const;
 
 public:
     void init();

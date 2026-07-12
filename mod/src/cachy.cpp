@@ -122,22 +122,22 @@ void CachyRS::flush_logs()
     log_stream.flush();
 }
 
-std::string CachyRS::get_configuration_dir()
+std::string CachyRS::get_configuration_dir() const
 {
     return interop_get_home_directory() + std::string("/.local/share/cachy-rs/");
 }
 
-std::string CachyRS::resolve_configuration(const std::string &file)
+std::string CachyRS::resolve_configuration(const std::string &file) const
 {
     return get_configuration_dir() + file;
 }
 
-Globals *CachyRS::get_globals()
+Globals *CachyRS::get_globals() const
 {
     return (Globals *)pi.game_base();
 }
 
-bool CachyRS::project_to_screen(Vec3<float> scene, Vec2<float> *out)
+bool CachyRS::project_to_screen(const Vec3<float> scene, Vec2<float> *out) const
 {
     auto scene_003 = NRS.scene_003();
     if (!scene_003)

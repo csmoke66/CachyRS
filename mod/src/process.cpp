@@ -6,22 +6,22 @@
 #include <fstream>
 #include <sstream>
 
-Elf64_Addr ProcessInterface::game_base()
+Elf64_Addr ProcessInterface::game_base() const
 {
     return game_handle;
 }
 
-Elf64_Addr ProcessInterface::offset(void *a)
+Elf64_Addr ProcessInterface::offset(const void *a) const
 {
     return (Elf64_Addr)a - game_base();
 }
 
-const std::vector<ImportedFunction> &ProcessInterface::import_view()
+const std::vector<ImportedFunction> &ProcessInterface::import_view() const
 {
     return imports;
 }
 
-bool ProcessInterface::find_import(const std::string &symbol, ImportedFunction *out)
+bool ProcessInterface::find_import(const std::string &symbol, ImportedFunction *out) const
 {
     for (auto &i : imports)
     {
@@ -36,7 +36,7 @@ bool ProcessInterface::find_import(const std::string &symbol, ImportedFunction *
     return false;
 }
 
-Elf64_Addr ProcessInterface::main_module_base()
+Elf64_Addr ProcessInterface::main_module_base() const
 {
     char exe[PATH_MAX];
     ssize_t len = readlink("/proc/self/exe", exe, sizeof(exe) - 1);

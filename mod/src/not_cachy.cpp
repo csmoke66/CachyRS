@@ -1,7 +1,7 @@
 #include "not_cachy.h"
 #include "cachy.h"
 
-Scene003 *NotCachyRS::scene_003()
+const Scene003 *NotCachyRS::scene_003() const
 {
     auto globals = RS.get_globals();
     auto engine = globals->engine;
@@ -20,12 +20,12 @@ Scene003 *NotCachyRS::scene_003()
     return scene_002->scene_003;
 }
 
-WorldNode *NotCachyRS::root_node()
+ const WorldNode *NotCachyRS::root_node() const
 {
-    return dref<WorldNode *>(scene_003(), {off(Scene003, world_root)});
+    return dref<const WorldNode *>(scene_003(), {off(Scene003, world_root)});
 }
 
-SDL_Window *NotCachyRS::sdl_window()
+SDL_Window *NotCachyRS::sdl_window() const
 {
     return dref<SDL_Window *>(
         RS.get_globals(),
@@ -37,9 +37,9 @@ SDL_Window *NotCachyRS::sdl_window()
          off(Linux005, sdl_window)});
 }
 
-ItemCache *NotCachyRS::item_cache()
+const ItemCache *NotCachyRS::item_cache() const
 {
-    return dref<ItemCache *>(
+    return dref<const ItemCache *>(
         RS.get_globals(),
         {off(Globals, engine),
          off(Engine, item_cache)});

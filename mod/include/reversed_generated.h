@@ -61,23 +61,23 @@ static_assert(offsetof(Globals, heap) == 0x16a1130, "Invalid offset");
 struct Engine
 {
 	PAD(0x90);
-	WindowState* window_state;
+	const WindowState* window_state;
 	PAD(0x46c);
-	uint32_t time;
+	const uint32_t time;
 	PAD(0x187b0);
-	Cache001* cache;
+	const Cache001* cache;
 	PAD(0x818);
-	EntityUpdateCache* entity_update_cache;
+	const EntityUpdateCache* entity_update_cache;
 	PAD(0x58);
-	WorldA* world_a;
+	const WorldA* world_a;
 	PAD(0x10);
-	ItemCache* item_cache;
+	const ItemCache* item_cache;
 	PAD(0x0);
-	Scene001* scene_001;
+	const Scene001* scene_001;
 	PAD(0x5c8);
-	GameState state;
+	const GameState state;
 	PAD(0x4);
-	LocalPlayer* local_player;
+	const LocalPlayer* local_player;
 };
 static_assert(offsetof(Engine, window_state) == 0x90, "Invalid offset");
 static_assert(offsetof(Engine, time) == 0x504, "Invalid offset");
@@ -92,9 +92,9 @@ static_assert(offsetof(Engine, local_player) == 0x19b30, "Invalid offset");
 struct Scene003
 {
 	PAD(0x10170);
-	WorldNode* world_root;
+	const WorldNode* world_root;
 	PAD(0x3088);
-	Matrix4x4 projection_matrix;
+	const Matrix4x4 projection_matrix;
 };
 static_assert(offsetof(Scene003, world_root) == 0x10170, "Invalid offset");
 static_assert(offsetof(Scene003, projection_matrix) == 0x13200, "Invalid offset");
@@ -102,13 +102,13 @@ static_assert(offsetof(Scene003, projection_matrix) == 0x13200, "Invalid offset"
 struct Entity
 {
 	PAD(0x10);
-	EntityType type;
+	const EntityType type;
 	PAD(0x7f);
-	JString name;
+	const JString name;
 	PAD(0x1c8);
-	Vec3<float> position;
+	const Vec3<float> position;
 	PAD(0xc7c);
-	EntityStatus* status;
+	const EntityStatus* status;
 };
 static_assert(offsetof(Entity, type) == 0x10, "Invalid offset");
 static_assert(offsetof(Entity, name) == 0x90, "Invalid offset");

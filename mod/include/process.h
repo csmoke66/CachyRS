@@ -27,15 +27,15 @@ private:
     std::vector<ImportedFunction> imports;
 
 public:
-    Elf64_Addr game_base();
-    Elf64_Addr offset(void* a);
+    Elf64_Addr game_base() const;
+    Elf64_Addr offset(const void* a) const;
     
 public:
-    const std::vector<ImportedFunction> &import_view();
-    bool find_import(const std::string& symbol, ImportedFunction* out);
+    const std::vector<ImportedFunction> &import_view() const;
+    bool find_import(const std::string& symbol, ImportedFunction* out) const;
 
 private:
-    Elf64_Addr main_module_base();
+    Elf64_Addr main_module_base() const;
     void init_game_handle();
 
 public:

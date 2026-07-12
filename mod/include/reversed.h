@@ -3,6 +3,9 @@
 #include <SDL2/SDL.h>
 #include <cstdint>
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wuninitialized"
+
 #include "reversed_util.h"
 #include "reversed_manual_base.h"
 
@@ -58,7 +61,7 @@ struct Linux005
 	// 0x0
 	PAD(0x28);
 	// 0x28
-	SDL_Window* sdl_window;
+	const SDL_Window* sdl_window;
 };
 
 struct Linux004
@@ -66,7 +69,7 @@ struct Linux004
 	// 0x0
 	PAD(0x90);
 	// 0x90
-	Linux005* linux_005;
+	const Linux005* linux_005;
 };
 
 struct Linux003
@@ -74,7 +77,7 @@ struct Linux003
 	// 0x0
 	PAD(0x8);
 	// 0x8
-	Linux004* linux_004;
+	const Linux004* linux_004;
 };
 
 struct Linux002
@@ -82,7 +85,7 @@ struct Linux002
 	// 0x0
 	PAD(0x30);
 	// 0x30
-	Linux003* linux_003;
+	const Linux003* linux_003;
 };
 
 struct Linux001
@@ -90,7 +93,7 @@ struct Linux001
 	// 0x0
 	PAD(0x1b8);
 	// 0x1b8
-	Linux002* linux_002;
+	const Linux002* linux_002;
 };
 
 struct WindowState
@@ -98,7 +101,7 @@ struct WindowState
 	// 0x0
 	PAD(0x28);
 	// 0x28
-	SDL_Window* window;
+	const SDL_Window* window;
 };
 
 struct WorldNode
@@ -106,19 +109,19 @@ struct WorldNode
 	// 0x0
     PAD(0x50);
 	// 0x50
-	Vec3<float> max;
+	const Vec3<const float> max;
 	// 0x5c
     PAD(0x24);
 	// 0x80
-	Vec3<float> min;
+	const Vec3<const float> min;
 	// 0x8c
     PAD(0xAC);
 	// 0x138
-	JArray<WorldNode*> children;
+	const JArray<const WorldNode*> children;
 	// 0x148
     PAD(0x58);
 	// 0x1a0
-	Entity* entity;
+	const Entity* entity;
 	// 0x1d8
 };
 static_assert(off(WorldNode, children) == 0x138, INVALID_OFFSET);
@@ -129,7 +132,7 @@ struct Scene002
     // 0x0
     PAD(0x8);
     // 0x8
-    Scene003* scene_003;
+    const Scene003* scene_003;
 };
 
 struct Scene001
@@ -137,11 +140,11 @@ struct Scene001
     // 0x0
     PAD(0x58);
     // 0x58
-    JArray<Scene002> scene_002;
+    const JArray<const Scene002> scene_002;
     // 0x68
     PAD(0x8);
     // 0x70
-    int32_t scene_index;
+    const int32_t scene_index;
 };
 static_assert(off(Scene001, scene_index) == 0x70, INVALID_OFFSET);
 
@@ -156,7 +159,7 @@ public:
 	// 0x0
 	PAD(0x18);
 	// 0x18
-	void* handler;
+	const void* handler;
 };
 
 struct MenuActionContext
@@ -164,26 +167,26 @@ struct MenuActionContext
 	// 0x0
 	PAD(0x38);
 	// 0x38
-	MenuActionTemplate* tmpl;
+	const MenuActionTemplate* tmpl;
 	// 0x40
 	PAD(0x8);
 	// 0x48
 	union
 	{
-		int32_t args[4];
+		const int32_t args[4];
 		struct 
 		{
-			uint32_t option_idx;
-			uint32_t sub_idx;
-			uint32_t widget_id;
-			uint32_t always_1;
+			const uint32_t option_idx;
+			const uint32_t sub_idx;
+			const uint32_t widget_id;
+			const uint32_t always_1;
 		} args_widget;
 		struct
 		{
-			uint32_t server_idx;
-			uint32_t always_0_0;
-			uint32_t always_0_1;
-			uint32_t always_1;
+			const uint32_t server_idx;
+			const uint32_t always_0_0;
+			const uint32_t always_0_1;
+			const uint32_t always_1;
 		} args_npc;
 	};
 };
@@ -193,7 +196,7 @@ struct ActionMenuContext
 	// 0x0
 	PAD(0x8);
 	// 0x8
-	MenuActionContext* menu_action_context;
+	const MenuActionContext* menu_action_context;
 	// 0x10
 };
 
@@ -224,16 +227,16 @@ struct Cache002
 	// 0x0
 	PAD(0x40);
 	// 0x40
-	Cache003* cache_003;
+	const Cache003* cache_003;
 	// 0x48
 };
 
 struct CacheBuffer
 {
 	// 0x0
-	void* tag;
+	const void* tag;
 	// 0x8
-	void* body;
+	const void* body;
 	// 0x10
 };
 
@@ -263,9 +266,9 @@ public:
 	// 0x8
 	PAD(0x38);
 	// 0x40
-	uint64_t size;
+	const uint64_t size;
 	// 0x48
-	JArray<CacheBuffer**> data_buffer;
+	const JArray<const CacheBuffer**> data_buffer;
 };
 
 struct CacheIndex
@@ -273,13 +276,13 @@ struct CacheIndex
 	// 0x0
 	PAD(0x30);
 	// 0x30
-	uint32_t current_size;
+	const uint32_t current_size;
 	// 0x34
-	uint32_t max_size;
+	const uint32_t max_size;
 	// 0x38
 	PAD(0x8);
 	// 0x40
-	CacheIndexInner* inner;
+	const CacheIndexInner* inner;
 	// 0x48
 };
 
@@ -288,11 +291,11 @@ struct Cache001
 	// 0x0
 	PAD(0xa8);
 	// 0xa8
-	CacheIndex** indices;
+	const CacheIndex** indices;
 	// 0xb0
 	PAD(0x110);
 	// 0x1c0
-	Cache002* cache_002;
+	const Cache002* cache_002;
 	// 0x1c8
 };
 
@@ -301,7 +304,7 @@ struct StatusBarConfig
 	// 0x0
 	PAD(0x8);
 	// 0x8
-	uint32_t id;
+	const uint32_t id;
 };
 
 struct StatusBarData
@@ -309,20 +312,20 @@ struct StatusBarData
 	// 0x0
 	PAD(0x10);
 	// 0x10
-	StatusBarConfig* config;
+	const StatusBarConfig* config;
 	// 0x18
 	PAD(0x18);
 	// 0x30
-	int32_t display_time;
+	const int32_t display_time;
 	// 0x34
-	uint8_t value;
+	const uint8_t value;
 };
 static_assert(off(StatusBarData, display_time) == 0x30, INVALID_SIZE);
 
 struct StatusBar
 {
 	// 0x0
-	StatusBarData* data;
+	const StatusBarData* data;
 	// 0x8
 	PAD(0x1a8);
 	// 0x1b0
@@ -334,7 +337,7 @@ struct EntityStatus
 	// 0x0
 	PAD(0x28);
 	// 0x28
-	JArray<StatusBar> bars;
+	const JArray<const StatusBar> bars;
 	// 0x30
 };
 
@@ -343,7 +346,7 @@ struct LocalPlayer
 	// 0x0
 	PAD(0x48);
 	// 0x48
-	int32_t entity_list_index;
+	const int32_t entity_list_index;
 	// 0x4c
 	PAD(0x48);
 	// 0x68
@@ -355,7 +358,7 @@ struct EntityUpdate
 	// 0x0
 	PAD(0x38);
 	// 0x38
-	Entity* entity;
+	const Entity* entity;
 	// 0x40
 };
 
@@ -364,15 +367,15 @@ struct EntityUpdateCache
 	// 0x0
 	PAD(0x10);
 	// 0x10
-	JArray<EntityUpdate*> updates;
+	const JArray<const EntityUpdate*> updates;
 	// 0x20
 };
 struct Item
 {
 	// 0x0
-	int32_t id;
+	const int32_t id;
 	// 0x4
-	int32_t amount;
+	const int32_t amount;
 	// 0xc
 };
 
@@ -380,11 +383,11 @@ struct ItemContainer
 {
 	PAD(0x10);
 	// 0x10
-	uint32_t id;
+	const uint32_t id;
 	// 0x14
 	PAD(0x4);
 	// 0x18
-	JArray<Item> items;
+	const JArray<const Item> items;
 	// 0x28
 	PAD(0x20);
 	// 0x48
@@ -396,13 +399,15 @@ struct ItemCache
 	// 0x0
 	PAD(0x8);
 	// 0x8
-	JArray<ItemContainer> containers;
+	const JArray<const ItemContainer> containers;
 	// 0x18
 };
 #pragma pack(pop)
 
 typedef EGLBoolean (*FnEglSwapBuffers)(EGLDisplay dpy, EGLSurface surface);
 typedef int (*FnSDL_PollEvent)(SDL_Event* event);
-typedef void* (*FnMenuExecute)(void* menu_context, ActionMenuContext* context, void* unk_003);
+typedef void* (*FnMenuExecute)(void* menu_context, const ActionMenuContext* context, void* unk_003);
 typedef void* (*FnHeapAllocate)(void* heap, size_t size, size_t alignment);
 typedef void* (*FnHeapAllocateAligned)(size_t size);
+
+#pragma GCC diagnostic pop

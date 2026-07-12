@@ -13,13 +13,13 @@ struct JArray
     T* end;
     // 0x10
 
-	FINLINE size_t size()
+	FINLINE size_t size() const
 	{
 		auto raw_distance = (uint64_t)end - (uint64_t)begin;
 		return raw_distance / sizeof(T);
 	}
 
-	FINLINE bool is_valid(size_t idx)
+	FINLINE bool is_valid(size_t idx) const
 	{
 		if (begin == end)
 		{
@@ -29,7 +29,7 @@ struct JArray
 		return idx < size();
 	}
 
-	FINLINE T* reference(size_t idx)
+	FINLINE T* reference(size_t idx) const
 	{
 		if (!is_valid(idx))
 		{
@@ -46,7 +46,7 @@ class JString
 public:
 	union
 	{
-		char data[0x17];
+		const char data[0x17];
 		struct
 		{
 			char* data_ptr;
@@ -63,7 +63,7 @@ public:
 	};
 
 public:
-	FINLINE char* c_str()
+	FINLINE const char* c_str() const
 	{
 		if (flag == 0x80)
 		{
