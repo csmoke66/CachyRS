@@ -31,6 +31,7 @@ struct EntityUpdateCache;
 struct Item;
 struct ItemContainer;
 struct ItemCache;
+struct EntityStatus;
 
 enum class EntityType : uint8_t
 {
@@ -40,6 +41,13 @@ enum class EntityType : uint8_t
 	effect = 4,
 	object1 = 0,
 	object2 = 12
+};
+
+enum class GameState : uint32_t
+{
+	login_screen = 10,
+	lobby_screen = 20,
+	in_game = 30
 };
 
 #include "reversed_generated.h"
@@ -113,8 +121,8 @@ struct WorldNode
 	Entity* entity;
 	// 0x1d8
 };
-static_assert(offsetof(WorldNode, children) == 0x138, INVALID_OFFSET);
-static_assert(offsetof(WorldNode, entity) == 0x1a0, INVALID_OFFSET);
+static_assert(off(WorldNode, children) == 0x138, INVALID_OFFSET);
+static_assert(off(WorldNode, entity) == 0x1a0, INVALID_OFFSET);
 
 struct Scene002
 {
@@ -135,7 +143,7 @@ struct Scene001
     // 0x70
     int32_t scene_index;
 };
-static_assert(offsetof(Scene001, scene_index) == 0x70, INVALID_OFFSET);
+static_assert(off(Scene001, scene_index) == 0x70, INVALID_OFFSET);
 
 struct WorldA
 {
@@ -288,6 +296,48 @@ struct Cache001
 	// 0x1c8
 };
 
+struct StatusBarConfig
+{
+	// 0x0
+	PAD(0x8);
+	// 0x8
+	uint32_t id;
+};
+
+struct StatusBarData
+{
+	// 0x0
+	PAD(0x10);
+	// 0x10
+	StatusBarConfig* config;
+	// 0x18
+	PAD(0x18);
+	// 0x30
+	int32_t display_time;
+	// 0x34
+	uint8_t value;
+};
+static_assert(off(StatusBarData, display_time) == 0x30, INVALID_SIZE);
+
+struct StatusBar
+{
+	// 0x0
+	StatusBarData* data;
+	// 0x8
+	PAD(0x1a8);
+	// 0x1b0
+};
+static_assert(sizeof(StatusBar) == 0x1b0, INVALID_SIZE);
+
+struct EntityStatus
+{
+	// 0x0
+	PAD(0x28);
+	// 0x28
+	JArray<StatusBar> bars;
+	// 0x30
+};
+
 struct LocalPlayer
 {
 	// 0x0
@@ -299,7 +349,6 @@ struct LocalPlayer
 	// 0x68
 	const char name[64];
 };
-
 
 struct EntityUpdate
 {

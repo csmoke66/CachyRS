@@ -138,6 +138,11 @@ std::vector<PatternObject> build_pattern_objects()
             { "uint32_t", 4, },
             new ImmExtractor(0x3, 0x0, 4)},
         new DefaultPattern{
+            "state",
+            compile_ida_pattern("83 BF ? ? ? ? ? 74 ? 6B D6 1E"),
+            { "GameState", 4 },
+            new ImmExtractor(0x2, 0x0, 4)},
+        new DefaultPattern{
             "cache",
             compile_ida_pattern("4C 8B 87 ? ? ? ? 48 8D 8F"),
             { "Cache001*", 8, },
@@ -199,7 +204,15 @@ std::vector<PatternObject> build_pattern_objects()
             compile_ida_pattern("48 8B 8B ? ? ? ? E9 ? ? ? ? 0F 1F 40 ? 44 8B 83"),
             { "JString", 24, },
             new ImmExtractor(0x3, 0x0, 4)},
+        new DefaultPattern{
+            "status",
+            compile_ida_pattern("4D 8B 95 ? ? ? ? 89 C1"),
+            { "EntityStatus*", 4, },
+            new ImmExtractor(0x3, 0x0, 4)},
+
+            
     }});
+
 
     // clang-format on
     return objects;

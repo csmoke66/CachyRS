@@ -13,7 +13,7 @@
 
 #include <stdarg.h>
 
-#define FEATURE_VERSION "0.0.8"
+#define FEATURE_VERSION "0.0.9"
 
 #define LOG(LVL, ...)                                                                                     \
     RS.log_mutex.lock();                                                                                  \

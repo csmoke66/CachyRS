@@ -74,7 +74,9 @@ struct Engine
 	ItemCache* item_cache;
 	PAD(0x0);
 	Scene001* scene_001;
-	PAD(0x5d0);
+	PAD(0x5c8);
+	GameState state;
+	PAD(0x4);
 	LocalPlayer* local_player;
 };
 static_assert(offsetof(Engine, window_state) == 0x90, "Invalid offset");
@@ -84,6 +86,7 @@ static_assert(offsetof(Engine, entity_update_cache) == 0x194d8, "Invalid offset"
 static_assert(offsetof(Engine, world_a) == 0x19538, "Invalid offset");
 static_assert(offsetof(Engine, item_cache) == 0x19550, "Invalid offset");
 static_assert(offsetof(Engine, scene_001) == 0x19558, "Invalid offset");
+static_assert(offsetof(Engine, state) == 0x19b28, "Invalid offset");
 static_assert(offsetof(Engine, local_player) == 0x19b30, "Invalid offset");
 
 struct Scene003
@@ -104,8 +107,11 @@ struct Entity
 	JString name;
 	PAD(0x1c8);
 	Vec3<float> position;
+	PAD(0xc7c);
+	EntityStatus* status;
 };
 static_assert(offsetof(Entity, type) == 0x10, "Invalid offset");
 static_assert(offsetof(Entity, name) == 0x90, "Invalid offset");
 static_assert(offsetof(Entity, position) == 0x270, "Invalid offset");
+static_assert(offsetof(Entity, status) == 0xef8, "Invalid offset");
 
