@@ -50,16 +50,16 @@ public:
 		struct
 		{
 			char* data_ptr;
-			uint8_t len1;
+			const uint8_t len1;
 			PAD(0x7);
-			uint8_t len2;
+			const uint8_t len2;
 			PAD(0x6);
 		};
 	};
 	union
 	{
-		uint8_t remaining_bytes;
-		uint8_t flag;
+		const uint8_t remaining_bytes;
+		const uint8_t flag;
 	};
 
 public:
