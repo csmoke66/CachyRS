@@ -1,4 +1,6 @@
 #include "hook.h"
+
+#ifdef __linux__
 #include "cachy.h"
 
 #include <unistd.h>
@@ -250,3 +252,4 @@ void iat_hook(uint8_t vt_offset, void *target, Hook<void *> *hook)
     
     patch_non_writable_memory(target, &call_hook_handler, sizeof(call_hook_handler), PROT_READ);
 }
+#endif
