@@ -66,7 +66,9 @@ struct Engine
 	const uint32_t time;
 	PAD(0x187b0);
 	const Cache001* cache;
-	PAD(0x818);
+	PAD(0x7c8);
+	const WidgetCache* widget_cache;
+	PAD(0x48);
 	const EntityUpdateCache* entity_update_cache;
 	PAD(0x58);
 	const WorldA* world_a;
@@ -78,16 +80,20 @@ struct Engine
 	const GameState state;
 	PAD(0x4);
 	const LocalPlayer* local_player;
+	PAD(0x28);
+	const WorldSettingCache* world_settings;
 };
 static_assert(offsetof(Engine, window_state) == 0x90, "Invalid offset");
 static_assert(offsetof(Engine, time) == 0x504, "Invalid offset");
 static_assert(offsetof(Engine, cache) == 0x18cb8, "Invalid offset");
+static_assert(offsetof(Engine, widget_cache) == 0x19488, "Invalid offset");
 static_assert(offsetof(Engine, entity_update_cache) == 0x194d8, "Invalid offset");
 static_assert(offsetof(Engine, world_a) == 0x19538, "Invalid offset");
 static_assert(offsetof(Engine, item_cache) == 0x19550, "Invalid offset");
 static_assert(offsetof(Engine, scene_001) == 0x19558, "Invalid offset");
 static_assert(offsetof(Engine, state) == 0x19b28, "Invalid offset");
 static_assert(offsetof(Engine, local_player) == 0x19b30, "Invalid offset");
+static_assert(offsetof(Engine, world_settings) == 0x19b60, "Invalid offset");
 
 struct Scene003
 {
