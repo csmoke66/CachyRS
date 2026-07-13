@@ -54,15 +54,15 @@ namespace crs
             unprocessed.exchange(0, std::memory_order_release);
 
             // clang-format off
-        std::sort(sorted.begin(), sorted.begin() + sorted_size, [](const RingBufferElement& a, const RingBufferElement& b)
-        {
-            return a.index < b.index;
-        });
+            std::sort(sorted.begin(), sorted.begin() + sorted_size, [](const RingBufferElement& a, const RingBufferElement& b)
+            {
+                return a.index < b.index;
+            });
 
-        for (auto i = sorted.begin(); i < sorted.begin() + sorted_size; i++)
-        {
-            fn(i->t);
-        }
+            for (auto i = sorted.begin(); i < sorted.begin() + sorted_size; i++)
+            {
+                fn(i->t);
+            }
             // clang-format on
         }
 
