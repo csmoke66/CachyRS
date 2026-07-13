@@ -1,4 +1,3 @@
-git clone https://github.com/csmoke66/CachyRS
 mkdir build && cd build
 cmake ..
 make
