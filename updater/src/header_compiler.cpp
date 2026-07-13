@@ -36,7 +36,7 @@ std::string compile_object_to_structure(Object object)
     for (auto i = 0; i < object.fields.size(); i++)
     {
         auto &field = object.fields[i];
-        ss << "static_assert(offsetof(" << object.name << ", " << field.name << ") == 0x" << std::hex << field.offset << ", \"Invalid offset\");" << std::endl;
+        ss << "static_assert(off(" << object.name << ", " << field.name << ") == 0x" << std::hex << field.offset << ", INVALID_OFFSET);" << std::endl;
     }
     ss << std::endl;
     return ss.str();
