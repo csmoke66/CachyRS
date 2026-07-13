@@ -1,37 +1,40 @@
 #include "cachy.h"
 #include <imgui.h>
 
-void SdlPollEventHook::handler(CpuState *cpu_state)
+namespace crs
 {
-    auto event = (SDL_Event*)CPU_FIRST_ARG(cpu_state);
-    auto ret = trampoline(event);
-    if (ret)
+    void SdlPollEventHook::handler(CpuState *cpu_state)
     {
-        RS.event_ring_buffer.push(*event);
-
-        auto steal_processing = false;
-        auto &io = ImGui::GetIO();
-        if (io.WantCaptureMouse || io.WantCaptureKeyboard)
+        auto event = (SDL_Event *)CPU_FIRST_ARG(cpu_state);
+        auto ret = trampoline(event);
+        if (ret)
         {
-            steal_processing = true;
-        }
+            RS.event_ring_buffer.push(*event);
 
-        if (RS.ui->wants_input())
-        {
-            steal_processing = true;
-        }
-
-        if (steal_processing)
-        {
-            while (trampoline(event))
+            auto steal_processing = false;
+            auto &io = ImGui::GetIO();
+            if (io.WantCaptureMouse || io.WantCaptureKeyboard)
             {
-                RS.event_ring_buffer.push(*event);
+                steal_processing = true;
             }
 
-            cpu_state->rax = 0;
-            return;
-        }
-    }
+            if (RS.ui->wants_input())
+            {
+                steal_processing = true;
+            }
 
-    cpu_state->rax = ret;
+            if (steal_processing)
+            {
+                while (trampoline(event))
+                {
+                    RS.event_ring_buffer.push(*event);
+                }
+
+                cpu_state->rax = 0;
+                return;
+            }
+        }
+
+        cpu_state->rax = ret;
+    }
 }

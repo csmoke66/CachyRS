@@ -1,7 +1,4 @@
 #pragma once
-#include "reversed_manual_base.h"
-
-#include <SDL2/SDL.h>
 
 #pragma pack(push, 1)
 struct Linux005

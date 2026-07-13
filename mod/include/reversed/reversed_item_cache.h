@@ -1,5 +1,4 @@
 #pragma once
-#include "reversed_util.h"
 
 #pragma pack(push, 1)
 struct ItemContainer

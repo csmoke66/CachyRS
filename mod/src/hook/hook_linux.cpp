@@ -8,91 +8,93 @@
 
 #include <capstone.h>
 
+namespace crs
+{
 #pragma pack(push, 1)
-struct JmpRax
-{
-    uint8_t mov_rax[2] = {0x48, 0xb8};
-    uint64_t rax;
-    uint8_t jmp[2] = {0xff, 0xe0};
-};
-static_assert(sizeof(JmpRax) == 12, "Invalid size");
+    struct JmpRax
+    {
+        uint8_t mov_rax[2] = {0x48, 0xb8};
+        uint64_t rax;
+        uint8_t jmp[2] = {0xff, 0xe0};
+    };
+    static_assert(sizeof(JmpRax) == 12, "Invalid size");
 
-// sub rsp, 0x18
-// mov [rsp - 0x178], rax
-// mov [rsp - 0x170], rbx
-// mov [rsp - 0x168], rcx
-// mov [rsp - 0x160], rdx
-// mov [rsp - 0x158], rsi
-// mov [rsp - 0x150], rdi
-// mov [rsp - 0x148], rbp
-// mov [rsp - 0x140], rsp
-// mov [rsp - 0x138], r8
-// mov [rsp - 0x130], r9
-// mov [rsp - 0x128], r10
-// mov [rsp - 0x120], r11
-// mov [rsp - 0x118], r12
-// mov [rsp - 0x110], r13
-// mov [rsp - 0x108], r14
-// mov [rsp - 0x100], r15
-// movdqu [rsp - 0xf0], xmm0
-// movdqu [rsp - 0xe0], xmm1
-// movdqu [rsp - 0xd0], xmm2
-// movdqu [rsp - 0xc0], xmm3
-// movdqu [rsp - 0xb0], xmm4
-// movdqu [rsp - 0xa0], xmm5
-// movdqu [rsp - 0x90], xmm6
-// movdqu [rsp - 0x80], xmm7
-// movdqu [rsp - 0x70], xmm8
-// movdqu [rsp - 0x60], xmm9
-// movdqu [rsp - 0x50], xmm10
-// movdqu [rsp - 0x40], xmm11
-// movdqu [rsp - 0x30], xmm12
-// movdqu [rsp - 0x20], xmm13
-// movdqu [rsp - 0x10], xmm14
-// movdqu [rsp], xmm15
-// mov rdi, hook_object
-// mov rax, [rdi]
-// mov rax, [rax + vt_offset]
-// lea rsi, [rsp - 0x178]
-// sub rsp, 0x200
-// call rax
-// add rsp, 0x200
-// movdqu xmm0, [rsp - 0xf0]
-// movdqu xmm1, [rsp - 0xe0]
-// movdqu xmm2, [rsp - 0xd0]
-// movdqu xmm3, [rsp - 0xc0]
-// movdqu xmm4, [rsp - 0xb0]
-// movdqu xmm5, [rsp - 0xa0]
-// movdqu xmm6, [rsp - 0x90]
-// movdqu xmm7, [rsp - 0x80]
-// movdqu xmm8, [rsp - 0x70]
-// movdqu xmm9, [rsp - 0x60]
-// movdqu xmm10, [rsp - 0x50]
-// movdqu xmm11, [rsp - 0x40]
-// movdqu xmm12, [rsp - 0x30]
-// movdqu xmm13, [rsp - 0x20]
-// movdqu xmm14, [rsp - 0x10]
-// movdqu xmm15, [rsp]
-// mov rax, [rsp - 0x178]
-// mov rbx, [rsp - 0x170]
-// mov rcx, [rsp - 0x168]
-// mov rdx, [rsp - 0x160]
-// mov rsi, [rsp - 0x158]
-// mov rdi, [rsp - 0x150]
-// mov rbp, [rsp - 0x148]
-// mov r8, [rsp - 0x138]
-// mov r9, [rsp - 0x130]
-// mov r10, [rsp - 0x128]
-// mov r11, [rsp - 0x120]
-// mov r12, [rsp - 0x118]
-// mov r13, [rsp - 0x110]
-// mov r14, [rsp - 0x108]
-// mov r15, [rsp - 0x100]
-// add rsp, 0x18
-// ret
-struct CallHookHandler
-{
-    // clang-format off
+    // sub rsp, 0x18
+    // mov [rsp - 0x178], rax
+    // mov [rsp - 0x170], rbx
+    // mov [rsp - 0x168], rcx
+    // mov [rsp - 0x160], rdx
+    // mov [rsp - 0x158], rsi
+    // mov [rsp - 0x150], rdi
+    // mov [rsp - 0x148], rbp
+    // mov [rsp - 0x140], rsp
+    // mov [rsp - 0x138], r8
+    // mov [rsp - 0x130], r9
+    // mov [rsp - 0x128], r10
+    // mov [rsp - 0x120], r11
+    // mov [rsp - 0x118], r12
+    // mov [rsp - 0x110], r13
+    // mov [rsp - 0x108], r14
+    // mov [rsp - 0x100], r15
+    // movdqu [rsp - 0xf0], xmm0
+    // movdqu [rsp - 0xe0], xmm1
+    // movdqu [rsp - 0xd0], xmm2
+    // movdqu [rsp - 0xc0], xmm3
+    // movdqu [rsp - 0xb0], xmm4
+    // movdqu [rsp - 0xa0], xmm5
+    // movdqu [rsp - 0x90], xmm6
+    // movdqu [rsp - 0x80], xmm7
+    // movdqu [rsp - 0x70], xmm8
+    // movdqu [rsp - 0x60], xmm9
+    // movdqu [rsp - 0x50], xmm10
+    // movdqu [rsp - 0x40], xmm11
+    // movdqu [rsp - 0x30], xmm12
+    // movdqu [rsp - 0x20], xmm13
+    // movdqu [rsp - 0x10], xmm14
+    // movdqu [rsp], xmm15
+    // mov rdi, hook_object
+    // mov rax, [rdi]
+    // mov rax, [rax + vt_offset]
+    // lea rsi, [rsp - 0x178]
+    // sub rsp, 0x200
+    // call rax
+    // add rsp, 0x200
+    // movdqu xmm0, [rsp - 0xf0]
+    // movdqu xmm1, [rsp - 0xe0]
+    // movdqu xmm2, [rsp - 0xd0]
+    // movdqu xmm3, [rsp - 0xc0]
+    // movdqu xmm4, [rsp - 0xb0]
+    // movdqu xmm5, [rsp - 0xa0]
+    // movdqu xmm6, [rsp - 0x90]
+    // movdqu xmm7, [rsp - 0x80]
+    // movdqu xmm8, [rsp - 0x70]
+    // movdqu xmm9, [rsp - 0x60]
+    // movdqu xmm10, [rsp - 0x50]
+    // movdqu xmm11, [rsp - 0x40]
+    // movdqu xmm12, [rsp - 0x30]
+    // movdqu xmm13, [rsp - 0x20]
+    // movdqu xmm14, [rsp - 0x10]
+    // movdqu xmm15, [rsp]
+    // mov rax, [rsp - 0x178]
+    // mov rbx, [rsp - 0x170]
+    // mov rcx, [rsp - 0x168]
+    // mov rdx, [rsp - 0x160]
+    // mov rsi, [rsp - 0x158]
+    // mov rdi, [rsp - 0x150]
+    // mov rbp, [rsp - 0x148]
+    // mov r8, [rsp - 0x138]
+    // mov r9, [rsp - 0x130]
+    // mov r10, [rsp - 0x128]
+    // mov r11, [rsp - 0x120]
+    // mov r12, [rsp - 0x118]
+    // mov r13, [rsp - 0x110]
+    // mov r14, [rsp - 0x108]
+    // mov r15, [rsp - 0x100]
+    // add rsp, 0x18
+    // ret
+    struct CallHookHandler
+    {
+        // clang-format off
     uint8_t prologue[282] = 
     {
         0x48, 0x83, 0xEC, 0x18, 
@@ -180,76 +182,75 @@ struct CallHookHandler
         0x48, 0x83, 0xC4, 0x18, 
         0xC3 
     };
-    // clang-format on
-};
+        // clang-format on
+    };
 
 #pragma pack(pop)
 
-static csh capstone_handle;
+    static csh capstone_handle;
 
-__attribute__((naked, noinline, used))
-void DummyHook::handler(CpuState *cpu_state)
-{
-    asm volatile(
-        "int3\n"
-        "int3\n"
-        "int3\n"
-    );
-}
-
-void asm_init()
-{
-    if (cs_open(CS_ARCH_X86, CS_MODE_64, &capstone_handle) != CS_ERR_OK)
+    __attribute__((naked, noinline, used)) void DummyHook::handler(CpuState *cpu_state)
     {
-        LOG(ERROR, "Failed to initialize capstone");
-    }
-}
-
-void asm_hook(uint8_t vt_offset, void *target, Hook<void *> *hook)
-{
-    size_t hook_size = 0;
-
-    size_t count;
-    cs_insn *insn;
-
-    while (hook_size < sizeof(JmpRax))
-    {
-        count = cs_disasm(capstone_handle, (const uint8_t *)target + hook_size, 0x15, (uint64_t)target + hook_size, 0, &insn);
-        hook_size += insn->size;
+        asm volatile(
+            "int3\n"
+            "int3\n"
+            "int3\n");
     }
 
-    CallHookHandler call_hook_handler_code;
-    call_hook_handler_code.hook_object = hook;
-    call_hook_handler_code.vt_offset = vt_offset;
-    auto call_hook_handler = allocate_executable_memory(&call_hook_handler_code, sizeof(call_hook_handler_code));
+    void asm_init()
+    {
+        if (cs_open(CS_ARCH_X86, CS_MODE_64, &capstone_handle) != CS_ERR_OK)
+        {
+            LOG(ERROR, "Failed to initialize capstone");
+        }
+    }
 
-    JmpRax prologue_code;
-    prologue_code.rax = (uint64_t)call_hook_handler;
+    void asm_hook(uint8_t vt_offset, void *target, Hook<void *> *hook)
+    {
+        size_t hook_size = 0;
 
-    auto epilogue_rw = malloc(hook_size + sizeof(JmpRax));
-    memcpy(epilogue_rw, target, hook_size);
+        size_t count;
+        cs_insn *insn;
 
-    auto epilogue_code = (JmpRax *)((char *)epilogue_rw + hook_size);
-    *epilogue_code = JmpRax();
-    epilogue_code->rax = (uint64_t)target + hook_size;
+        while (hook_size < sizeof(JmpRax))
+        {
+            count = cs_disasm(capstone_handle, (const uint8_t *)target + hook_size, 0x15, (uint64_t)target + hook_size, 0, &insn);
+            hook_size += insn->size;
+        }
 
-    auto epilogue = allocate_executable_memory(epilogue_rw, hook_size + sizeof(JmpRax));
-    free(epilogue_rw);
+        CallHookHandler call_hook_handler_code;
+        call_hook_handler_code.hook_object = hook;
+        call_hook_handler_code.vt_offset = vt_offset;
+        auto call_hook_handler = allocate_executable_memory(&call_hook_handler_code, sizeof(call_hook_handler_code));
 
-    hook->trampoline = epilogue;
+        JmpRax prologue_code;
+        prologue_code.rax = (uint64_t)call_hook_handler;
 
-    patch_non_writable_memory(target, &prologue_code, sizeof(JmpRax), PROT_READ | PROT_EXEC);
-}
+        auto epilogue_rw = malloc(hook_size + sizeof(JmpRax));
+        memcpy(epilogue_rw, target, hook_size);
 
-void iat_hook(uint8_t vt_offset, void *target, Hook<void *> *hook)
-{
-    CallHookHandler call_hook_handler_code;
-    call_hook_handler_code.hook_object = hook;
-    call_hook_handler_code.vt_offset = vt_offset;
-    auto call_hook_handler = allocate_executable_memory(&call_hook_handler_code, sizeof(call_hook_handler_code));
+        auto epilogue_code = (JmpRax *)((char *)epilogue_rw + hook_size);
+        *epilogue_code = JmpRax();
+        epilogue_code->rax = (uint64_t)target + hook_size;
 
-    hook->trampoline = *((uint64_t **)target);
-    
-    patch_non_writable_memory(target, &call_hook_handler, sizeof(call_hook_handler), PROT_READ);
+        auto epilogue = allocate_executable_memory(epilogue_rw, hook_size + sizeof(JmpRax));
+        free(epilogue_rw);
+
+        hook->trampoline = epilogue;
+
+        patch_non_writable_memory(target, &prologue_code, sizeof(JmpRax), PROT_READ | PROT_EXEC);
+    }
+
+    void iat_hook(uint8_t vt_offset, void *target, Hook<void *> *hook)
+    {
+        CallHookHandler call_hook_handler_code;
+        call_hook_handler_code.hook_object = hook;
+        call_hook_handler_code.vt_offset = vt_offset;
+        auto call_hook_handler = allocate_executable_memory(&call_hook_handler_code, sizeof(call_hook_handler_code));
+
+        hook->trampoline = *((uint64_t **)target);
+
+        patch_non_writable_memory(target, &call_hook_handler, sizeof(call_hook_handler), PROT_READ);
+    }
 }
 #endif

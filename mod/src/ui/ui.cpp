@@ -1,11 +1,12 @@
 #include "ui.h"
 
-UserInterface::~UserInterface()
+namespace crs
 {
+    UserInterface::~UserInterface()
+    {
+    }
 
-}
-
-void UserInterface::reload()
-{
-
+    void UserInterface::reload()
+    {
+    }
 }

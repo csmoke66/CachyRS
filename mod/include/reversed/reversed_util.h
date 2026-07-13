@@ -1,5 +1,4 @@
 #pragma once
-#include "util.h"
 
 #define INVALID_OFFSET "Invalid offset"
 #define INVALID_SIZE "Invalid size"

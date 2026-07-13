@@ -1,18 +1,21 @@
 #include "cachy.h"
 
-void MenuExecuteHook::handler(CpuState *cpu_state)
+namespace crs
 {
-    auto action_menu_context = (const ActionMenuContext *)CPU_SECOND_ARG(cpu_state);
-    if (auto menu_action_context = action_menu_context->menu_action_context)
+    void MenuExecuteHook::handler(CpuState *cpu_state)
     {
-        if (auto tmpl = menu_action_context->tmpl)
+        auto action_menu_context = (const ActionMenuContext *)CPU_SECOND_ARG(cpu_state);
+        if (auto menu_action_context = action_menu_context->menu_action_context)
         {
-            LOG(INFO, "Menu execute: " << std::hex << " " << RS.pi.offset(tmpl->handler) << " " << menu_action_context->args[0] << "." << menu_action_context->args[1] << "." << menu_action_context->args[2] << "." << menu_action_context->args[3]);
+            if (auto tmpl = menu_action_context->tmpl)
+            {
+                LOG(INFO, "Menu execute: " << std::hex << " " << RS.pi.offset(tmpl->handler) << " " << menu_action_context->args[0] << "." << menu_action_context->args[1] << "." << menu_action_context->args[2] << "." << menu_action_context->args[3]);
+            }
         }
-    }
 
-    cpu_state->rax = (uint64_t)trampoline(
-        (void *)CPU_FIRST_ARG(cpu_state),
-        action_menu_context,
-        (void *)CPU_THIRD_ARG(cpu_state));
+        cpu_state->rax = (uint64_t)trampoline(
+            (void *)CPU_FIRST_ARG(cpu_state),
+            action_menu_context,
+            (void *)CPU_THIRD_ARG(cpu_state));
+    }
 }

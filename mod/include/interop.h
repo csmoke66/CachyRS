@@ -1,4 +1,7 @@
 #pragma once
 #include <string>
 
-std::string interop_get_home_directory();
+namespace crs
+{
+    ::std::string interop_get_home_directory();
+}

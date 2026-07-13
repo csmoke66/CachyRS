@@ -11,26 +11,29 @@
 UNSUPPORTED_OS();
 #endif
 
-#ifdef __linux__
-static std::string interop_linux_get_home_directory()
+namespace crs
 {
-    auto pwd = getpwuid(getuid());
-    if (pwd && pwd->pw_dir)
+#ifdef __linux__
+    static std::string interop_linux_get_home_directory()
     {
-        return std::string(pwd->pw_dir);
+        auto pwd = getpwuid(getuid());
+        if (pwd && pwd->pw_dir)
+        {
+            return std::string(pwd->pw_dir);
+        }
+
+        return "";
     }
-
-    return "";
-}
-#else
-UNSUPPORTED_OS();
-#endif
-
-std::string interop_get_home_directory()
-{
-#ifdef __linux__
-    return interop_linux_get_home_directory();
 #else
     UNSUPPORTED_OS();
 #endif
+
+    std::string interop_get_home_directory()
+    {
+#ifdef __linux__
+        return interop_linux_get_home_directory();
+#else
+        UNSUPPORTED_OS();
+#endif
+    }
 }

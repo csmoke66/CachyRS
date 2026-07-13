@@ -1,6 +1,4 @@
 #pragma once
-#include "reversed_util.h"
-#include "reversed_manual_base.h"
 
 #pragma pack(push, 1)
 class Widget

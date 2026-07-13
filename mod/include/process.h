@@ -4,11 +4,14 @@
 #include <cstdint>
 #include <string>
 
-struct ImportedFunction
+namespace crs
 {
-    std::string name;
-    uint64_t *addr;
-};
+    struct ImportedFunction
+    {
+        ::std::string name;
+        uint64_t *addr;
+    };
+}
 
 #ifdef __linux__
 #include "process_linux.h"

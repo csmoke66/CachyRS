@@ -1,9 +1,4 @@
 #pragma once
-#include <cstdint>
-#include <cstddef>
-
-#include <EGL/egl.h>
-#include <SDL2/SDL.h>
 
 #include "reversed_fwd_decl.h"
 
