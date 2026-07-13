@@ -5,6 +5,10 @@
 
 #define FINLINE __attribute__((always_inline)) inline
 #define UNSUPPORTED_OS() static_assert(false, "Unsupported operating system")
+
+#define MACRO_TO_STRING_HELPER(x) #x
+#define MACRO_TO_STRING(x) MACRO_TO_STRING_HELPER(x)
+
 #define off(t, f) offsetof(t, f)
 
 void* allocate_executable_memory(void* data, size_t size);

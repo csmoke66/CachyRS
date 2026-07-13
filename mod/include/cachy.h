@@ -1,10 +1,15 @@
 #pragma once
 #include "process.h"
-#include "reversed.h"
+
 #include "ui.h"
-#include "ring_buffer.h"
-#include "interop.h"
+
+#include "reversed.h"
 #include "hook.h"
+
+#include "ring_buffer.h"
+#include "util.h"
+#include "interop.h"
+
 #include "version.hpp"
 
 #include <fstream>
@@ -13,7 +18,18 @@
 
 #include <stdarg.h>
 
-#define FEATURE_VERSION "0.0.11"
+#define VERSION_MAJOR 0
+#define VERSION_MINOR 0
+#define VERSION_PATCH 12
+#define VERSION_API 0
+
+// clang-format off
+#define FEATURE_VERSION                \
+    MACRO_TO_STRING(VERSION_MAJOR)     \
+    "." MACRO_TO_STRING(VERSION_MINOR) \
+    "." MACRO_TO_STRING(VERSION_PATCH) \
+    "." MACRO_TO_STRING(VERSION_API)
+// clang-format on
 
 #define LOG(LVL, ...)                                                                                     \
     RS.log_mutex.lock();                                                                                  \
@@ -26,7 +42,7 @@ class CachyRS
 public:
     ProcessInterface pi;
     std::unique_ptr<HookManager> hook_manager = nullptr;
-    
+
 public:
     std::ofstream log_stream;
     std::mutex log_mutex;
@@ -48,7 +64,6 @@ public:
     std::string resolve_configuration(const std::string &file) const;
 
 public:
-
 public:
     Globals *get_globals() const;
 
