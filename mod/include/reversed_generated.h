@@ -41,22 +41,22 @@ struct Globals
 	PAD(0xe290);
 	void* heap;
 };
-static_assert(offsetof(Globals, menu_action_handler_widget) == 0xf39b0, "Invalid offset");
-static_assert(offsetof(Globals, menu_action_handler_walk) == 0x161b30, "Invalid offset");
-static_assert(offsetof(Globals, menu_action_handler_npc7) == 0x1625a0, "Invalid offset");
-static_assert(offsetof(Globals, menu_action_handler_npc6) == 0x1625d0, "Invalid offset");
-static_assert(offsetof(Globals, menu_action_handler_npc5) == 0x1625f0, "Invalid offset");
-static_assert(offsetof(Globals, menu_action_handler_npc4) == 0x162610, "Invalid offset");
-static_assert(offsetof(Globals, menu_action_handler_npc3) == 0x162630, "Invalid offset");
-static_assert(offsetof(Globals, menu_action_handler_npc2) == 0x162650, "Invalid offset");
-static_assert(offsetof(Globals, menu_action_handler_npc1) == 0x162670, "Invalid offset");
-static_assert(offsetof(Globals, menu_execute) == 0x18f950, "Invalid offset");
-static_assert(offsetof(Globals, engine_tick) == 0xb70430, "Invalid offset");
-static_assert(offsetof(Globals, heap_alloc) == 0xcba490, "Invalid offset");
-static_assert(offsetof(Globals, heap_alloc_aligned) == 0xcd8140, "Invalid offset");
-static_assert(offsetof(Globals, engine) == 0x1448ef0, "Invalid offset");
-static_assert(offsetof(Globals, linux_001) == 0x1692e98, "Invalid offset");
-static_assert(offsetof(Globals, heap) == 0x16a1130, "Invalid offset");
+static_assert(off(Globals, menu_action_handler_widget) == 0xf39b0, INVALID_OFFSET);
+static_assert(off(Globals, menu_action_handler_walk) == 0x161b30, INVALID_OFFSET);
+static_assert(off(Globals, menu_action_handler_npc7) == 0x1625a0, INVALID_OFFSET);
+static_assert(off(Globals, menu_action_handler_npc6) == 0x1625d0, INVALID_OFFSET);
+static_assert(off(Globals, menu_action_handler_npc5) == 0x1625f0, INVALID_OFFSET);
+static_assert(off(Globals, menu_action_handler_npc4) == 0x162610, INVALID_OFFSET);
+static_assert(off(Globals, menu_action_handler_npc3) == 0x162630, INVALID_OFFSET);
+static_assert(off(Globals, menu_action_handler_npc2) == 0x162650, INVALID_OFFSET);
+static_assert(off(Globals, menu_action_handler_npc1) == 0x162670, INVALID_OFFSET);
+static_assert(off(Globals, menu_execute) == 0x18f950, INVALID_OFFSET);
+static_assert(off(Globals, engine_tick) == 0xb70430, INVALID_OFFSET);
+static_assert(off(Globals, heap_alloc) == 0xcba490, INVALID_OFFSET);
+static_assert(off(Globals, heap_alloc_aligned) == 0xcd8140, INVALID_OFFSET);
+static_assert(off(Globals, engine) == 0x1448ef0, INVALID_OFFSET);
+static_assert(off(Globals, linux_001) == 0x1692e98, INVALID_OFFSET);
+static_assert(off(Globals, heap) == 0x16a1130, INVALID_OFFSET);
 
 struct Engine
 {
@@ -83,17 +83,17 @@ struct Engine
 	PAD(0x28);
 	const WorldSettingCache* world_settings;
 };
-static_assert(offsetof(Engine, window_state) == 0x90, "Invalid offset");
-static_assert(offsetof(Engine, time) == 0x504, "Invalid offset");
-static_assert(offsetof(Engine, cache) == 0x18cb8, "Invalid offset");
-static_assert(offsetof(Engine, widget_cache) == 0x19488, "Invalid offset");
-static_assert(offsetof(Engine, entity_update_cache) == 0x194d8, "Invalid offset");
-static_assert(offsetof(Engine, world_a) == 0x19538, "Invalid offset");
-static_assert(offsetof(Engine, item_cache) == 0x19550, "Invalid offset");
-static_assert(offsetof(Engine, scene_001) == 0x19558, "Invalid offset");
-static_assert(offsetof(Engine, state) == 0x19b28, "Invalid offset");
-static_assert(offsetof(Engine, local_player) == 0x19b30, "Invalid offset");
-static_assert(offsetof(Engine, world_settings) == 0x19b60, "Invalid offset");
+static_assert(off(Engine, window_state) == 0x90, INVALID_OFFSET);
+static_assert(off(Engine, time) == 0x504, INVALID_OFFSET);
+static_assert(off(Engine, cache) == 0x18cb8, INVALID_OFFSET);
+static_assert(off(Engine, widget_cache) == 0x19488, INVALID_OFFSET);
+static_assert(off(Engine, entity_update_cache) == 0x194d8, INVALID_OFFSET);
+static_assert(off(Engine, world_a) == 0x19538, INVALID_OFFSET);
+static_assert(off(Engine, item_cache) == 0x19550, INVALID_OFFSET);
+static_assert(off(Engine, scene_001) == 0x19558, INVALID_OFFSET);
+static_assert(off(Engine, state) == 0x19b28, INVALID_OFFSET);
+static_assert(off(Engine, local_player) == 0x19b30, INVALID_OFFSET);
+static_assert(off(Engine, world_settings) == 0x19b60, INVALID_OFFSET);
 
 struct Scene003
 {
@@ -102,8 +102,8 @@ struct Scene003
 	PAD(0x3088);
 	const Matrix4x4 projection_matrix;
 };
-static_assert(offsetof(Scene003, world_root) == 0x10170, "Invalid offset");
-static_assert(offsetof(Scene003, projection_matrix) == 0x13200, "Invalid offset");
+static_assert(off(Scene003, world_root) == 0x10170, INVALID_OFFSET);
+static_assert(off(Scene003, projection_matrix) == 0x13200, INVALID_OFFSET);
 
 struct Entity
 {
@@ -116,8 +116,8 @@ struct Entity
 	PAD(0xc7c);
 	const EntityStatus* status;
 };
-static_assert(offsetof(Entity, type) == 0x10, "Invalid offset");
-static_assert(offsetof(Entity, name) == 0x90, "Invalid offset");
-static_assert(offsetof(Entity, position) == 0x270, "Invalid offset");
-static_assert(offsetof(Entity, status) == 0xef8, "Invalid offset");
+static_assert(off(Entity, type) == 0x10, INVALID_OFFSET);
+static_assert(off(Entity, name) == 0x90, INVALID_OFFSET);
+static_assert(off(Entity, position) == 0x270, INVALID_OFFSET);
+static_assert(off(Entity, status) == 0xef8, INVALID_OFFSET);
 
