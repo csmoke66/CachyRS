@@ -4,9 +4,6 @@
 #include <format>
 #include <filesystem>
 
-#include <unistd.h>
-#include <sys/mman.h>
-
 #include <GL/gl.h>
 #include <GL/glx.h>
 #include <EGL/egl.h>
