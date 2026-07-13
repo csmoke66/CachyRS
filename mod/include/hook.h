@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <map>
+#include <memory>
 
 #include "process.h"
 #include "reversed.h"
@@ -52,7 +53,22 @@ public:
     T trampoline;
 
 public:
+    virtual ~Hook();
+
+public:
     virtual void handler(CpuState *cpu_state) = 0;
+};
+
+template<typename T>
+Hook<T>::~Hook()
+{
+
+}
+
+class DummyHook : public Hook<void*>
+{
+public:
+    void handler(CpuState *cpu_state);
 };
 
 class MenuExecuteHook : public Hook<FnMenuExecute>
@@ -81,16 +97,23 @@ class HookManager
 {
 private:
     ProcessInterface *pi;
-    std::map<std::string, Hook<void *> *> hooks;
+    uint8_t vt_offset;
+    std::map<std::string, std::unique_ptr<Hook<void *>>> hooks;
 
 public:
-    HookManager(ProcessInterface *pi);
+    HookManager(ProcessInterface *pi, uint8_t vt_offset);
 
 public:
-    void iat(const std::string& name, const std::string &symbol, Hook<void *> *hook);
-    void x86(const std::string& name, void *target, Hook<void *> *hook);
+    void iat(const std::string& name, const std::string &symbol, std::unique_ptr<Hook<void *>> hook);
+    void x86(const std::string& name, void *target, std::unique_ptr<Hook<void *>> hook);
 };
 
+template<typename T>
+FINLINE std::unique_ptr<Hook<void*>> unique_hook()
+{
+    return std::unique_ptr<Hook<void*>>((Hook<void*>*)new T());
+}
+
 void asm_init();
-void asm_hook(void *target, Hook<void *> *hook);
-void iat_hook(void *target, Hook<void *> *hook);
+void asm_hook(uint8_t vt_offset, void *target, Hook<void *> *hook);
+void iat_hook(uint8_t vt_offset, void *target, Hook<void *> *hook);

@@ -32,11 +32,6 @@ public:
     std::mutex log_mutex;
 
 public:
-    EglSwapBuffersHook hook_egl_swap_buffers;
-    SdlPollEventHook hook_sdl_poll_event;
-    MenuExecuteHook hook_menu_execute;
-
-public:
     UserInterface* ui = nullptr;
     RingBuffer<SDL_Event> event_ring_buffer;
 

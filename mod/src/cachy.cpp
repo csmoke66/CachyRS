@@ -189,9 +189,38 @@ void CachyRS::init()
     LOG(INFO, "Initializing capstone...");
     asm_init();
 
+    LOG(INFO, "Resolving hook handler in virtual table...");
+    auto dummy = std::make_unique<DummyHook>();
+    auto vt = *(void***)dummy.get();
+
+    // Our hooks rely on being able to call into a virtual object in order to have hook
+    // specific contexts, to avoid global state being scattered everywhere for each hook.
+    //
+    // Due to constructor/deconstructor virtual function layout being different on each compiler
+    // we do not know where our hook handler virtual function will fall in the virtual function table.
+    //
+    // The dummy hook is empty except for 3 'int 3' instructions. We scan the virtual function table
+    // to locate this function, and then we pass it to the hook manager to be inserted into the 
+    // shellcode that calls our handler virtual function.
+    uint8_t vt_offset = 0xff;
+    for (auto i = 0; i < 10; i++)
+    {
+        if (!memcmp(vt[i], "\xcc\xcc\xcc", 3))
+        {
+            vt_offset = (uint8_t)(i * sizeof(void*));
+            break;
+        }
+    }
+
+    if (vt_offset == 0xff)
+    {
+        LOG(ERROR, "Failed to find hook handler virtual table function");
+        return;
+    }
+
     LOG(INFO, "Placing hooks...");
-    hook_manager = new HookManager(&pi);
-    hook_manager->iat("swap_buffers", "eglSwapBuffers", (Hook<void*>*)&hook_egl_swap_buffers);
-    hook_manager->iat("poll_event", "SDL_PollEvent", (Hook<void*>*)&hook_sdl_poll_event);
-    hook_manager->x86("menu_execute", &get_globals()->menu_execute, (Hook<void *> *)&hook_menu_execute);
+    hook_manager = new HookManager(&pi, vt_offset);
+    hook_manager->iat("swap_buffers", "eglSwapBuffers", unique_hook<EglSwapBuffersHook>());
+    hook_manager->iat("poll_event", "SDL_PollEvent", unique_hook<SdlPollEventHook>());
+    hook_manager->x86("menu_execute", &get_globals()->menu_execute, unique_hook<MenuExecuteHook>());
 }

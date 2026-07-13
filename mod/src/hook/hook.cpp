@@ -133,10 +133,14 @@ struct CallHookHandler
         0x48, 0xBF
     };
     void* hook_object;
-    uint8_t epilogue[279] = 
+    uint8_t epilogue1[6] = 
     {
         0x48, 0x8B, 0x07, 
-        0x48, 0x8B, 0x00, 
+        0x48, 0x8B, 0x40, 
+    };
+    uint8_t vt_offset;
+    uint8_t epilogue2[273] =
+    {
         0x48, 0x8D, 0xB4, 0x24, 0x88, 0xFE, 0xFF, 0xFF, 
         0x48, 0x81, 0xEC, 0x00, 0x02, 0x00, 0x00, 0xFF, 0xD0, 
         0x48, 0x81, 0xC4, 0x00, 0x02, 0x00, 0x00, 
@@ -181,6 +185,16 @@ struct CallHookHandler
 
 static csh capstone_handle;
 
+__attribute__((naked, noinline, used))
+void DummyHook::handler(CpuState *cpu_state)
+{
+    asm volatile(
+        "int3\n"
+        "int3\n"
+        "int3\n"
+    );
+}
+
 void asm_init()
 {
     if (cs_open(CS_ARCH_X86, CS_MODE_64, &capstone_handle) != CS_ERR_OK)
@@ -189,7 +203,7 @@ void asm_init()
     }
 }
 
-void asm_hook(void *target, Hook<void*>* hook)
+void asm_hook(uint8_t vt_offset, void *target, Hook<void *> *hook)
 {
     size_t hook_size = 0;
 
@@ -204,6 +218,7 @@ void asm_hook(void *target, Hook<void*>* hook)
 
     CallHookHandler call_hook_handler_code;
     call_hook_handler_code.hook_object = hook;
+    call_hook_handler_code.vt_offset = vt_offset;
     auto call_hook_handler = allocate_executable_memory(&call_hook_handler_code, sizeof(call_hook_handler_code));
 
     JmpRax prologue_code;
@@ -224,13 +239,14 @@ void asm_hook(void *target, Hook<void*>* hook)
     patch_non_writable_memory(target, &prologue_code, sizeof(JmpRax), PROT_READ | PROT_EXEC);
 }
 
-void iat_hook(void *target, Hook<void*>* hook)
+void iat_hook(uint8_t vt_offset, void *target, Hook<void *> *hook)
 {
     CallHookHandler call_hook_handler_code;
     call_hook_handler_code.hook_object = hook;
+    call_hook_handler_code.vt_offset = vt_offset;
     auto call_hook_handler = allocate_executable_memory(&call_hook_handler_code, sizeof(call_hook_handler_code));
 
-    hook->trampoline = *((uint64_t**)target);
-
+    hook->trampoline = *((uint64_t **)target);
+    
     patch_non_writable_memory(target, &call_hook_handler, sizeof(call_hook_handler), PROT_READ);
 }
