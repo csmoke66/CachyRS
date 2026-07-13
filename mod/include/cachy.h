@@ -3,7 +3,7 @@
 
 #include "ui.h"
 
-#include "reversed.h"
+#include "reversed/reversed.h"
 #include "hook.h"
 
 #include "ring_buffer.h"

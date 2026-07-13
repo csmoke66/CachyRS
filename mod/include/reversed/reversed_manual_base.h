@@ -1,9 +1,16 @@
 #pragma once
-#include <cstdint>
 #include "reversed_util.h"
-#include "math.h"
 
 #pragma pack(push, 1)
+struct Item
+{
+	// 0x0
+	const int32_t id;
+	// 0x4
+	const int32_t amount;
+	// 0xc
+};
+
 template<typename T>
 struct JArray
 {

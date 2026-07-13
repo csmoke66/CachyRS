@@ -4,7 +4,7 @@
 #include <memory>
 
 #include "process.h"
-#include "reversed.h"
+#include "reversed/reversed.h"
 
 #pragma pack(push, 1)
 struct Xmm

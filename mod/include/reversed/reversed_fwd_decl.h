@@ -1,0 +1,36 @@
+#pragma once
+
+// manual
+struct Linux005;
+struct Linux004;
+struct Linux003;
+struct Linux002;
+struct Linux001;
+struct WindowState;
+struct WorldNode;
+struct Scene002;
+struct Scene001;
+struct WorldA;
+class MenuActionTemplate;
+struct MenuActionContext;
+struct ActionMenuContext;
+class Cache003;
+struct Cache002;
+struct CacheBuffer;
+class CacheIndexInner;
+struct CacheIndex;
+struct Cache001;
+struct LocalPlayer;
+struct EntityUpdate;
+struct EntityUpdateCache;
+struct Item;
+struct ItemContainer;
+struct ItemCache;
+struct EntityStatus;
+struct WorldSettingCache;
+struct WidgetCache;
+class ContainerWidget;
+
+// generated
+struct Entity;
+struct Scene003;
