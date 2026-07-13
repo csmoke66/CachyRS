@@ -19,6 +19,8 @@ add_library(mod SHARED
     src/hook/hook_menu_execute.cpp
     src/hook/hook_sdl_poll_event.cpp
 
+    # keep this last, since we run our code in a static initializer
+    # putting it last puts it last in the initialization list
     src/main.cpp
 )
 
