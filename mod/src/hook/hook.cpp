@@ -50,7 +50,7 @@ static_assert(sizeof(JmpRax) == 12, "Invalid size");
 // movdqu [rsp], xmm15
 // mov rdi, hook_object
 // mov rax, [rdi]
-// mov rax, [rax]
+// mov rax, [rax + vt_offset]
 // lea rsi, [rsp - 0x178]
 // sub rsp, 0x200
 // call rax
