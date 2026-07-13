@@ -7,28 +7,9 @@ public:
 	// 0x0
 	PAD_VT();
 	// 0x8
-	virtual uint8_t get_type() const = 0;
+	PAD_VT();
 	// 0x10
-	PAD_VT();
-	// 0x18
-	PAD_VT();
-	// 0x20
-	PAD_VT();
-	// 0x28
-	PAD_VT();
-	// 0x30
-	PAD_VT();
-	// 0x38
-	PAD_VT();
-	// 0x40
-	PAD_VT();
-	// 0x48
-	PAD_VT();
-	// 0x50
-	PAD_VT();
-	// 0x58
-	virtual int32_t get_item_stack_size() const = 0;
-	// 0x60
+	virtual uint8_t get_type() const = 0;
 
 public:
 	// 0x8
@@ -149,7 +130,7 @@ struct Widget003
 	// 0x0
 	PAD(0x10);
 	// 0x10
-	const Widget* internal;
+	const Widget* widget;
 	// 0x18
 };
 
@@ -175,8 +156,8 @@ struct Widget001
 struct WidgetCache
 {
 	// 0x0
-	PAD(0x88);
-	// 0x88
+	PAD(0x68);
+	// 0x68
 	const JArray<Widget001> c;
 };
 #pragma pack(pop)
