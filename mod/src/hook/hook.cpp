@@ -91,7 +91,7 @@ static_assert(sizeof(JmpRax) == 12, "Invalid size");
 struct CallHookHandler
 {
     // clang-format off
-    uint8_t prelogue[282] = 
+    uint8_t prologue[282] = 
     {
         0x48, 0x83, 0xEC, 0x18, 
         0x48, 0x89, 0x84, 0x24, 0x88, 0xFE, 0xFF, 0xFF, 
