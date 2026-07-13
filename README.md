@@ -10,8 +10,7 @@ A third party client for RS3 (and eventually, OSRS.)
 `./build.sh`  
 ## Usage
 1. Run the native RS3 linux client
-2. Place `injector` and `libmod.so` into the same directories
-3. Run `injector` with root permissions
+2. Run `bin/injector` with root permissions
 
 This will load the mod into the game client, and automatically enable everything.
 
