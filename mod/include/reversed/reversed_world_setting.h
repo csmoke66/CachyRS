@@ -1,6 +1,7 @@
 #pragma once
 #include "reversed_util.h"
 
+#pragma pack(push, 1)
 struct WorldSetting
 {
 	// 0x0
@@ -25,3 +26,4 @@ struct WorldSettingCache
 	// 0xc
 	WorldSetting* vars[1];
 };
+#pragma pack(pop)
