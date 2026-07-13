@@ -3,6 +3,16 @@
 #include <cstring>
 #include <iostream>
 
+AlignmentValidator::AlignmentValidator(uint64_t alignment)
+{
+    this->alignment = alignment;
+}
+
+bool AlignmentValidator::validate(const uint64_t *t)
+{
+    return (*t % alignment) == 0;
+}
+
 ImmExtractor::ImmExtractor(uint64_t offset_to_data, uint64_t offset, size_t data_size, bool factor_in_rip)
 {
     this->offset_to_data = offset_to_data;

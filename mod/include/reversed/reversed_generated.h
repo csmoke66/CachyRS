@@ -72,7 +72,7 @@ struct Engine
 	PAD(0x48);
 	const EntityUpdateCache* entity_update_cache;
 	PAD(0x58);
-	const WorldA* world_a;
+	const void* world_a;
 	PAD(0x10);
 	const ItemCache* item_cache;
 	PAD(0x0);

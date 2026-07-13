@@ -9,14 +9,57 @@
 
 #include <capstone.h>
 
+template <typename T>
+class DataValidator
+{
+public:
+    virtual bool validate(const T *t) = 0;
+};
+
+class AlignmentValidator : public DataValidator<uint64_t>
+{
+private:
+    uint64_t alignment;
+
+public:
+    AlignmentValidator(uint64_t alignment);
+
+public:
+    bool validate(const uint64_t *t) override;
+};
+
 //
 // Extracts something specific out of a blob of data.
 //
 template <typename T>
 class Extractor
 {
+private:
+    std::vector<DataValidator<T> *> data_validators;
+
 public:
     virtual T extract(uint64_t rva, const uint8_t *data) = 0;
+
+    T extract_validated(uint64_t rva, const uint8_t *data)
+    {
+        auto t = extract(rva, data);
+        for (auto dv : data_validators)
+        {
+            if (!dv->validate(&t))
+            {
+                return (T)0;
+            }
+        }
+
+        return t;
+    }
+
+public:
+    Extractor<T> *validator(DataValidator<T> *v)
+    {
+        data_validators.push_back(v);
+        return this;
+    }
 };
 
 //
@@ -56,7 +99,7 @@ public:
 
 //
 // Exracts menu action handler functions by decoding instructions
-// and counting LEAs until the specific LEA loading the function 
+// and counting LEAs until the specific LEA loading the function
 // is found.
 //
 class MenuActionHandlerExtractor : public Extractor<uint64_t>
@@ -105,7 +148,7 @@ public:
 };
 
 //
-// A pattern. This is simply the base type, so it contains no actual pattern data, 
+// A pattern. This is simply the base type, so it contains no actual pattern data,
 // but instead meta-data for the pattern.
 //
 // This includes the name of the found data, the type of the data, and the extractor
@@ -162,4 +205,3 @@ struct PatternObject
     std::string name;
     std::vector<Pattern *> patterns;
 };
-
