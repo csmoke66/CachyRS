@@ -7,12 +7,19 @@ enum class EntityType : uint8_t
 	ground_item = 3,
 	effect = 4,
 	object1 = 0,
-	object2 = 12
+	object2 = 12,
 };
 
 enum class GameState : uint32_t
 {
 	login_screen = 10,
 	lobby_screen = 20,
-	in_game = 30
+	in_game = 30,
+};
+
+enum class WidgetType : uint8_t
+{
+	container = 19,
+	text = 2,
+	media = 2,
 };

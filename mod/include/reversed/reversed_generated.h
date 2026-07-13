@@ -29,7 +29,9 @@ struct Globals
 	char menu_action_handler_npc1;
 	PAD(0x2d2df);
 	char menu_execute;
-	PAD(0x9e0adf);
+	PAD(0xb552f);
+	char render_widget;
+	PAD(0x92b5af);
 	char engine_tick;
 	PAD(0x14a05f);
 	char heap_alloc;
@@ -52,6 +54,7 @@ static_assert(off(Globals, menu_action_handler_npc3) == 0x162630, INVALID_OFFSET
 static_assert(off(Globals, menu_action_handler_npc2) == 0x162650, INVALID_OFFSET);
 static_assert(off(Globals, menu_action_handler_npc1) == 0x162670, INVALID_OFFSET);
 static_assert(off(Globals, menu_execute) == 0x18f950, INVALID_OFFSET);
+static_assert(off(Globals, render_widget) == 0x244e80, INVALID_OFFSET);
 static_assert(off(Globals, engine_tick) == 0xb70430, INVALID_OFFSET);
 static_assert(off(Globals, heap_alloc) == 0xcba490, INVALID_OFFSET);
 static_assert(off(Globals, heap_alloc_aligned) == 0xcd8140, INVALID_OFFSET);

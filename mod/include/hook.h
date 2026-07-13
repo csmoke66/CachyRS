@@ -8,6 +8,9 @@
 
 namespace crs
 {
+    class RenderWidgetHook;
+    class SdlPollEventHook;
+    
 #pragma pack(push, 1)
     struct Xmm
     {
@@ -43,6 +46,10 @@ namespace crs
 #define CPU_SECOND_ARG(C) C->rsi
 #define CPU_THIRD_ARG(C) C->rdx
 #define CPU_FOURTH_ARG(C) C->rcx
+#define CPU_FIFTH_ARG(C) C->r8
+#define CPU_SIXTH_ARG(C) C->r9
+// + 0x18 because the stack is offset by 0x18 to make room for XMM registers
+#define CPU_STACK_ARG(C, I) *((uint64_t *)(C->rsp + 0x18 + sizeof(uint64_t) + (sizeof(uint64_t) * I)))
 #else
     UNSUPPORTED_OS();
 #endif
@@ -84,12 +91,35 @@ namespace crs
         EGLint cached_width, cached_height;
         bool is_first_run = true;
 
+    private:
+        void render_widget(const Engine *engine, const RenderWidgetHook *rw_hook, const SdlPollEventHook* spe_hook, const Widget *widget, int x, int y);
+
     public:
         void handler(CpuState *cpu_state) override;
     };
 
     class SdlPollEventHook : public Hook<FnSDL_PollEvent>
     {
+    public:
+        Vec2<float> mouse_pos;
+
+    public:
+        void handler(CpuState *cpu_state) override;
+    };
+
+    struct RenderedWidget
+    {
+        const Widget *widget;
+        uint32_t time;
+        uint32_t absolute_x;
+        uint32_t absolute_y;
+    };
+
+    class RenderWidgetHook : public Hook<FnRenderWidget>
+    {
+    public:
+        std::map<const Widget *, RenderedWidget> rendered;
+
     public:
         void handler(CpuState *cpu_state) override;
     };
@@ -103,6 +133,13 @@ namespace crs
 
     public:
         HookManager(ProcessInterface *pi, uint8_t vt_offset);
+
+    public:
+        template <typename T>
+        const T *view_hook(const ::std::string &name)
+        {
+            return (T *)hooks[name].get();
+        }
 
     public:
         void iat(const ::std::string &name, const ::std::string &symbol, ::std::unique_ptr<Hook<void *>> hook);

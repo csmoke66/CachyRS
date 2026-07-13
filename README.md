@@ -15,6 +15,7 @@ A third party client for RS3 (and eventually, OSRS.)
 This will load the mod into the game client, and automatically enable everything.
 
 ![Crabussy](media/crabussy.png)
+![Widgets](media/widgets.png)
 ## Project Structure
 ### updater
 This is responsible for generating the headers that map to game structures in memory.  

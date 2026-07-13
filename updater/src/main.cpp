@@ -134,7 +134,12 @@ std::vector<PatternObject> build_pattern_objects()
             {"char", 1},
             (new MenuActionHandlerExtractor(capstone_handle, 63))->
                 validator(new AlignmentValidator(0x10))},
-
+        new DefaultPattern{
+            "render_widget",
+            compile_ida_pattern("E8 ? ? ? ? 48 8B BC 24 ? ? ? ? 48 83 C4 ? 48 85 FF 74 ? E8 ? ? ? ? ? ? ? 4C 89 FF"),
+            {"char", 1},
+            (new ImmExtractor(0x1, 0x5, 4, true))->
+                validator(new AlignmentValidator(0x10))},
         new DefaultPattern{
             "menu_action_handler_test_dump",
             compile_ida_pattern("4C 8B 5C 24 ? 4D 89 A5"),

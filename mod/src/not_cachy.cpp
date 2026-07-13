@@ -29,6 +29,14 @@ namespace crs
         return dref<const WorldNode *>(scene_003(), {off(Scene003, world_root)});
     }
 
+    const WidgetCache *NotCachyRS::widget_cache() const
+    {
+        return dref<const WidgetCache *>(
+            RS.get_globals(), 
+            {off(Globals, engine), 
+            off(Engine, widget_cache)});
+    }
+
     SDL_Window *NotCachyRS::sdl_window() const
     {
         return dref<SDL_Window *>(

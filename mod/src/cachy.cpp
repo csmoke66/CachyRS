@@ -217,5 +217,6 @@ namespace crs
         hook_manager->iat("swap_buffers", "eglSwapBuffers", unique_hook<EglSwapBuffersHook>());
         hook_manager->iat("poll_event", "SDL_PollEvent", unique_hook<SdlPollEventHook>());
         hook_manager->x86("menu_execute", &get_globals()->menu_execute, unique_hook<MenuExecuteHook>());
+        hook_manager->x86("render_widget", &get_globals()->render_widget, unique_hook<RenderWidgetHook>());
     }
 }

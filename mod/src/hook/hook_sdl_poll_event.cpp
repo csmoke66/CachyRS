@@ -10,6 +10,10 @@ namespace crs
         if (ret)
         {
             RS.event_ring_buffer.push(*event);
+            if (event->type == SDL_MOUSEMOTION)
+            {
+                mouse_pos = Vec2<float>((float)event->motion.x, (float)event->motion.y);
+            }
 
             auto steal_processing = false;
             auto &io = ImGui::GetIO();

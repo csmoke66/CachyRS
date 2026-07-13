@@ -9,7 +9,7 @@ public:
 	// 0x8
 	PAD_VT();
 	// 0x10
-	virtual uint8_t get_type() const = 0;
+	virtual WidgetType get_type() const = 0;
 
 public:
 	// 0x8
@@ -48,7 +48,7 @@ struct WidgetChild
 	// 0x8
 	PAD(0x8);
 	// 0x10
-	const Widget* internal;
+	const Widget* widget;
 	// 0x18
 };
 
