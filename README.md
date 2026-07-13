@@ -25,4 +25,14 @@ This is the shared library that's injected into rs2client to provide all of the 
 ### injector
 This is a simple .so injector that was modified from another repository I forget the name of. It has a bug and fails sometimes.
 ## Feature Requests
-I expect people to request things like Windows support, or language bindings. This is currently outside of the scope of the project as I only run Linux on my machines. I will happily work with people to add support and accept pull requests.
+I expect people to request things like Windows support, or language bindings. This is currently outside of the scope of the project as I only run Linux on my machines. I will happily work with people to add support and accept pull requests.  
+  
+All Linux specific APIs have multi-platform stubs:
+```c
+#ifdef __linux__
+// linux code
+#else
+UNSUPPORTED_OS();
+#endif
+```
+C++ STL usage is used wherever possible to reduce reliance on OS specific APIs. Adding support for another system should just be adding additional macros.
