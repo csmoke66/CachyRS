@@ -3,14 +3,15 @@
 #include <format>
 #include <iostream>
 
-#include "cachy.h"
+#include "log.h"
+#include "util.h"
+#include "version.hpp"
 
 #include <RmlUi_Platform_SDL.h>
 
 bool CachySystemInterface::LogMessage(Rml::Log::Type type, const Rml::String &message)
 {
-    RS.log_stream << message << std::endl;
-    RS.flush_logs();
+    LOG(UI, message);
     return true;
 }
 

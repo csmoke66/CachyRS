@@ -1,3 +1,19 @@
 #pragma once
 
+#define MACRO_TO_STRING_HELPER(x) #x
+#define MACRO_TO_STRING(x) MACRO_TO_STRING_HELPER(x)
+
+#define VERSION_MAJOR 0
+#define VERSION_MINOR 0
+#define VERSION_PATCH 15
+#define VERSION_API 0
+
+// clang-format off
+#define FEATURE_VERSION                \
+    MACRO_TO_STRING(VERSION_MAJOR)     \
+    "." MACRO_TO_STRING(VERSION_MINOR) \
+    "." MACRO_TO_STRING(VERSION_PATCH) \
+    "." MACRO_TO_STRING(VERSION_API)
+// clang-format on
+
 #define CACHYRS_VERSION "@GIT_VERSION@"

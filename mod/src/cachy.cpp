@@ -18,7 +18,7 @@ CachyRS RS;
 
 void CachyRS::init_logging()
 {
-    log_stream = std::ofstream("/tmp/cachy-rs.txt");
+    logx.init("/tmp/cachy-rs.txt");
 }
 
 void CachyRS::init_process_info()
@@ -112,13 +112,6 @@ void CachyRS::init_imgui()
     colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
     colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
     colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
-}
-
-void CachyRS::flush_logs()
-{
-    log_mutex.lock();
-    log_stream.flush();
-    log_mutex.unlock();
 }
 
 std::string CachyRS::get_configuration_dir() const

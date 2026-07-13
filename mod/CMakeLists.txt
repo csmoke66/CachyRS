@@ -2,8 +2,7 @@ cmake_minimum_required(VERSION 3.22)
 project(mod LANGUAGES CXX)
 
 add_library(mod SHARED
-    src/main.cpp
-
+    src/log.cpp
     src/cachy.cpp
     src/not_cachy.cpp
     src/util.cpp
@@ -19,6 +18,8 @@ add_library(mod SHARED
     src/hook/hook_egl_swap_buffers.cpp
     src/hook/hook_menu_execute.cpp
     src/hook/hook_sdl_poll_event.cpp
+
+    src/main.cpp
 )
 
 target_include_directories(mod PRIVATE 
