@@ -6,10 +6,10 @@ add_library(mod SHARED
 
     src/cachy.cpp
     src/not_cachy.cpp
-
-    src/process.cpp
-    src/interop.cpp
     src/util.cpp
+
+    src/interop.cpp
+    src/process_linux.cpp
 
     src/ui/ui.cpp
     src/ui/rml_ui.cpp

@@ -1,5 +1,6 @@
 #include "process.h"
 
+#ifdef __linux__
 #include <limits.h>
 #include <unistd.h>
 
@@ -132,3 +133,4 @@ void ProcessInterface::init()
             (Elf64_Addr *)(game_handle + rela.r_offset)});
     }
 }
+#endif
