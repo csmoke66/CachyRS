@@ -119,7 +119,9 @@ void CachyRS::init_imgui()
 
 void CachyRS::flush_logs()
 {
+    log_mutex.lock();
     log_stream.flush();
+    log_mutex.unlock();
 }
 
 std::string CachyRS::get_configuration_dir() const
