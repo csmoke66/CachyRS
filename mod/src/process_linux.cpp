@@ -128,9 +128,8 @@ void ProcessInterface::init()
         auto &sym = sym_table[sym_idx];
         auto name = &str_table[sym.st_name];
         imports.push_back(ImportedFunction{
-            rela.r_info,
             std::string(name),
-            (Elf64_Addr *)(game_handle + rela.r_offset)});
+            (uint64_t *)(game_handle + rela.r_offset)});
     }
 }
 #endif

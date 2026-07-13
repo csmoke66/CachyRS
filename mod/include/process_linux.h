@@ -6,13 +6,6 @@
 
 #include <elf.h>
 
-struct ImportedFunction
-{
-    Elf64_Xword reloc_info;
-    std::string name;
-    Elf64_Addr *addr;
-};
-
 class ProcessInterface
 {
 private:
@@ -30,15 +23,15 @@ private:
     std::vector<ImportedFunction> imports;
 
 public:
-    Elf64_Addr game_base() const;
-    Elf64_Addr offset(const void* a) const;
+    uint64_t game_base() const;
+    uint64_t offset(const void* a) const;
     
 public:
     const std::vector<ImportedFunction> &import_view() const;
     bool find_import(const std::string& symbol, ImportedFunction* out) const;
 
 private:
-    Elf64_Addr main_module_base() const;
+    uint64_t main_module_base() const;
     void init_game_handle();
 
 public:
