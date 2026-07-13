@@ -15,15 +15,6 @@ struct Xmm
     };
 };
 
-#ifdef __linux__
-#define CPU_FIRST_ARG(C) C->rdi
-#define CPU_SECOND_ARG(C) C->rsi
-#define CPU_THIRD_ARG(C) C->rdx
-#define CPU_FOURTH_ARG(C) C->rcx
-#else
-UNSUPPORTED_OS();
-#endif
-
 struct CpuState
 {
     uint64_t rax;
@@ -44,6 +35,15 @@ struct CpuState
     uint64_t r15;
     Xmm xmm[16];
 };
+
+#ifdef __linux__
+#define CPU_FIRST_ARG(C) C->rdi
+#define CPU_SECOND_ARG(C) C->rsi
+#define CPU_THIRD_ARG(C) C->rdx
+#define CPU_FOURTH_ARG(C) C->rcx
+#else
+UNSUPPORTED_OS();
+#endif
 #pragma pack(pop)
 
 template <typename T>
