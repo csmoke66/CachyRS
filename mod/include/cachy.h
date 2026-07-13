@@ -34,8 +34,8 @@
 #define LOG(LVL, ...)                                                                                     \
     RS.log_mutex.lock();                                                                                  \
     RS.log_stream << "[" << __FUNCTION__ << "][" << #LVL << "] " << __VA_ARGS__ << std::dec << std::endl; \
-    RS.flush_logs();                                                                                      \
-    RS.log_mutex.unlock()
+    RS.log_mutex.unlock();                                                                                \
+    RS.flush_logs();
 
 class CachyRS
 {
