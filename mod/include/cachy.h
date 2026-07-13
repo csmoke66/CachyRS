@@ -64,7 +64,6 @@ public:
     std::string resolve_configuration(const std::string &file) const;
 
 public:
-public:
     Globals *get_globals() const;
 
 public:
