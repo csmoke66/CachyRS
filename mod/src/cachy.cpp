@@ -219,7 +219,7 @@ void CachyRS::init()
     }
 
     LOG(INFO, "Placing hooks...");
-    hook_manager = new HookManager(&pi, vt_offset);
+    hook_manager = std::make_unique<HookManager>(&pi, vt_offset);
     hook_manager->iat("swap_buffers", "eglSwapBuffers", unique_hook<EglSwapBuffersHook>());
     hook_manager->iat("poll_event", "SDL_PollEvent", unique_hook<SdlPollEventHook>());
     hook_manager->x86("menu_execute", &get_globals()->menu_execute, unique_hook<MenuExecuteHook>());

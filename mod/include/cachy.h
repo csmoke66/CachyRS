@@ -25,7 +25,7 @@ class CachyRS
 {
 public:
     ProcessInterface pi;
-    HookManager* hook_manager;
+    std::unique_ptr<HookManager> hook_manager = nullptr;
     
 public:
     std::ofstream log_stream;

@@ -102,7 +102,7 @@ private:
 
 public:
     HookManager(ProcessInterface *pi, uint8_t vt_offset);
-
+    
 public:
     void iat(const std::string& name, const std::string &symbol, std::unique_ptr<Hook<void *>> hook);
     void x86(const std::string& name, void *target, std::unique_ptr<Hook<void *>> hook);
