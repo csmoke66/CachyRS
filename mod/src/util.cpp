@@ -1,9 +1,15 @@
 #include "util.h"
+
+#ifdef __linux__
 #include <unistd.h>
 #include <sys/mman.h>
+#else
+UNSUPPORTED_OS();
+#endif
 
 #include "cachy.h"
 
+#ifdef __linux__
 void *allocate_executable_memory(void *data, size_t size)
 {
     auto page_size = sysconf(_SC_PAGESIZE);
@@ -25,6 +31,9 @@ void *allocate_executable_memory(void *data, size_t size)
     return mem;
 }
 
+// TODO FIXME this is the only rough corner in multi-platform support mainly due
+// to the prot option which may be interchangable with PAGE_EXECUTE_* I just haven't
+// checked
 void patch_non_writable_memory(void *target, void *data, size_t size, int prot)
 {
     auto page = (Elf64_Addr)target & ~(getpagesize() - 1);
@@ -33,3 +42,6 @@ void patch_non_writable_memory(void *target, void *data, size_t size, int prot)
     memcpy(target, data, size);
     mprotect((void *)page, getpagesize(), prot);
 }
+#else
+UNSUPPORTED_OS();
+#endif
