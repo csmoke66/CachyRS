@@ -36,6 +36,9 @@ struct UserInterfaceState
 class UserInterface
 {
 public:
+    virtual ~UserInterface();
+
+public:
     virtual void init(const std::string &version, const std::string &config_folder, SDL_Window *window, int width, int height) = 0;
     virtual void reload();
 
@@ -88,7 +91,7 @@ private:
     Rml::Element *debug_content = nullptr;
     Rml::Element *debug_projection = nullptr;
     Rml::Element *debug_item_containers = nullptr;
-    
+
 private:
     bool player_overlay_on = false;
 

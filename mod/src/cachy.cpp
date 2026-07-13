@@ -184,7 +184,7 @@ void CachyRS::init()
     init_imgui();
 
     LOG(INFO, "Initializing UI...");
-    ui = new RmlUserInterface();
+    ui = std::make_unique<RmlUserInterface>();
 
     LOG(INFO, "Initializing capstone...");
     asm_init();

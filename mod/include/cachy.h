@@ -32,7 +32,7 @@ public:
     std::mutex log_mutex;
 
 public:
-    UserInterface* ui = nullptr;
+    std::unique_ptr<UserInterface> ui = nullptr;
     RingBuffer<SDL_Event> event_ring_buffer;
 
 private:
