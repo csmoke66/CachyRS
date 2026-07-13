@@ -11,7 +11,7 @@ A third party client for RS3 (and eventually, OSRS.)
 `chmod +x build.sh`  
 `./build.sh`  
 ## Usage
-1. Run the native RS3 linux client
+1. Run the native RS3 Linux client
 2. Run `bin/injector` with root permissions
 ![Crabussy](media/crabussy.png)
 ![Widgets](media/widgets.png)
