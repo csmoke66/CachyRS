@@ -218,5 +218,40 @@ namespace crs
         hook_manager->iat("poll_event", "SDL_PollEvent", unique_hook<SdlPollEventHook>());
         hook_manager->x86("menu_execute", &get_globals()->menu_execute, unique_hook<MenuExecuteHook>());
         hook_manager->x86("render_widget", &get_globals()->render_widget, unique_hook<RenderWidgetHook>());
+
+        LOG(INFO, "Initializing developer overlay...");
+        developer_overlay.init();
+    }
+
+    void CachyRS::push_ui_state()
+    {
+        UserInterfaceState state;
+        if (auto scene = NRS.scene_003())
+        {
+            state.projection_matrix = scene->projection_matrix;
+        }
+
+        if (auto item_cache = NRS.item_cache())
+        {
+            auto &containers = item_cache->containers;
+            for (auto i = containers.begin; i != containers.end; i++)
+            {
+                UserInterfaceItemContainer ui_container;
+                ui_container.id = i->id;
+                for (auto j = i->items.begin; j < i->items.end; j++)
+                {
+                    UserInterfaceItem ui_item;
+                    ui_item.id = j->id;
+                    ui_item.amount = j->amount;
+                    if (ui_item.id != -1 && ui_item.amount > 0)
+                    {
+                        ui_container.items.push_back(ui_item);
+                    }
+                }
+                state.item_containers.push_back(ui_container);
+            }
+        }
+        
+        ui->propagate(state);
     }
 }

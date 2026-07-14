@@ -2,6 +2,7 @@
 #include "process.h"
 
 #include "ui.h"
+#include "developer.h"
 
 #include "reversed/reversed.h"
 #include "hook.h"
@@ -31,6 +32,8 @@ namespace crs
         ::std::unique_ptr<UserInterface> ui = nullptr;
         RingBuffer<SDL_Event> event_ring_buffer;
 
+        DeveloperOverlay developer_overlay;
+
     private:
         void init_logging();
         void init_process_info();
@@ -48,6 +51,9 @@ namespace crs
 
     public:
         void init();
+
+    public:
+        void push_ui_state();
     };
 
     extern CachyRS RS;

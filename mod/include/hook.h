@@ -138,7 +138,7 @@ namespace crs
         template <typename T>
         const T *view_hook(const ::std::string &name)
         {
-            return (T *)hooks[name].get();
+            return (const T *)hooks[name].get();
         }
 
     public:

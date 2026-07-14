@@ -14,7 +14,11 @@ namespace crs
 {
     enum class UserVariable : uint16_t
     {
-        player_overlay
+        player_overlay,
+        npc_overlay,
+        object_overlay,
+        ground_item_overlay,
+        widget_picker
     };
 
     struct UserInterfaceItem

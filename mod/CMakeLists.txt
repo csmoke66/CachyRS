@@ -12,7 +12,8 @@ add_library(mod SHARED
 
     src/ui/ui.cpp
     src/ui/rml_ui.cpp
-
+    src/ui/developer.cpp
+    
     src/hook/hook_linux.cpp
     src/hook/hook_manager.cpp
     src/hook/hook_egl_swap_buffers.cpp
