@@ -205,7 +205,7 @@ namespace crs
         }
     }
 
-    void asm_hook(uint8_t vt_offset, void *target, Hook<void *> *hook)
+    void asm_hook(uint8_t vt_offset, void *target, GenericHook *hook)
     {
         size_t hook_size = 0;
 
@@ -241,7 +241,7 @@ namespace crs
         patch_non_writable_memory(target, &prologue_code, sizeof(JmpRax), PROT_READ | PROT_EXEC);
     }
 
-    void iat_hook(uint8_t vt_offset, void *target, Hook<void *> *hook)
+    void iat_hook(uint8_t vt_offset, void *target, GenericHook *hook)
     {
         CallHookHandler call_hook_handler_code;
         call_hook_handler_code.hook_object = hook;

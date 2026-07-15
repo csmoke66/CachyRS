@@ -10,9 +10,12 @@ add_library(mod SHARED
     src/interop.cpp
     src/process_linux.cpp
 
+    src/dom.cpp
     src/ui/ui.cpp
     src/ui/rml_ui.cpp
     src/ui/developer.cpp
+    
+    src/reversed.cpp
     
     src/hook/hook_linux.cpp
     src/hook/hook_manager.cpp
@@ -26,8 +29,9 @@ add_library(mod SHARED
     src/main.cpp
 )
 
-target_include_directories(mod PRIVATE 
+target_include_directories(mod PUBLIC 
     include
+    game
 )
 
 execute_process(
@@ -52,6 +56,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 add_subdirectory(imgui)
 add_subdirectory(rmlui_backend)
+add_subdirectory(api)
 
 FetchContent_Declare(
         rmlui
@@ -60,7 +65,7 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(rmlui)
 
-find_package(OpenGL REQUIRED COMPONENTS  EGL)
+find_package(OpenGL REQUIRED COMPONENTS EGL)
 find_package(PkgConfig REQUIRED)
 
 pkg_check_modules(capstone REQUIRED IMPORTED_TARGET capstone)

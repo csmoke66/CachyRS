@@ -8,7 +8,7 @@ namespace crs
         this->vt_offset = vt_offset;
     }
 
-    void HookManager::iat(const ::std::string &name, const ::std::string &symbol, ::std::unique_ptr<Hook<void *>> hook)
+    void HookManager::iat(const ::std::string &name, const ::std::string &symbol, ::std::unique_ptr<GenericHook> hook)
     {
         ImportedFunction fn;
         if (pi->find_import(symbol, &fn))
@@ -20,7 +20,7 @@ namespace crs
         }
     }
 
-    void HookManager::x86(const ::std::string &name, void *target, ::std::unique_ptr<Hook<void *>> hook)
+    void HookManager::x86(const ::std::string &name, void *target, ::std::unique_ptr<GenericHook> hook)
     {
         asm_hook(vt_offset, target, hook.get());
         hooks[name] = std::move(hook);

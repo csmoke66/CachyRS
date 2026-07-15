@@ -187,6 +187,10 @@ namespace crs
         auto dummy = ::std::make_unique<DummyHook>();
         auto vt = *(void ***)dummy.get();
 
+        LOG(INFO, "Initializing DOM...");
+        ui->add_dom_node(dom_node_item_containers);
+        ui->add_dom_node(dom_node_npcs);
+
         // Our hooks rely on being able to call into a virtual object in order to have hook
         // specific contexts, to avoid global state being scattered everywhere for each hook.
         //
@@ -225,33 +229,12 @@ namespace crs
 
     void CachyRS::push_ui_state()
     {
-        UserInterfaceState state;
-        if (auto scene = NRS.scene_003())
-        {
-            state.projection_matrix = scene->projection_matrix;
-        }
+        auto engine = get_globals()->engine;
 
-        if (auto item_cache = NRS.item_cache())
-        {
-            auto &containers = item_cache->containers;
-            for (auto i = containers.begin; i != containers.end; i++)
-            {
-                UserInterfaceItemContainer ui_container;
-                ui_container.id = i->id;
-                for (auto j = i->items.begin; j < i->items.end; j++)
-                {
-                    UserInterfaceItem ui_item;
-                    ui_item.id = j->id;
-                    ui_item.amount = j->amount;
-                    if (ui_item.id != -1 && ui_item.amount > 0)
-                    {
-                        ui_container.items.push_back(ui_item);
-                    }
-                }
-                state.item_containers.push_back(ui_container);
-            }
-        }
-        
-        ui->propagate(state);
+        dom_node_item_containers->update();
+        ui->build_dom_node(dom_node_item_containers);
+
+        dom_node_npcs->update();
+        ui->build_dom_node(dom_node_npcs);
     }
 }

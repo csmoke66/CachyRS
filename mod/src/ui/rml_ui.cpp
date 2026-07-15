@@ -78,6 +78,38 @@ namespace crs
         }
     };
 
+    class ToggleDomNodeEventListener : public Rml::EventListener
+    {
+    private:
+        Rml::Element *element;
+
+    public:
+        ToggleDomNodeEventListener(Rml::Element *element)
+        {
+            this->element = element;
+        }
+
+    public:
+        void ProcessEvent(Rml::Event &event) override
+        {
+            event.StopPropagation();
+
+            if (element->GetLocalProperty("display"))
+            {
+                element->RemoveProperty("display");
+            }
+            else
+            {
+                element->SetProperty("display", "none");
+            }
+        }
+    };
+
+    RmlUserInterface::RmlUserInterface()
+    {
+        root_dom_node = std::make_shared<DomNode>("root", "root");
+    }
+
     void RmlUserInterface::load_fonts()
     {
         struct FontFace
@@ -133,7 +165,6 @@ namespace crs
             root_document->ReloadStyleSheet();
             root_document->Close();
             root_document = nullptr;
-            debug_projection = nullptr;
             selected_tab_button = nullptr;
             selected_content = nullptr;
         }
@@ -152,8 +183,6 @@ namespace crs
 
             debug_tab_button = root_document->GetElementById("debug_tab_button");
             debug_content = root_document->GetElementById("debug_content");
-            debug_projection = root_document->GetElementById("projection");
-            debug_item_containers = root_document->GetElementById("item_containers");
 
             home_tab_button->AddEventListener(Rml::EventId::Click, new SwitchTabEventHandler(
                                                                        &selected_tab_button, &selected_content,
@@ -170,6 +199,7 @@ namespace crs
             auto rmlui_debug_player_overlay_cb = root_document->GetElementById("player_overlay_checkbox");
             rmlui_debug_player_overlay_cb->AddEventListener(Rml::EventId::Change, new ToggleFeatureEventListener(&player_overlay_on));
 
+            root_dom_node->element = debug_content;
             root_document->Show();
         }
     }
@@ -184,6 +214,58 @@ namespace crs
         return wants_input_last;
     }
 
+    void RmlUserInterface::build_dom_node(std::shared_ptr<DomNode> node, int depth)
+    {
+        if (!node->is_built)
+        {
+            auto element = root_document->CreateElement("div");
+
+            std::string inner_rml;
+            inner_rml += std::format("<div><span class=\"dom-node\">&lt;</span><span class=\"dom-node-type\">{}</span>", node->type);
+
+            auto &values = node->values;
+            if (!values.empty())
+            {
+                inner_rml += "<span>&nbsp;</span>";
+            }
+
+            for (auto i = 0; i < values.size(); i++)
+            {
+                auto is_last = (i == values.size() - 1);
+                inner_rml += std::format("<span class=\"dom-node-key\">{}</span><span class=\"dom-node\">=</span><span class=\"dom-node-value\">&quot;{}&quot;</span>", values[i].name, values[i].value);
+                if (!is_last)
+                {
+                    inner_rml += "<span>&nbsp;</span>";
+                }
+            }
+            inner_rml += std::format("<span class=\"dom-node\" id=\"{}\">&gt;</span></div>", node->id);
+            inner_rml += std::format("<div><span class=\"dom-node\">&lt;/</span><span class=\"dom-node-type\">{}</span><span class=\"dom-node\">&gt;</span></div>", node->type);
+
+            element->SetInnerRML(inner_rml);
+            element->SetClass("dom-row", true);
+
+            auto anchor = element->GetElementById(node->id);
+            node->wrapper_element = node->parent->element->AppendChild(std::move(element));
+            node->element = anchor;
+
+            node->wrapper_element->AddEventListener(Rml::EventId::Dblclick, new ToggleDomNodeEventListener(node->element));
+
+            node->is_built = true;
+        }
+
+        for (auto c : node->children)
+        {
+            c.second->parent = node;
+            build_dom_node(c.second, depth + 1);
+        }
+    }
+
+    void RmlUserInterface::add_dom_node(std::shared_ptr<DomNode> node)
+    {
+        node->parent = root_dom_node;
+        root_dom_node->children[node->id] = node;
+    }
+
     void RmlUserInterface::render()
     {
         context->Update();
@@ -191,102 +273,5 @@ namespace crs
         Backend::BeginFrame();
         context->Render();
         Backend::PresentFrame();
-    }
-
-    void RmlUserInterface::propagate(const UserInterfaceState &state)
-    {
-        auto &matrix = state.projection_matrix;
-        if (auto text = debug_projection)
-        {
-            text->SetInnerRML(std::format(
-                "<tr>"
-                "<td>{:8.4f}</td>"
-                "<td>{:8.4f}</td>"
-                "<td>{:8.4f}</td>"
-                "<td>{:8.4f}</td>"
-                "</tr>"
-                "<tr>"
-                "<td>{:8.4f}</td>"
-                "<td>{:8.4f}</td>"
-                "<td>{:8.4f}</td>"
-                "<td>{:8.4f}</td>"
-                "</tr>"
-                "<tr>"
-                "<td>{:8.4f}</td>"
-                "<td>{:8.4f}</td>"
-                "<td>{:8.4f}</td>"
-                "<td>{:8.4f}</td>"
-                "</tr>"
-                "<tr>"
-                "<td>{:8.4f}</td>"
-                "<td>{:8.4f}</td>"
-                "<td>{:8.4f}</td>"
-                "<td>{:8.4f}</td>"
-                "</tr>",
-                matrix.flat[0], matrix.flat[1], matrix.flat[2], matrix.flat[3],
-                matrix.flat[4], matrix.flat[5], matrix.flat[6], matrix.flat[7],
-                matrix.flat[8], matrix.flat[9], matrix.flat[10], matrix.flat[11],
-                matrix.flat[12], matrix.flat[13], matrix.flat[14], matrix.flat[15]));
-        }
-
-        if (auto containers = debug_item_containers)
-        {
-            while (containers->HasChildNodes())
-            {
-                containers->RemoveChild(containers->GetFirstChild());
-            }
-
-            for (auto &container : state.item_containers)
-            {
-                if (!container.items.empty())
-                {
-                    auto container_div = root_document->CreateElement("div");
-
-                    auto container_id_div = root_document->CreateElement("h3");
-                    container_id_div->SetInnerRML(std::format("{}", container.id));
-                    container_div->AppendChild(std::move(container_id_div));
-
-                    auto item_container_div = root_document->CreateElement("div");
-
-                    auto item_container_hr = root_document->CreateElement("span");
-                    item_container_hr->SetClass("hr-custom", true);
-                    item_container_div->AppendChild(std::move(item_container_hr));
-
-                    for (auto &item : container.items)
-                    {
-                        auto item_div = root_document->CreateElement("div");
-                        auto item_span = root_document->CreateElement("span");
-                        item_span->SetInnerRML(std::format("{}:{}", item.id, item.amount));
-
-                        item_div->AppendChild(std::move(item_span));
-                        item_container_div->AppendChild(std::move(item_div));
-                    }
-
-                    container_div->AppendChild(std::move(item_container_div));
-                    containers->AppendChild(std::move(container_div));
-
-                    auto container_br = root_document->CreateElement("br");
-                    containers->AppendChild(std::move(container_br));
-                }
-            }
-        }
-    }
-
-    bool RmlUserInterface::get_bool(UserVariable var)
-    {
-        if (var == UserVariable::player_overlay)
-        {
-            return player_overlay_on;
-        }
-
-        return false;
-    }
-
-    void RmlUserInterface::set_bool(UserVariable var, bool b)
-    {
-        if (var == UserVariable::player_overlay)
-        {
-            player_overlay_on = b;
-        }
     }
 }

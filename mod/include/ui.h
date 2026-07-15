@@ -9,36 +9,10 @@
 #include <RmlUi_Backend.h>
 
 #include "math.h"
+#include "dom.h"
 
 namespace crs
 {
-    enum class UserVariable : uint16_t
-    {
-        player_overlay,
-        npc_overlay,
-        object_overlay,
-        ground_item_overlay,
-        widget_picker
-    };
-
-    struct UserInterfaceItem
-    {
-        int32_t id;
-        int32_t amount;
-    };
-
-    struct UserInterfaceItemContainer
-    {
-        uint32_t id;
-        std::vector<UserInterfaceItem> items;
-    };
-
-    struct UserInterfaceState
-    {
-        Matrix4x4 projection_matrix;
-        std::vector<UserInterfaceItemContainer> item_containers;
-    };
-
     class UserInterface
     {
     public:
@@ -54,13 +28,6 @@ namespace crs
 
     public:
         virtual void render() = 0;
-
-    public:
-        virtual void propagate(const UserInterfaceState &state) = 0;
-
-    public:
-        virtual bool get_bool(UserVariable var) = 0;
-        virtual void set_bool(UserVariable var, bool b) = 0;
     };
 
     class CachySystemInterface : public Rml::SystemInterface
@@ -95,8 +62,12 @@ namespace crs
 
         Rml::Element *debug_tab_button = nullptr;
         Rml::Element *debug_content = nullptr;
-        Rml::Element *debug_projection = nullptr;
-        Rml::Element *debug_item_containers = nullptr;
+
+    public:
+        std::shared_ptr<DomNode> root_dom_node;
+
+    public:
+        RmlUserInterface();
 
     private:
         bool player_overlay_on = false;
@@ -113,13 +84,12 @@ namespace crs
         bool wants_input() override;
 
     public:
+        void build_dom_node(std::shared_ptr<DomNode> node, int depth = 0);
+
+    public:
+        void add_dom_node(std::shared_ptr<DomNode> node);
+
+    public:
         void render() override;
-
-    public:
-        void propagate(const UserInterfaceState &state) override;
-
-    public:
-        bool get_bool(UserVariable var) override;
-        void set_bool(UserVariable var, bool b) override;
     };
 }

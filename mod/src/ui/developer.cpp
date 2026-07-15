@@ -6,20 +6,6 @@
 
 namespace crs
 {
-    template <typename FN>
-    static void iterate_entities(const WorldNode *node, FN fn)
-    {
-        if (auto entity = node->entity)
-        {
-            fn(entity);
-        }
-
-        for (auto c = node->children.begin; c != node->children.end; c++)
-        {
-            iterate_entities(*c, fn);
-        }
-    }
-
     void DeveloperOverlay::render_player_overlay(ImDrawList *draw_list, const WorldNode *root)
     {
         // clang-format off
@@ -135,44 +121,6 @@ namespace crs
 
         auto draw_list = ImGui::GetBackgroundDrawList();
         
-        if (RS.ui->get_bool(crs::UserVariable::player_overlay))
-        {
-            if (!!root_world_node)
-            {
-                render_player_overlay(draw_list, root_world_node);
-            }
-        }
-
-        if (RS.ui->get_bool(crs::UserVariable::npc_overlay))
-        {
-            if (!!root_world_node)
-            {
-                render_npc_overlay(draw_list, root_world_node);
-            }
-        }
-
-        if (RS.ui->get_bool(crs::UserVariable::object_overlay))
-        {
-            if (!!root_world_node)
-            {
-                render_object_overlay(draw_list, root_world_node);
-            }
-        }
-
-        if (RS.ui->get_bool(crs::UserVariable::ground_item_overlay))
-        {
-            if (!!root_world_node)
-            {
-                render_ground_item_overlay(draw_list, root_world_node);
-            }
-        }
-
-        if (RS.ui->get_bool(crs::UserVariable::widget_picker))
-        {
-            if (!!widget_cache)
-            {
-                render_widget_picker(draw_list, engine, widget_cache);
-            }
-        }
+        // TODO FIXME integrate with DOM
     }
 }

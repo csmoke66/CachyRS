@@ -14,4 +14,18 @@ namespace crs
     };
 
     extern NotCachyRS NRS;
+
+    template <typename FN>
+    static void iterate_entities(const WorldNode *node, FN fn)
+    {
+        if (auto entity = node->entity)
+        {
+            fn(entity);
+        }
+
+        for (auto c = node->children.begin; c != node->children.end; c++)
+        {
+            iterate_entities(*c, fn);
+        }
+    }
 }

@@ -4,13 +4,19 @@
 #include "ui.h"
 #include "developer.h"
 
+#include "game_dom.h"
 #include "reversed/reversed.h"
 #include "hook.h"
+#include "game_hook.h"
 
 #include "ring_buffer.h"
 #include "util.h"
 #include "log.h"
 #include "interop.h"
+
+#include "event_bus.h"
+#include "subsystem.h"
+#include "capi.h"
 
 #include "version.hpp"
 
@@ -28,12 +34,19 @@ namespace crs
         ProcessInterface pi;
         ::std::unique_ptr<HookManager> hook_manager = nullptr;
 
+    private:
+        std::shared_ptr<ItemContainersDomNode> dom_node_item_containers = std::make_shared<ItemContainersDomNode>("item_containers", "item_containers");
+        std::shared_ptr<NpcsDomNode> dom_node_npcs = std::make_shared<NpcsDomNode>("npcs", "npcs");
+        
     public:
-        ::std::unique_ptr<UserInterface> ui = nullptr;
+        DeveloperOverlay developer_overlay;
+        ::std::unique_ptr<RmlUserInterface> ui = nullptr;
         RingBuffer<SDL_Event> event_ring_buffer;
 
-        DeveloperOverlay developer_overlay;
-
+    public:
+        SubSystemCache subsystem_cache;
+        EventBus event_bus;
+        
     private:
         void init_logging();
         void init_process_info();
