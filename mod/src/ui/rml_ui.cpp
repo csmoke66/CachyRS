@@ -196,9 +196,6 @@ namespace crs
                                                                         &selected_tab_button, &selected_content,
                                                                         debug_tab_button, debug_content));
 
-            auto rmlui_debug_player_overlay_cb = root_document->GetElementById("player_overlay_checkbox");
-            rmlui_debug_player_overlay_cb->AddEventListener(Rml::EventId::Change, new ToggleFeatureEventListener(&player_overlay_on));
-
             root_dom_node->element = debug_content;
             root_document->Show();
         }
