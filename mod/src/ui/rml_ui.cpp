@@ -99,6 +99,10 @@ namespace crs
             event.StopPropagation();
 
             parent->inspect_dom_node(node);
+            if (auto& listener = parent->dom_tree_listener)
+            {
+                listener->on_click(node);
+            }
         }
     };
 
@@ -253,6 +257,11 @@ namespace crs
         return &dom_nodes[node];
     }
 
+    void RmlUserInterface::set_listener(std::unique_ptr<DomTreeListener> listener)
+    {
+        this->dom_tree_listener = std::move(listener);
+    }
+
     void RmlUserInterface::build_dom_node(std::shared_ptr<DomNode> node, int depth)
     {
         if (!node->is_built)
@@ -296,7 +305,7 @@ namespace crs
 
             auto rmlui_dom_node = get_rmlui_dom_node(node);
             auto rmlui_parent_dom_node = get_rmlui_dom_node(node->parent);
-            
+
             rmlui_dom_node->wrapper_element = rmlui_parent_dom_node->element->AppendChild(std::move(element));
             rmlui_dom_node->element = anchor;
 

@@ -122,5 +122,9 @@ namespace crs
         auto draw_list = ImGui::GetBackgroundDrawList();
         
         // TODO FIXME integrate with DOM
+        if (player_overlay_on)
+        {
+            render_player_overlay(draw_list, root_world_node);
+        }
     }
 }

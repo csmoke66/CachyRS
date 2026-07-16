@@ -12,6 +12,7 @@ add_library(mod SHARED
 
     src/dom.cpp
     src/game_dom.cpp
+    src/cachy_dom.cpp
     
     src/ui/ui.cpp
     src/ui/rml_ui.cpp

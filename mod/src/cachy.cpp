@@ -1,6 +1,8 @@
 #include "cachy.h"
 #include "not_cachy.h"
 
+#include "cachy_dom.h"
+
 #include <format>
 #include <filesystem>
 
@@ -195,8 +197,13 @@ namespace crs
         dom_node_item_containers = std::make_shared<ItemContainersDomNode>(dom_tree, "item_containers", "item_containers");
         dom_tree->add_dom_node(dom_node_item_containers);
 
+        dom_node_players = std::make_shared<PlayersDomNode>(dom_tree, "players", "players");
+        dom_tree->add_dom_node(dom_node_players);
+
         dom_node_npcs = std::make_shared<NpcsDomNode>(dom_tree, "npcs", "npcs");
         dom_tree->add_dom_node(dom_node_npcs);
+
+        dom_tree->set_listener(std::make_unique<CachyDomTreeListener>());
 
         // Our hooks rely on being able to call into a virtual object in order to have hook
         // specific contexts, to avoid global state being scattered everywhere for each hook.
@@ -240,6 +247,9 @@ namespace crs
 
         dom_node_item_containers->update();
         dom_tree->build_dom_node(dom_node_item_containers);
+
+        dom_node_players->update();
+        dom_tree->build_dom_node(dom_node_players);
 
         dom_node_npcs->update();
         dom_tree->build_dom_node(dom_node_npcs);

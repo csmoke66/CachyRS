@@ -37,6 +37,7 @@ namespace crs
 
     private:
         std::shared_ptr<ItemContainersDomNode> dom_node_item_containers;
+        std::shared_ptr<PlayersDomNode> dom_node_players;
         std::shared_ptr<NpcsDomNode> dom_node_npcs;
         
     public:

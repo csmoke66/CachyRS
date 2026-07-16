@@ -122,8 +122,23 @@ namespace crs
 
     class DomNode;
 
+    class DomTreeListener
+    {
+    public:
+        virtual ~DomTreeListener();
+        
+    public:
+        virtual void on_click(std::shared_ptr<DomNode> node) = 0;
+    };
+
     class DomTree
     {
+    public:
+        virtual ~DomTree();
+
+    public:
+        virtual void set_listener(std::unique_ptr<DomTreeListener> listener) = 0;
+
     public:
         virtual void build_dom_node(std::shared_ptr<DomNode> node, int depth = 0) = 0;
         virtual void add_dom_node(std::shared_ptr<DomNode> node) = 0;
@@ -150,6 +165,7 @@ namespace crs
 
     public:
         DomNode(std::shared_ptr<DomTree> tree, ::std::string id, ::std::string type);
+        virtual ~DomNode();
 
     private:
         DomNode *find_dom_node(DomNode *, const std::string &id);

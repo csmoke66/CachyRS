@@ -46,6 +46,7 @@ namespace crs
         Rml::Element *dom_inspector_content = nullptr;
 
     public:
+        std::unique_ptr<DomTreeListener> dom_tree_listener;
         std::shared_ptr<DomNode> root_dom_node;
         std::map<std::shared_ptr<DomNode>, RmlDomNode> dom_nodes;
 
@@ -68,6 +69,7 @@ namespace crs
         bool wants_input() override;
 
     public:
+        void set_listener(std::unique_ptr<DomTreeListener> listener) override;
         RmlDomNode *get_rmlui_dom_node(std::shared_ptr<DomNode> node);
         void build_dom_node(std::shared_ptr<DomNode> node, int depth = 0) override;
         void add_dom_node(std::shared_ptr<DomNode> node) override;

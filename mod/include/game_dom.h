@@ -4,6 +4,25 @@
 
 namespace crs
 {
+    class PlayerDomNode : public ValueDomNode<Entity*>
+    {
+    public:
+        Entity *player;
+        bool seen = true;
+
+    public:
+        PlayerDomNode(std::shared_ptr<DomTree> tree, const ::std::string& id, const ::std::string& type);
+    };
+
+    class PlayersDomNode : public TypedChildrenDomNode<PlayerDomNode>
+    {
+    public:
+        PlayersDomNode(std::shared_ptr<DomTree> tree, const ::std::string& id, const ::std::string& type);
+
+    public:
+        void update();
+    };
+
     class NpcDomNode : public ValueDomNode<Entity*>
     {
     public:

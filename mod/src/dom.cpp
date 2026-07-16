@@ -3,6 +3,14 @@
 
 namespace crs
 {
+    DomTreeListener::~DomTreeListener()
+    {
+    }
+    
+    DomTree::~DomTree()
+    {
+    }
+
     DomValue::DomValue(const ::std::string &name)
     {
         this->name = name;
@@ -48,7 +56,7 @@ namespace crs
         return std::to_string(val);
     }
 
-    FloatDomValue::FloatDomValue(const ::std::string &name, float val) : DomValue(name) 
+    FloatDomValue::FloatDomValue(const ::std::string &name, float val) : DomValue(name)
     {
         this->val = val;
     }
@@ -95,6 +103,10 @@ namespace crs
         this->tree = tree;
         this->id = id;
         this->type = type;
+    }
+
+    DomNode::~DomNode()
+    {
     }
 
     DomNode *DomNode::find_dom_node(DomNode *current, const std::string &id)
