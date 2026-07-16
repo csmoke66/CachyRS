@@ -63,6 +63,8 @@ namespace crs
         Rml::Element *debug_tab_button = nullptr;
         Rml::Element *debug_content = nullptr;
 
+        Rml::Element *dom_inspector_content = nullptr;
+
     public:
         std::shared_ptr<DomNode> root_dom_node;
 
@@ -89,6 +91,9 @@ namespace crs
     public:
         void add_dom_node(std::shared_ptr<DomNode> node);
 
+    public:
+        void inspect_dom_node(std::shared_ptr<DomNode> node);
+        
     public:
         void render() override;
     };

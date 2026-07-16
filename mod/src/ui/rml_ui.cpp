@@ -78,6 +78,31 @@ namespace crs
         }
     };
 
+    class ClickDomNodeEventListener : public Rml::EventListener
+    {
+
+    private:
+        RmlUserInterface* parent;
+        std::shared_ptr<DomNode> node;
+
+    public:
+        ClickDomNodeEventListener(RmlUserInterface* parent, std::shared_ptr<DomNode> node)
+        {
+            this->parent = parent;
+            this->node = node;
+        }
+
+    private:
+        
+    public:
+        void ProcessEvent(Rml::Event &event) override
+        {
+            event.StopPropagation();
+
+            parent->inspect_dom_node(node);
+        }
+    };
+
     class ToggleDomNodeEventListener : public Rml::EventListener
     {
     private:
@@ -183,6 +208,7 @@ namespace crs
 
             debug_tab_button = root_document->GetElementById("debug_tab_button");
             debug_content = root_document->GetElementById("debug_content");
+            dom_inspector_content = debug_content->GetElementById("dom-inspector");
 
             home_tab_button->AddEventListener(Rml::EventId::Click, new SwitchTabEventHandler(
                                                                        &selected_tab_button, &selected_content,
@@ -196,7 +222,7 @@ namespace crs
                                                                         &selected_tab_button, &selected_content,
                                                                         debug_tab_button, debug_content));
 
-            root_dom_node->element = debug_content;
+            root_dom_node->element = debug_content->GetElementById("dom-tree");
             root_document->Show();
         }
     }
@@ -226,10 +252,19 @@ namespace crs
                 inner_rml += "<span>&nbsp;</span>";
             }
 
-            for (auto i = 0; i < values.size(); i++)
+            std::vector<DomValue*> to_render;
+            for (auto& value : values)
             {
-                auto is_last = (i == values.size() - 1);
-                inner_rml += std::format("<span class=\"dom-node-key\">{}</span><span class=\"dom-node\">=</span><span class=\"dom-node-value\">&quot;{}&quot;</span>", values[i].name, values[i].value);
+                if (!value->hidden)
+                {
+                    to_render.push_back(value.get());
+                }
+            }
+
+            for (auto i = 0; i < to_render.size(); i++)
+            {
+                auto is_last = (i == to_render.size() - 1);
+                inner_rml += std::format("<span class=\"dom-node-key\">{}</span><span class=\"dom-node\">=</span><span class=\"dom-node-value\">&quot;{}&quot;</span>", values[i]->name, values[i]->to_string());
                 if (!is_last)
                 {
                     inner_rml += "<span>&nbsp;</span>";
@@ -245,6 +280,7 @@ namespace crs
             node->wrapper_element = node->parent->element->AppendChild(std::move(element));
             node->element = anchor;
 
+            node->wrapper_element->AddEventListener(Rml::EventId::Click, new ClickDomNodeEventListener(this, node));
             node->wrapper_element->AddEventListener(Rml::EventId::Dblclick, new ToggleDomNodeEventListener(node->element));
 
             node->is_built = true;
@@ -261,6 +297,21 @@ namespace crs
     {
         node->parent = root_dom_node;
         root_dom_node->children[node->id] = node;
+    }
+
+    void RmlUserInterface::inspect_dom_node(std::shared_ptr<DomNode> node)
+    {
+        while (dom_inspector_content->HasChildNodes())
+        {
+            dom_inspector_content->RemoveChild(dom_inspector_content->GetLastChild());
+        }
+
+        for (auto &value : node->values)
+        {
+            auto element = root_document->CreateElement("div");
+            element->SetInnerRML(std::format("<span>{}</span>:<span>{}</span>", value->name, value->to_string()));
+            dom_inspector_content->AppendChild(std::move(element));
+        }
     }
 
     void RmlUserInterface::render()

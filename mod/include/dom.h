@@ -10,10 +10,115 @@
 
 namespace crs
 {
-    struct DomValue
+    class DomValue
     {
-        std::string name;
-        std::string value;
+    public:
+        ::std::string name;
+
+    public:
+        bool dirty = true;
+        bool hidden = false;
+
+    public:
+        DomValue(const ::std::string& name);
+        virtual ~DomValue()
+        {
+
+        }
+
+    public:
+        void mark_dirty();
+        void mark_hidden();
+
+    public:
+        virtual ::std::string to_string() = 0;
+    };
+
+    class Int32DomValue : public DomValue
+    {
+    public:
+        int32_t val;
+
+    public:
+        Int32DomValue(const ::std::string& name, int32_t val);
+
+    public:
+        ::std::string to_string() override;
+    };
+
+    class UInt32DomValue : public DomValue
+    {
+    public:
+        uint32_t val;
+
+    public:
+        UInt32DomValue(const ::std::string& name, uint32_t val);
+
+    public:
+        ::std::string to_string() override;
+    };
+
+    class UInt64DomValue : public DomValue
+    {
+    public:
+        uint64_t val;
+
+    public:
+        UInt64DomValue(const ::std::string& name, uint64_t val);
+
+    public:
+        ::std::string to_string() override;
+    };
+
+    class FloatDomValue : public DomValue
+    {
+    public:
+        float val;
+
+    public:
+        FloatDomValue(const ::std::string& name, float val);
+
+    public:
+        ::std::string to_string() override;
+    };
+
+    class PointerDomValue : public DomValue
+    {
+    public:
+        const void* val;
+
+    public:
+        PointerDomValue(const ::std::string& name, const void* val);
+
+    public:
+        ::std::string to_string() override;
+    };
+
+    class StringDomValue : public DomValue
+    {
+    public:
+        std::string val;
+
+    public:
+        StringDomValue(const ::std::string& name, const ::std::string& val);
+
+    public:
+        ::std::string to_string() override;
+    };
+
+    typedef void (*FnDomFunction)(void* context);
+    class FunctionDomValue : public DomValue
+    {
+    public:
+        std::string documentation;
+        std::string ret;
+        FnDomFunction val;
+
+    public:
+        FunctionDomValue(const ::std::string& name, const ::std::string& documentation, const ::std::string& ret, FnDomFunction val);
+
+    public:
+        ::std::string to_string() override;
     };
 
     class DomNode
@@ -21,7 +126,7 @@ namespace crs
     public:
         ::std::string id;
         ::std::string type;
-        ::std::vector<DomValue> values;
+        ::std::vector<std::unique_ptr<DomValue>> values;
 
     public:
         ::std::map<::std::string, std::shared_ptr<DomNode>> children;
@@ -31,6 +136,9 @@ namespace crs
         std::shared_ptr<DomNode> parent = nullptr;
         Rml::Element *wrapper_element = nullptr;
         Rml::Element *element = nullptr;
+
+    public:
+        bool dirty = true;
 
     public:
         DomNode(::std::string id, ::std::string type);
@@ -47,6 +155,7 @@ namespace crs
 
     public:
         void reset();
+        void mark_dirty();
     };
 
     class DomTree
@@ -77,7 +186,7 @@ namespace crs
     class TypedChildrenDomNode : public DomNode
     {
     public:
-        TypedChildrenDomNode(const ::std::string& id, const ::std::string& type) : DomNode(id, type)
+        TypedChildrenDomNode(const ::std::string &id, const ::std::string &type) : DomNode(id, type)
         {
         }
 

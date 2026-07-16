@@ -1,9 +1,95 @@
 #include "dom.h"
-#include "cachy.h"
-#include "not_cachy.h"
+#include <format>
 
 namespace crs
 {
+    DomValue::DomValue(const ::std::string &name)
+    {
+        this->name = name;
+    }
+
+    void DomValue::mark_dirty()
+    {
+        dirty = true;
+    }
+
+    void DomValue::mark_hidden()
+    {
+        hidden = true;
+    }
+
+    Int32DomValue::Int32DomValue(const ::std::string &name, int32_t val) : DomValue(name)
+    {
+        this->val = val;
+    }
+
+    ::std::string Int32DomValue::to_string()
+    {
+        return std::to_string(val);
+    }
+
+    UInt32DomValue::UInt32DomValue(const ::std::string &name, uint32_t val) : DomValue(name)
+    {
+        this->val = val;
+    }
+
+    ::std::string UInt32DomValue::to_string()
+    {
+        return std::to_string(val);
+    }
+
+    UInt64DomValue::UInt64DomValue(const ::std::string &name, uint64_t val) : DomValue(name)
+    {
+        this->val = val;
+    }
+
+    ::std::string UInt64DomValue::to_string()
+    {
+        return std::to_string(val);
+    }
+
+    FloatDomValue::FloatDomValue(const ::std::string &name, float val) : DomValue(name) 
+    {
+        this->val = val;
+    }
+
+    ::std::string FloatDomValue::to_string()
+    {
+        return std::format("{:.2f}", val);
+    }
+
+    PointerDomValue::PointerDomValue(const ::std::string &name, const void *val) : DomValue(name)
+    {
+        this->val = val;
+    }
+
+    ::std::string PointerDomValue::to_string()
+    {
+        return std::string("0x") + std::format("{}", val);
+    }
+
+    StringDomValue::StringDomValue(const ::std::string &name, const ::std::string &val) : DomValue(name)
+    {
+        this->val = val;
+    }
+
+    ::std::string StringDomValue::to_string()
+    {
+        return val;
+    }
+
+    FunctionDomValue::FunctionDomValue(const ::std::string &name, const ::std::string &documentation, const ::std::string &ret, FnDomFunction val) : DomValue("name")
+    {
+        this->documentation = documentation;
+        this->ret = ret;
+        this->val = val;
+    }
+
+    ::std::string FunctionDomValue::to_string()
+    {
+        return std::string("0x") + std::format("{}", (void *)val);
+    }
+
     DomNode::DomNode(::std::string id, ::std::string type)
     {
         this->id = id;
@@ -60,163 +146,8 @@ namespace crs
         children.clear();
     }
 
-    NpcDomNode::NpcDomNode(const ::std::string &id, const ::std::string &type) : ValueDomNode<Entity *>(id, type)
+    void DomNode::mark_dirty()
     {
-    }
-
-    NpcsDomNode::NpcsDomNode(const ::std::string &id, const ::std::string &type) : TypedChildrenDomNode<NpcDomNode>(id, type)
-    {
-    }
-
-    void NpcsDomNode::update()
-    {
-        auto engine = RS.get_globals()->engine;
-
-        // clang-format off
-        iterate_typed_children([this](NpcDomNode* node)
-        {
-            node->seen = false;
-            return false;
-        });
-        // clang-format on
-
-        if (engine->state == GameState::in_game)
-        {
-            if (auto scene = NRS.scene_003())
-            {
-                if (auto node = scene->world_root)
-                {
-                    // clang-format off
-                    iterate_entities(node, [this](const Entity *entity)
-                    {
-                        if (entity->type == EntityType::npc)
-                        {
-                            auto id = std::format("npc_{}", (void*)entity);
-                            auto child = find_typed_child(id);
-                            if (!child)
-                            {
-                                LOG(INFO, "Building new dom node");
-                                
-                                auto new_dom_node = std::make_shared<NpcDomNode>(id, "npc");
-                                new_dom_node->values.push_back({"address", std::format("{}", (void*)entity)}); 
-                                new_dom_node->parent = shared_from_this();
-                                
-                                children[id] = new_dom_node;
-                            }
-                            else
-                            {
-                                child->seen = true;
-                            }
-                        } 
-                    });
-                    // clang-format on
-                }
-            }
-        }
-
-        // clang-format off
-        iterate_typed_children([this](NpcDomNode *node)
-        { 
-            return !node->seen;
-        });
-        // clang-format on
-    }
-
-    ItemDomNode::ItemDomNode(const ::std::string &id, const ::std::string &type) : ValueDomNode<Item>(id, type)
-    {
-    }
-
-    ItemContainerDomNode::ItemContainerDomNode(const ::std::string &id, const ::std::string &type) : TypedChildrenDomNode<ItemDomNode>(id, type)
-    {
-    }
-
-    void ItemContainerDomNode::update(const std::string &parent_id, const ItemContainer &container)
-    {
-        // clang-format off
-        iterate_typed_children([this](ItemDomNode* node)
-        {
-            node->seen = false;
-            return false;
-        });
-        // clang-format on
-
-        auto slot = 0;
-        for (auto i = container.items.begin; i != container.items.end; i++)
-        {
-            auto id = parent_id + std::string("_") + std::format("{}", slot);
-            auto child = find_typed_child(id);
-            if (child)
-            {
-                child->seen = true;
-            }
-            else
-            {
-                LOG(INFO, "Building new dom node");
-
-                auto new_dom_node = std::make_shared<ItemDomNode>(id, "item");
-                new_dom_node->values.push_back({"id", std::format("{}", i->id)});
-                new_dom_node->values.push_back({"amount", std::format("{}", i->amount)});
-                new_dom_node->parent = shared_from_this();
-
-                children[id] = new_dom_node;
-            }
-
-            slot += 1;
-        }
-
-        // clang-format off
-        iterate_typed_children([this](ItemDomNode *node)
-        { 
-            return !node->seen;
-        });
-        // clang-format on
-    }
-
-    ItemContainersDomNode::ItemContainersDomNode(const ::std::string& id, const ::std::string& type) : TypedChildrenDomNode<ItemContainerDomNode>(id, type)
-    {
-    }
-
-    void ItemContainersDomNode::update()
-    {
-        auto item_cache = NRS.item_cache();
-        if (!item_cache)
-        {
-            return;
-        }
-
-        // clang-format off
-        iterate_typed_children([this](ItemContainerDomNode* node)
-        {
-            node->seen = false;
-            return false;
-        });
-        // clang-format on
-
-        for (auto i = item_cache->containers.begin; i != item_cache->containers.end; i++)
-        {
-            auto id = std::string("item_container_") + std::format("{}", i->id);
-            auto child = find_typed_child(id);
-            if (child)
-            {
-                child->update(id, *i);
-                child->seen = true;
-            }
-            else
-            {
-                auto new_dom_node = std::make_shared<ItemContainerDomNode>(id, "item_container");
-                new_dom_node->values.push_back({"address", std::format("{}", (void *)i)});
-                new_dom_node->values.push_back({"id", std::format("{}", i->id)});
-                new_dom_node->parent = shared_from_this();
-
-                children[id] = new_dom_node;
-            }
-        }
-
-        // clang-format off
-        iterate_typed_children([this](ItemContainerDomNode *node)
-        { 
-            return !node->seen;
-        });
-        // clang-format on
+        dirty = true;
     }
 }
