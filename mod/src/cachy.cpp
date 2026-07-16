@@ -183,7 +183,7 @@ namespace crs
         auto rml_ui = ::std::make_shared<RmlUserInterface>();
         ui = rml_ui;
         dom_tree = rml_ui;
-        
+
         rml_ui->pre_init();
 
         LOG(INFO, "Initializing capstone...");
@@ -236,6 +236,7 @@ namespace crs
         hook_manager->iat("poll_event", "SDL_PollEvent", unique_hook<SdlPollEventHook>());
         hook_manager->x86("menu_execute", &get_globals()->menu_execute, unique_hook<MenuExecuteHook>());
         hook_manager->x86("render_widget", &get_globals()->render_widget, unique_hook<RenderWidgetHook>());
+        hook_manager->x86("engine_tick", &get_globals()->engine_tick, unique_hook<EngineTickHook>());
 
         LOG(INFO, "Initializing developer overlay...");
         developer_overlay.init();
@@ -243,15 +244,14 @@ namespace crs
 
     void CachyRS::push_ui_state()
     {
-        auto engine = get_globals()->engine;
+        RS.mutex.lock();
+        dom_node_item_containers->prune();
+        dom_node_players->prune();
+        dom_node_npcs->prune();
 
-        dom_node_item_containers->update();
         dom_tree->build_dom_node(dom_node_item_containers);
-
-        dom_node_players->update();
         dom_tree->build_dom_node(dom_node_players);
-
-        dom_node_npcs->update();
         dom_tree->build_dom_node(dom_node_npcs);
+        RS.mutex.unlock();
     }
 }

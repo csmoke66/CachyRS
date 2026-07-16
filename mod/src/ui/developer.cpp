@@ -105,26 +105,27 @@ namespace crs
 
     void DeveloperOverlay::render()
     {
-        if (!initialized)
-        {
-            return;
-        }
+        // if (!initialized)
+        // {
+        //     return;
+        // }
 
-        auto engine = RS.get_globals()->engine;
-        if (!engine)
-        {
-            return;
-        }
+        // auto engine = RS.get_globals()->engine;
+        // if (!engine)
+        // {
+        //     return;
+        // }
 
-        auto widget_cache = dref<const WidgetCache *>(engine, {off(Engine, widget_cache)});
-        auto root_world_node = NRS.root_node();
+        // auto widget_cache = dref<const WidgetCache *>(engine, {off(Engine, widget_cache)});
+        // auto draw_list = ImGui::GetBackgroundDrawList();
 
-        auto draw_list = ImGui::GetBackgroundDrawList();
-        
-        // TODO FIXME integrate with DOM
-        if (player_overlay_on)
-        {
-            render_player_overlay(draw_list, root_world_node);
-        }
+        // if (engine->state == GameState::in_game)
+        // {
+        //     auto root_world_node = NRS.root_node();
+        //     if (player_overlay_on)
+        //     {
+        //         render_player_overlay(draw_list, root_world_node);
+        //     }
+        // }
     }
 }

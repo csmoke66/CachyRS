@@ -21,6 +21,7 @@ namespace crs
 
     public:
         void update();
+        void prune();
     };
 
     class NpcDomNode : public ValueDomNode<Entity*>
@@ -40,6 +41,7 @@ namespace crs
 
     public:
         void update();
+        void prune();
     };
 
     class ItemDomNode : public ValueDomNode<Item>
@@ -72,5 +74,6 @@ namespace crs
 
     public:
         void update();
+        void prune();
     };
 }

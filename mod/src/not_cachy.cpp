@@ -21,6 +21,11 @@ namespace crs
         }
 
         auto scene_002 = scene_001->scene_002.reference(scene_001->scene_index);
+        if (!scene_002)
+        {
+            return nullptr;
+        }
+        
         return scene_002->scene_003;
     }
 

@@ -32,14 +32,17 @@ namespace crs
     class CachyRS
     {
     public:
+        ::std::mutex mutex;
+
+    public:
         ProcessInterface pi;
         ::std::unique_ptr<HookManager> hook_manager = nullptr;
 
-    private:
+    public:
         std::shared_ptr<ItemContainersDomNode> dom_node_item_containers;
         std::shared_ptr<PlayersDomNode> dom_node_players;
         std::shared_ptr<NpcsDomNode> dom_node_npcs;
-        
+
     public:
         DeveloperOverlay developer_overlay;
         ::std::shared_ptr<UserInterface> ui = nullptr;
@@ -49,7 +52,7 @@ namespace crs
     public:
         SubSystemCache subsystem_cache;
         EventBus event_bus;
-        
+
     private:
         void init_logging();
         void init_process_info();

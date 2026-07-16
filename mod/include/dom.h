@@ -18,7 +18,7 @@ namespace crs
     public:
         bool dirty = true;
         bool hidden = false;
-
+        
     public:
         DomValue(const ::std::string &name);
         virtual ~DomValue()
@@ -153,6 +153,8 @@ namespace crs
         ::std::string type;
         ::std::vector<std::unique_ptr<DomValue>> values;
 
+        bool deleted = false;
+
     public:
         ::std::map<::std::string, std::shared_ptr<DomNode>> children;
 
@@ -208,16 +210,11 @@ namespace crs
         template <typename F>
         void iterate_typed_children(F fn)
         {
-            for (auto it = children.begin(); it != children.end();)
+            for (auto it = children.begin(); it != children.end(); it++)
             {
                 if (fn((T *)it->second.get()))
                 {
-                    tree->remove_dom_node(it->second);
-                    it = children.erase(it);
-                }
-                else
-                {
-                    it++;
+                    it->second->deleted = true;
                 }
             }
         }

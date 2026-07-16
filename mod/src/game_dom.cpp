@@ -87,6 +87,22 @@ namespace crs
         // clang-format on
     }
 
+    void PlayersDomNode::prune()
+    {
+        for (auto it = children.begin(); it != children.end();)
+        {
+            if (it->second->deleted)
+            {
+                tree->remove_dom_node(it->second);
+                it = children.erase(it);
+            }
+            else
+            {
+                it++;
+            }
+        }
+    }
+
     NpcDomNode::NpcDomNode(std::shared_ptr<DomTree> tree, const ::std::string &id, const ::std::string &type) : ValueDomNode<Entity *>(tree, id, type)
     {
     }
@@ -168,6 +184,22 @@ namespace crs
             return !node->seen;
         });
         // clang-format on
+    }
+
+    void NpcsDomNode::prune()
+    {
+        for (auto it = children.begin(); it != children.end();)
+        {
+            if (it->second->deleted)
+            {
+                tree->remove_dom_node(it->second);
+                it = children.erase(it);
+            }
+            else
+            {
+                it++;
+            }
+        }
     }
 
     ItemDomNode::ItemDomNode(std::shared_ptr<DomTree> tree, const ::std::string &id, const ::std::string &type) : ValueDomNode<Item>(tree, id, type)
@@ -272,5 +304,21 @@ namespace crs
             return !node->seen;
         });
         // clang-format on
+    }
+
+    void ItemContainersDomNode::prune()
+    {
+        for (auto it = children.begin(); it != children.end();)
+        {
+            if (it->second->deleted)
+            {
+                tree->remove_dom_node(it->second);
+                it = children.erase(it);
+            }
+            else
+            {
+                it++;
+            }
+        }
     }
 }

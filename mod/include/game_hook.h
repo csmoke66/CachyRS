@@ -34,6 +34,12 @@ namespace crs
         void handler(CpuState *cpu_state) override;
     };
 
+    class EngineTickHook : public Hook<FnEngineTick>
+    {
+    public:
+        void handler(CpuState *cpu_state) override;
+    };
+
     struct RenderedWidget
     {
         const Widget *widget;

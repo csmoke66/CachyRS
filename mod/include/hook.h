@@ -43,6 +43,8 @@ namespace crs
     };
 
 #ifdef __linux__
+#define CPU_FIRST_FARG(C) *((float*)&C->xmm[0])
+
 #define CPU_FIRST_ARG(C) C->rdi
 #define CPU_SECOND_ARG(C) C->rsi
 #define CPU_THIRD_ARG(C) C->rdx
