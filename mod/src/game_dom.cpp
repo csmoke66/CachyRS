@@ -4,11 +4,11 @@
 
 namespace crs
 {
-    NpcDomNode::NpcDomNode(const ::std::string &id, const ::std::string &type) : ValueDomNode<Entity *>(id, type)
+    NpcDomNode::NpcDomNode(std::shared_ptr<DomTree> tree, const ::std::string &id, const ::std::string &type) : ValueDomNode<Entity *>(tree, id, type)
     {
     }
 
-    NpcsDomNode::NpcsDomNode(const ::std::string &id, const ::std::string &type) : TypedChildrenDomNode<NpcDomNode>(id, type)
+    NpcsDomNode::NpcsDomNode(std::shared_ptr<DomTree> tree, const ::std::string &id, const ::std::string &type) : TypedChildrenDomNode<NpcDomNode>(tree, id, type)
     {
     }
 
@@ -41,7 +41,7 @@ namespace crs
                             {
                                 LOG(INFO, "Building new dom node");
                                 
-                                auto new_dom_node = std::make_shared<NpcDomNode>(id, "npc");
+                                auto new_dom_node = std::make_shared<NpcDomNode>(tree, id, "npc");
                                 new_dom_node->values.push_back(std::make_unique<PointerDomValue>("address", entity)); 
                                 new_dom_node->values.push_back(std::make_unique<StringDomValue>("name", entity->name.c_str()));
                                 
@@ -80,11 +80,11 @@ namespace crs
         // clang-format on
     }
 
-    ItemDomNode::ItemDomNode(const ::std::string &id, const ::std::string &type) : ValueDomNode<Item>(id, type)
+    ItemDomNode::ItemDomNode(std::shared_ptr<DomTree> tree, const ::std::string &id, const ::std::string &type) : ValueDomNode<Item>(tree, id, type)
     {
     }
 
-    ItemContainerDomNode::ItemContainerDomNode(const ::std::string &id, const ::std::string &type) : TypedChildrenDomNode<ItemDomNode>(id, type)
+    ItemContainerDomNode::ItemContainerDomNode(std::shared_ptr<DomTree> tree, const ::std::string &id, const ::std::string &type) : TypedChildrenDomNode<ItemDomNode>(tree, id, type)
     {
     }
 
@@ -111,7 +111,7 @@ namespace crs
             {
                 LOG(INFO, "Building new dom node");
 
-                auto new_dom_node = std::make_shared<ItemDomNode>(id, "item");
+                auto new_dom_node = std::make_shared<ItemDomNode>(tree, id, "item");
                 new_dom_node->values.push_back(std::make_unique<Int32DomValue>("id", i->id));
                 new_dom_node->values.push_back(std::make_unique<Int32DomValue>("amount", i->amount));
                 new_dom_node->parent = shared_from_this();
@@ -130,7 +130,7 @@ namespace crs
         // clang-format on
     }
 
-    ItemContainersDomNode::ItemContainersDomNode(const ::std::string &id, const ::std::string &type) : TypedChildrenDomNode<ItemContainerDomNode>(id, type)
+    ItemContainersDomNode::ItemContainersDomNode(std::shared_ptr<DomTree> tree, const ::std::string &id, const ::std::string &type) : TypedChildrenDomNode<ItemContainerDomNode>(tree, id, type)
     {
     }
 
@@ -161,7 +161,7 @@ namespace crs
             }
             else
             {
-                auto new_dom_node = std::make_shared<ItemContainerDomNode>(id, "item_container");
+                auto new_dom_node = std::make_shared<ItemContainerDomNode>(tree, id, "item_container");
                 new_dom_node->values.push_back(std::make_unique<PointerDomValue>("address", i));
                 new_dom_node->values.push_back(std::make_unique<UInt32DomValue>("id", i->id));
                 new_dom_node->parent = shared_from_this();

@@ -90,8 +90,9 @@ namespace crs
         return std::string("0x") + std::format("{}", (void *)val);
     }
 
-    DomNode::DomNode(::std::string id, ::std::string type)
+    DomNode::DomNode(std::shared_ptr<DomTree> tree, ::std::string id, ::std::string type)
     {
+        this->tree = tree;
         this->id = id;
         this->type = type;
     }
@@ -116,34 +117,6 @@ namespace crs
     DomNode *DomNode::find_dom_node(const std::string &id)
     {
         return find_dom_node(this, id);
-    }
-
-    void DomNode::destroy_dom_node(DomNode *child)
-    {
-        if (child->wrapper_element)
-        {
-            auto parent = child->wrapper_element->GetParentNode();
-            parent->RemoveChild(child->wrapper_element);
-        }
-    }
-
-    void DomNode::remove_dom_node(const std::string &id)
-    {
-        auto child = children.find(id);
-        if (child != children.end())
-        {
-            destroy_dom_node(child->second.get());
-            children.erase(child);
-        }
-    }
-
-    void DomNode::reset()
-    {
-        while (element && element->HasChildNodes())
-        {
-            element->RemoveChild(element->GetLastChild());
-        }
-        children.clear();
     }
 
     void DomNode::mark_dirty()

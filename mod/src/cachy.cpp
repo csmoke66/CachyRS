@@ -178,7 +178,11 @@ namespace crs
         init_imgui();
 
         LOG(INFO, "Initializing UI...");
-        ui = ::std::make_unique<RmlUserInterface>();
+        auto rml_ui = ::std::make_shared<RmlUserInterface>();
+        ui = rml_ui;
+        dom_tree = rml_ui;
+        
+        rml_ui->pre_init();
 
         LOG(INFO, "Initializing capstone...");
         asm_init();
@@ -188,8 +192,11 @@ namespace crs
         auto vt = *(void ***)dummy.get();
 
         LOG(INFO, "Initializing DOM...");
-        ui->add_dom_node(dom_node_item_containers);
-        ui->add_dom_node(dom_node_npcs);
+        dom_node_item_containers = std::make_shared<ItemContainersDomNode>(dom_tree, "item_containers", "item_containers");
+        dom_tree->add_dom_node(dom_node_item_containers);
+
+        dom_node_npcs = std::make_shared<NpcsDomNode>(dom_tree, "npcs", "npcs");
+        dom_tree->add_dom_node(dom_node_npcs);
 
         // Our hooks rely on being able to call into a virtual object in order to have hook
         // specific contexts, to avoid global state being scattered everywhere for each hook.
@@ -232,9 +239,9 @@ namespace crs
         auto engine = get_globals()->engine;
 
         dom_node_item_containers->update();
-        ui->build_dom_node(dom_node_item_containers);
+        dom_tree->build_dom_node(dom_node_item_containers);
 
         dom_node_npcs->update();
-        ui->build_dom_node(dom_node_npcs);
+        dom_tree->build_dom_node(dom_node_npcs);
     }
 }

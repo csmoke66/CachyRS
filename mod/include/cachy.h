@@ -2,6 +2,7 @@
 #include "process.h"
 
 #include "ui.h"
+#include "rml_ui.h"
 #include "developer.h"
 
 #include "game_dom.h"
@@ -35,12 +36,13 @@ namespace crs
         ::std::unique_ptr<HookManager> hook_manager = nullptr;
 
     private:
-        std::shared_ptr<ItemContainersDomNode> dom_node_item_containers = std::make_shared<ItemContainersDomNode>("item_containers", "item_containers");
-        std::shared_ptr<NpcsDomNode> dom_node_npcs = std::make_shared<NpcsDomNode>("npcs", "npcs");
+        std::shared_ptr<ItemContainersDomNode> dom_node_item_containers;
+        std::shared_ptr<NpcsDomNode> dom_node_npcs;
         
     public:
         DeveloperOverlay developer_overlay;
-        ::std::unique_ptr<RmlUserInterface> ui = nullptr;
+        ::std::shared_ptr<UserInterface> ui = nullptr;
+        ::std::shared_ptr<DomTree> dom_tree = nullptr;
         RingBuffer<SDL_Event> event_ring_buffer;
 
     public:

@@ -1,4 +1,4 @@
-#include "ui.h"
+#include "rml_ui.h"
 
 #include <format>
 #include <iostream>
@@ -82,18 +82,17 @@ namespace crs
     {
 
     private:
-        RmlUserInterface* parent;
+        RmlUserInterface *parent;
         std::shared_ptr<DomNode> node;
 
     public:
-        ClickDomNodeEventListener(RmlUserInterface* parent, std::shared_ptr<DomNode> node)
+        ClickDomNodeEventListener(RmlUserInterface *parent, std::shared_ptr<DomNode> node)
         {
             this->parent = parent;
             this->node = node;
         }
 
     private:
-        
     public:
         void ProcessEvent(Rml::Event &event) override
         {
@@ -132,7 +131,6 @@ namespace crs
 
     RmlUserInterface::RmlUserInterface()
     {
-        root_dom_node = std::make_shared<DomNode>("root", "root");
     }
 
     void RmlUserInterface::load_fonts()
@@ -152,6 +150,11 @@ namespace crs
         {
             Rml::LoadFontFace(directory + face.filename, face.fallback_face);
         }
+    }
+
+    void RmlUserInterface::pre_init()
+    {
+        root_dom_node = std::make_shared<DomNode>(shared_from_this(), "root", "root");
     }
 
     void RmlUserInterface::init(const std::string &version, const std::string &config_folder, SDL_Window *window, int width, int height)
@@ -222,7 +225,8 @@ namespace crs
                                                                         &selected_tab_button, &selected_content,
                                                                         debug_tab_button, debug_content));
 
-            root_dom_node->element = debug_content->GetElementById("dom-tree");
+            auto rmlui_dom_node = get_rmlui_dom_node(root_dom_node);
+            rmlui_dom_node->element = debug_content->GetElementById("dom-tree");
             root_document->Show();
         }
     }
@@ -235,6 +239,18 @@ namespace crs
     bool RmlUserInterface::wants_input()
     {
         return wants_input_last;
+    }
+
+    RmlDomNode *RmlUserInterface::get_rmlui_dom_node(std::shared_ptr<DomNode> node)
+    {
+        auto f = dom_nodes.find(node);
+        if (f != dom_nodes.end())
+        {
+            return &f->second;
+        }
+
+        dom_nodes[node] = RmlDomNode();
+        return &dom_nodes[node];
     }
 
     void RmlUserInterface::build_dom_node(std::shared_ptr<DomNode> node, int depth)
@@ -252,8 +268,8 @@ namespace crs
                 inner_rml += "<span>&nbsp;</span>";
             }
 
-            std::vector<DomValue*> to_render;
-            for (auto& value : values)
+            std::vector<DomValue *> to_render;
+            for (auto &value : values)
             {
                 if (!value->hidden)
                 {
@@ -277,11 +293,15 @@ namespace crs
             element->SetClass("dom-row", true);
 
             auto anchor = element->GetElementById(node->id);
-            node->wrapper_element = node->parent->element->AppendChild(std::move(element));
-            node->element = anchor;
 
-            node->wrapper_element->AddEventListener(Rml::EventId::Click, new ClickDomNodeEventListener(this, node));
-            node->wrapper_element->AddEventListener(Rml::EventId::Dblclick, new ToggleDomNodeEventListener(node->element));
+            auto rmlui_dom_node = get_rmlui_dom_node(node);
+            auto rmlui_parent_dom_node = get_rmlui_dom_node(node->parent);
+            
+            rmlui_dom_node->wrapper_element = rmlui_parent_dom_node->element->AppendChild(std::move(element));
+            rmlui_dom_node->element = anchor;
+
+            rmlui_dom_node->wrapper_element->AddEventListener(Rml::EventId::Click, new ClickDomNodeEventListener(this, node));
+            rmlui_dom_node->wrapper_element->AddEventListener(Rml::EventId::Dblclick, new ToggleDomNodeEventListener(rmlui_dom_node->element));
 
             node->is_built = true;
         }
@@ -297,6 +317,16 @@ namespace crs
     {
         node->parent = root_dom_node;
         root_dom_node->children[node->id] = node;
+    }
+
+    void RmlUserInterface::remove_dom_node(std::shared_ptr<DomNode> node)
+    {
+        auto rmlui_dom_node = get_rmlui_dom_node(node);
+        if (rmlui_dom_node->wrapper_element)
+        {
+            auto parent = rmlui_dom_node->wrapper_element->GetParentNode();
+            parent->RemoveChild(rmlui_dom_node->wrapper_element);
+        }
     }
 
     void RmlUserInterface::inspect_dom_node(std::shared_ptr<DomNode> node)

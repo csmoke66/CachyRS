@@ -20,10 +20,9 @@ namespace crs
         bool hidden = false;
 
     public:
-        DomValue(const ::std::string& name);
+        DomValue(const ::std::string &name);
         virtual ~DomValue()
         {
-
         }
 
     public:
@@ -40,7 +39,7 @@ namespace crs
         int32_t val;
 
     public:
-        Int32DomValue(const ::std::string& name, int32_t val);
+        Int32DomValue(const ::std::string &name, int32_t val);
 
     public:
         ::std::string to_string() override;
@@ -52,7 +51,7 @@ namespace crs
         uint32_t val;
 
     public:
-        UInt32DomValue(const ::std::string& name, uint32_t val);
+        UInt32DomValue(const ::std::string &name, uint32_t val);
 
     public:
         ::std::string to_string() override;
@@ -64,7 +63,7 @@ namespace crs
         uint64_t val;
 
     public:
-        UInt64DomValue(const ::std::string& name, uint64_t val);
+        UInt64DomValue(const ::std::string &name, uint64_t val);
 
     public:
         ::std::string to_string() override;
@@ -76,7 +75,7 @@ namespace crs
         float val;
 
     public:
-        FloatDomValue(const ::std::string& name, float val);
+        FloatDomValue(const ::std::string &name, float val);
 
     public:
         ::std::string to_string() override;
@@ -85,10 +84,10 @@ namespace crs
     class PointerDomValue : public DomValue
     {
     public:
-        const void* val;
+        const void *val;
 
     public:
-        PointerDomValue(const ::std::string& name, const void* val);
+        PointerDomValue(const ::std::string &name, const void *val);
 
     public:
         ::std::string to_string() override;
@@ -100,13 +99,13 @@ namespace crs
         std::string val;
 
     public:
-        StringDomValue(const ::std::string& name, const ::std::string& val);
+        StringDomValue(const ::std::string &name, const ::std::string &val);
 
     public:
         ::std::string to_string() override;
     };
 
-    typedef void (*FnDomFunction)(void* context);
+    typedef void (*FnDomFunction)(void *context);
     class FunctionDomValue : public DomValue
     {
     public:
@@ -115,15 +114,26 @@ namespace crs
         FnDomFunction val;
 
     public:
-        FunctionDomValue(const ::std::string& name, const ::std::string& documentation, const ::std::string& ret, FnDomFunction val);
+        FunctionDomValue(const ::std::string &name, const ::std::string &documentation, const ::std::string &ret, FnDomFunction val);
 
     public:
         ::std::string to_string() override;
     };
 
+    class DomNode;
+
+    class DomTree
+    {
+    public:
+        virtual void build_dom_node(std::shared_ptr<DomNode> node, int depth = 0) = 0;
+        virtual void add_dom_node(std::shared_ptr<DomNode> node) = 0;
+        virtual void remove_dom_node(std::shared_ptr<DomNode> node) = 0;
+    };
+
     class DomNode
     {
     public:
+        std::shared_ptr<DomTree> tree;
         ::std::string id;
         ::std::string type;
         ::std::vector<std::unique_ptr<DomValue>> values;
@@ -134,14 +144,12 @@ namespace crs
     public:
         bool is_built = false;
         std::shared_ptr<DomNode> parent = nullptr;
-        Rml::Element *wrapper_element = nullptr;
-        Rml::Element *element = nullptr;
 
     public:
         bool dirty = true;
 
     public:
-        DomNode(::std::string id, ::std::string type);
+        DomNode(std::shared_ptr<DomTree> tree, ::std::string id, ::std::string type);
 
     private:
         DomNode *find_dom_node(DomNode *, const std::string &id);
@@ -150,24 +158,7 @@ namespace crs
         DomNode *find_dom_node(const std::string &id);
 
     public:
-        void destroy_dom_node(DomNode *child);
-        void remove_dom_node(const std::string &id);
-
-    public:
-        void reset();
         void mark_dirty();
-    };
-
-    class DomTree
-    {
-    public:
-        ::std::map<std::string, std::shared_ptr<DomNode>> nodes;
-    };
-
-    class GameNode
-    {
-    public:
-        virtual void update() = 0;
     };
 
     template <typename T>
@@ -177,16 +168,17 @@ namespace crs
         T value;
 
     public:
-        ValueDomNode(const ::std::string &id, const ::std::string &type) : DomNode(id, type)
+        ValueDomNode(std::shared_ptr<DomTree> tree, const ::std::string &id, const ::std::string &type) : DomNode(tree, id, type)
         {
         }
     };
 
     template <std::derived_from<DomNode> T>
-    class TypedChildrenDomNode : public DomNode
+    class TypedChildrenDomNode : public DomNode,
+                                 public std::enable_shared_from_this<TypedChildrenDomNode<T>>
     {
     public:
-        TypedChildrenDomNode(const ::std::string &id, const ::std::string &type) : DomNode(id, type)
+        TypedChildrenDomNode(std::shared_ptr<DomTree> tree, const ::std::string &id, const ::std::string &type) : DomNode(tree, id, type)
         {
         }
 
@@ -204,7 +196,7 @@ namespace crs
             {
                 if (fn((T *)it->second.get()))
                 {
-                    destroy_dom_node(it->second.get());
+                    tree->remove_dom_node(it->second);
                     it = children.erase(it);
                 }
                 else
