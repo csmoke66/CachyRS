@@ -14,6 +14,12 @@ namespace crs
         Rml::Element *element = nullptr;
     };
 
+    class CachySystemInterface : public Rml::SystemInterface
+    {
+    public:
+        bool LogMessage(Rml::Log::Type type, const Rml::String &message);
+    };
+
     class RmlUserInterface : public UserInterface,
                              public DomTree,
                              public std::enable_shared_from_this<RmlUserInterface>

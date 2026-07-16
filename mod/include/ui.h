@@ -25,11 +25,4 @@ namespace crs
     public:
         virtual void render() = 0;
     };
-
-    class CachySystemInterface : public Rml::SystemInterface
-    {
-    public:
-        bool LogMessage(Rml::Log::Type type, const Rml::String &message);
-    };
-
 }
