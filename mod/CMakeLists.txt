@@ -59,7 +59,6 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 add_subdirectory(imgui)
 add_subdirectory(rmlui_backend)
-add_subdirectory(api)
 
 FetchContent_Declare(
         rmlui

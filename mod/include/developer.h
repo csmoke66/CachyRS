@@ -15,6 +15,7 @@ namespace crs
 
     public:
         bool player_overlay_on = false;
+        const Entity* player_overlay_target = nullptr;
 
     private:
         const RenderWidgetHook *render_widget_hook;

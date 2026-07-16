@@ -42,7 +42,14 @@ namespace crs
                                 LOG(INFO, "Building new dom node");
                                 
                                 auto new_dom_node = std::make_shared<PlayerDomNode>(tree, id, "player");
-                                new_dom_node->values.push_back(std::make_unique<PointerDomValue>("address", entity)); 
+                                new_dom_node->player = entity;
+
+                                auto address_node = std::make_unique<PointerDomValue>("address", entity);
+                                {
+                                    address_node->mark_hidden();
+                                    new_dom_node->values.push_back(std::move(address_node));
+                                }
+                                
                                 new_dom_node->values.push_back(std::make_unique<StringDomValue>("name", entity->name.c_str()));
                                 
                                 auto x_node = std::make_unique<FloatDomValue>("x", entity->position.x);
@@ -118,7 +125,14 @@ namespace crs
                                 LOG(INFO, "Building new dom node");
                                 
                                 auto new_dom_node = std::make_shared<NpcDomNode>(tree, id, "npc");
-                                new_dom_node->values.push_back(std::make_unique<PointerDomValue>("address", entity)); 
+                                new_dom_node->npc = entity;
+
+                                auto address_node = std::make_unique<PointerDomValue>("address", entity);
+                                {
+                                    address_node->mark_hidden();
+                                    new_dom_node->values.push_back(std::move(address_node));
+                                }
+
                                 new_dom_node->values.push_back(std::make_unique<StringDomValue>("name", entity->name.c_str()));
                                 
                                 auto x_node = std::make_unique<FloatDomValue>("x", entity->position.x);
@@ -238,7 +252,13 @@ namespace crs
             else
             {
                 auto new_dom_node = std::make_shared<ItemContainerDomNode>(tree, id, "item_container");
-                new_dom_node->values.push_back(std::make_unique<PointerDomValue>("address", i));
+
+                auto address_node = std::make_unique<PointerDomValue>("address", i);
+                {
+                    address_node->mark_hidden();
+                    new_dom_node->values.push_back(std::move(address_node));
+                }
+
                 new_dom_node->values.push_back(std::make_unique<UInt32DomValue>("id", i->id));
                 new_dom_node->parent = shared_from_this();
 

@@ -78,7 +78,7 @@ namespace crs
         }
     };
 
-    class ClickDomNodeEventListener : public Rml::EventListener
+    class DomNodeEventListener : public Rml::EventListener
     {
 
     private:
@@ -86,7 +86,7 @@ namespace crs
         std::shared_ptr<DomNode> node;
 
     public:
-        ClickDomNodeEventListener(RmlUserInterface *parent, std::shared_ptr<DomNode> node)
+        DomNodeEventListener(RmlUserInterface *parent, std::shared_ptr<DomNode> node)
         {
             this->parent = parent;
             this->node = node;
@@ -96,12 +96,17 @@ namespace crs
     public:
         void ProcessEvent(Rml::Event &event) override
         {
-            event.StopPropagation();
-
-            parent->inspect_dom_node(node);
-            if (auto& listener = parent->dom_tree_listener)
+            auto rmlui_node = parent->get_rmlui_dom_node(node);
+            auto wrapper = rmlui_node->wrapper_element;
+            if (event.GetId() == Rml::EventId::Click)
             {
-                listener->on_click(node);
+                event.StopPropagation();
+
+                parent->inspect_dom_node(node);
+                if (auto &listener = parent->dom_tree_listener)
+                {
+                    listener->on_click(node);
+                }
             }
         }
     };
@@ -272,11 +277,6 @@ namespace crs
             inner_rml += std::format("<div><span class=\"dom-node\">&lt;</span><span class=\"dom-node-type\">{}</span>", node->type);
 
             auto &values = node->values;
-            if (!values.empty())
-            {
-                inner_rml += "<span>&nbsp;</span>";
-            }
-
             std::vector<DomValue *> to_render;
             for (auto &value : values)
             {
@@ -286,10 +286,15 @@ namespace crs
                 }
             }
 
+            if (!to_render.empty())
+            {
+                inner_rml += "<span>&nbsp;</span>";
+            }
+
             for (auto i = 0; i < to_render.size(); i++)
             {
                 auto is_last = (i == to_render.size() - 1);
-                inner_rml += std::format("<span class=\"dom-node-key\">{}</span><span class=\"dom-node\">=</span><span class=\"dom-node-value\">&quot;{}&quot;</span>", values[i]->name, values[i]->to_string());
+                inner_rml += std::format("<span class=\"dom-node-key\">{}</span><span class=\"dom-node\">=</span><span class=\"dom-node-value\">&quot;{}&quot;</span>", to_render[i]->name, to_render[i]->to_string());
                 if (!is_last)
                 {
                     inner_rml += "<span>&nbsp;</span>";
@@ -309,7 +314,13 @@ namespace crs
             rmlui_dom_node->wrapper_element = rmlui_parent_dom_node->element->AppendChild(std::move(element));
             rmlui_dom_node->element = anchor;
 
-            rmlui_dom_node->wrapper_element->AddEventListener(Rml::EventId::Click, new ClickDomNodeEventListener(this, node));
+            auto dom_node_event_listener = new DomNodeEventListener(this, node);
+            rmlui_dom_node->wrapper_element->AddEventListener(Rml::EventId::Click, dom_node_event_listener);
+            rmlui_dom_node->wrapper_element->AddEventListener(Rml::EventId::Mouseover, dom_node_event_listener);
+            rmlui_dom_node->wrapper_element->AddEventListener(Rml::EventId::Mouseout, dom_node_event_listener);
+            rmlui_dom_node->wrapper_element->AddEventListener(Rml::EventId::Keydown, dom_node_event_listener);
+            rmlui_dom_node->wrapper_element->AddEventListener(Rml::EventId::Keyup, dom_node_event_listener);
+            rmlui_dom_node->wrapper_element->AddEventListener(Rml::EventId::Dblclick, dom_node_event_listener);
             rmlui_dom_node->wrapper_element->AddEventListener(Rml::EventId::Dblclick, new ToggleDomNodeEventListener(rmlui_dom_node->element));
 
             node->is_built = true;
@@ -348,13 +359,44 @@ namespace crs
         for (auto &value : node->values)
         {
             auto element = root_document->CreateElement("div");
-            element->SetInnerRML(std::format("<span>{}</span>:<span>{}</span>", value->name, value->to_string()));
+            element->SetInnerRML(std::format("<div class=\"dom-inspector-entry\"><div class=\"dom-inspector-key\">{}</div><div>{}</div></div>", value->name, value->to_string()));
             dom_inspector_content->AppendChild(std::move(element));
         }
     }
 
+    Rml::Element *RmlUserInterface::get_dom_parent(Rml::Element *element)
+    {
+        if (!element)
+        {
+            return nullptr;
+        }
+
+        if (element->IsClassSet("dom-row"))
+        {
+            return element;
+        }
+
+        return get_dom_parent(element->GetParentNode());
+    }
+
     void RmlUserInterface::render()
     {
+        auto hovered = get_dom_parent(context->GetHoverElement());
+        if (hovered != last_hovered)
+        {
+            if (last_hovered)
+            {
+                last_hovered->SetClass("hovered", false);
+            }
+
+            last_hovered = hovered;
+
+            if (last_hovered)
+            {
+                last_hovered->SetClass("hovered", true);
+            }
+        }
+
         context->Update();
 
         Backend::BeginFrame();

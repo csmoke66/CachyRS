@@ -7,7 +7,7 @@ namespace crs
     class PlayerDomNode : public ValueDomNode<Entity*>
     {
     public:
-        Entity *player;
+        const Entity *player;
         bool seen = true;
 
     public:
@@ -26,7 +26,7 @@ namespace crs
     class NpcDomNode : public ValueDomNode<Entity*>
     {
     public:
-        Entity *npc;
+        const Entity *npc;
         bool seen = true;
 
     public:

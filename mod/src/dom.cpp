@@ -73,7 +73,7 @@ namespace crs
 
     ::std::string PointerDomValue::to_string()
     {
-        return std::string("0x") + std::format("{}", val);
+        return std::format("{}", val);
     }
 
     StringDomValue::StringDomValue(const ::std::string &name, const ::std::string &val) : DomValue(name)
@@ -95,7 +95,7 @@ namespace crs
 
     ::std::string FunctionDomValue::to_string()
     {
-        return std::string("0x") + std::format("{}", (void *)val);
+        return std::format("{}", (void *)val);
     }
 
     DomNode::DomNode(std::shared_ptr<DomTree> tree, ::std::string id, ::std::string type)

@@ -51,6 +51,8 @@ namespace crs
 
         Rml::Element *dom_inspector_content = nullptr;
 
+        Rml::Element* last_hovered = nullptr;
+
     public:
         std::unique_ptr<DomTreeListener> dom_tree_listener;
         std::shared_ptr<DomNode> root_dom_node;
@@ -80,6 +82,7 @@ namespace crs
         void build_dom_node(std::shared_ptr<DomNode> node, int depth = 0) override;
         void add_dom_node(std::shared_ptr<DomNode> node) override;
         void remove_dom_node(std::shared_ptr<DomNode> node) override;
+        Rml::Element* get_dom_parent(Rml::Element* element);
 
     public:
         void inspect_dom_node(std::shared_ptr<DomNode> node);
