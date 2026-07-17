@@ -1,9 +1,13 @@
 body {
     --bg-color-primary: #353535;
     --bg-color-secondary: #42424271;
+    --bg-color-teritary: #75757571;
     --control: #42424271;
     --control-hover: #34343471;
     --control-active: #12121271;
+
+    --dom-background: #121212;
+    --dom-node-hover: #080808;
 }
 
 body {
@@ -15,12 +19,83 @@ body {
     color: white;
 }
 
+scrollbarvertical {
+    width: 12px;
+    background-color: #2d2d2d;
+}
+
+scrollbarvertical slidertrack {
+    background-color: #2d2d2d;
+}
+
+scrollbarvertical sliderbar {
+    background-color: #666666;
+}
+
+scrollbarhorizontal {
+    height: 12px;
+    background-color: #2d2d2d;
+}
+
+scrollbarhorizontal slidertrack {
+    background-color: #2d2d2d;
+}
+
+scrollbarhorizontal sliderbar {
+    background-color: #666666;
+}
+
+table {
+    display: table;
+    box-sizing: border-box;
+}
+
+tr {
+    display: table-row;
+    box-sizing: border-box;
+}
+
+td {
+    display: table-cell;
+    box-sizing: border-box;
+}
+
+th {
+    display: table-cell;
+    box-sizing: border-box;
+}
+
+thead,
+tbody,
+tfoot {
+    display: table-row-group;
+}
+
+col {
+    display: table-column;
+    box-sizing: border-box;
+}
+
+colgroup {
+    display: table-column-group;
+}
+
 div {
     display: block;
 }
 
 h2 {
     font-size: 16px;
+    color: #b0b0cf;
+}
+
+h3 {
+    font-size: 14px;
+    color: #b0b0cf;
+}
+
+h4 {
+    font-size: 12px;
     color: #b0b0cf;
 }
 
@@ -79,7 +154,7 @@ input[type="checkbox"]:checked {
     left: 50dp;
     top: 50dp;
 
-    width: 340dp;
+    width: 550dp;
     padding: 0dp;
 
     background-color: var(--bg-color-primary);
@@ -99,7 +174,7 @@ input[type="checkbox"]:checked {
 
     border: 1px #292929;
     border-radius: 4px;
-    
+
 }
 
 .title-icon {
@@ -119,6 +194,7 @@ input[type="checkbox"]:checked {
     display: inline-block;
     font-size: 12dp;
     padding-left: 12dp;
+    margin-left: auto;
 }
 
 .content {
@@ -133,7 +209,7 @@ input[type="checkbox"]:checked {
 
 .tabbar {
     display: flex;
-    
+
     margin-bottom: 2px;
 
     color: white;
@@ -192,4 +268,143 @@ input[type="checkbox"]:checked {
 
 .tabbutton-selected {
     background-color: var(--control-active);
+}
+
+.debug-table {
+    display: table;
+    width: 100%;
+    padding: 8px;
+}
+
+.debug-table thead {
+    border-top: 1px #0f0f0f;
+    border-left: 1px #0f0f0f;
+    border-right: 1px #0f0f0f;
+    border-bottom: 1px #0f0f0f;
+}
+
+.debug-table tr {
+    display: table-row;
+    background-color: var(--control-active);
+}
+
+.debug-table th {
+    display: table-cell;
+    width: 25%;
+    padding: 4dp;
+    text-align: center;
+    padding: 4dp;
+    font-size: 14px;
+}
+
+.debug-table td {
+    display: table-cell;
+    width: 25%;
+    padding: 4dp;
+    text-align: center;
+    padding: 4dp;
+}
+
+.debug-table th:nth-child(odd) {
+    background-color: var(--control-hover);
+}
+
+.debug-table th:nth-child(even) {
+    background-color: var(--control-active);
+}
+
+.debug-table td:nth-child(odd) {
+    background-color: var(--control-active);
+}
+
+.debug-table td:nth-child(even) {
+    background-color: var(--control-hover);
+}
+
+.dom-viewer {
+    height: 300px;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-items: stretch;
+
+    border: 1px #292929;
+    border-radius: 2px;
+
+    box-shadow: #1a1a1a 1px 1px 1px;
+}
+
+.dom-tree {
+    height: 100%;
+    display: inline-block;
+    box-sizing: border-box;
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: auto;
+    flex: 3;
+    align-self: auto;
+}
+
+.dom-node {
+    color: #8181ff
+}
+
+.dom-node-type {
+    color: #ff7e7e
+}
+
+.dom-node-key {
+    color: #84ffad
+}
+
+.dom-node-value {
+    color: #c1fdd5;
+}
+
+.dom-row {
+    background-color: var(--dom-background);
+    display: block;
+    padding-left: 16px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dom-row.hovered {
+    background-color: var(--dom-node-hover);
+}
+
+.dom-inspector {
+    height: 100%;
+    padding-left: 6px;
+    padding-top: 6px;
+    display: inline-block;
+    box-sizing: border-box;
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: auto;
+    flex: 1;
+    align-self: auto;
+
+    background-color: var(--dom-background);
+
+    border: 1px #292929;
+    border-radius: 2px;
+
+    box-shadow: #1a1a1a 1px 1px 1px;
+}
+
+.dom-inspector-entry {
+    padding-bottom: 8px;
+}
+
+.dom-inspector-key {
+    font-size: 16px;
+    color: #b0b0cf;
 }
