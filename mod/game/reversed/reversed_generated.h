@@ -6,6 +6,7 @@ struct Globals;
 struct Engine;
 struct Scene003;
 struct Entity;
+struct NpcUpdateCache;
 
 struct Globals
 {
@@ -72,8 +73,10 @@ struct Engine
 	const Cache001* cache;
 	PAD(0x7c8);
 	const WidgetCache* widget_cache;
-	PAD(0x48);
-	const EntityUpdateCache* entity_update_cache;
+	PAD(0x28);
+	const NpcUpdateCache* npc_update_cache;
+	PAD(0x18);
+	const PlayerUpdateCache* player_update_cache;
 	PAD(0x58);
 	const void* world_a;
 	PAD(0x10);
@@ -91,7 +94,8 @@ static_assert(off(Engine, window_state) == 0x90, INVALID_OFFSET);
 static_assert(off(Engine, time) == 0x504, INVALID_OFFSET);
 static_assert(off(Engine, cache) == 0x18cb8, INVALID_OFFSET);
 static_assert(off(Engine, widget_cache) == 0x19488, INVALID_OFFSET);
-static_assert(off(Engine, entity_update_cache) == 0x194d8, INVALID_OFFSET);
+static_assert(off(Engine, npc_update_cache) == 0x194b8, INVALID_OFFSET);
+static_assert(off(Engine, player_update_cache) == 0x194d8, INVALID_OFFSET);
 static_assert(off(Engine, world_a) == 0x19538, INVALID_OFFSET);
 static_assert(off(Engine, item_cache) == 0x19550, INVALID_OFFSET);
 static_assert(off(Engine, scene_001) == 0x19558, INVALID_OFFSET);
@@ -124,5 +128,18 @@ static_assert(off(Entity, type) == 0x10, INVALID_OFFSET);
 static_assert(off(Entity, name) == 0x90, INVALID_OFFSET);
 static_assert(off(Entity, position) == 0x270, INVALID_OFFSET);
 static_assert(off(Entity, status) == 0xef8, INVALID_OFFSET);
+
+struct NpcUpdateCache
+{
+	PAD(0x10);
+	const NpcUpdate** npcs;
+	PAD(0x0);
+	const uint64_t size;
+	PAD(0xb080);
+	const uint32_t valid_count;
+};
+static_assert(off(NpcUpdateCache, npcs) == 0x10, INVALID_OFFSET);
+static_assert(off(NpcUpdateCache, size) == 0x18, INVALID_OFFSET);
+static_assert(off(NpcUpdateCache, valid_count) == 0xb0a0, INVALID_OFFSET);
 
 #pragma pack(pop)

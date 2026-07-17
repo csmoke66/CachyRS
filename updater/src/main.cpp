@@ -185,10 +185,16 @@ std::vector<PatternObject> build_pattern_objects()
             (new ImmExtractor(0x3, 0x0, 4))->
                 validator(new AlignmentValidator(0x8))},
         new DefaultPattern{
-            "entity_update_cache",
+            "player_update_cache",
             compile_ida_pattern("49 8B B4 24 ? ? ? ? 0F 84 ? ? ? ? 44 8B 4A"),
-            { "const EntityUpdateCache*", 8, },
+            { "const PlayerUpdateCache*", 8, },
             (new ImmExtractor(0x4, 0x0, 4))->
+                validator(new AlignmentValidator(0x8))},
+        new DefaultPattern{
+            "npc_update_cache",
+            compile_ida_pattern("4C 8B A0 ? ? ? ? 89 54 24"),
+            { "const NpcUpdateCache*", 8, },
+            (new ImmExtractor(0x3, 0x0, 4))->
                 validator(new AlignmentValidator(0x8))},
         new DefaultPattern{
             "world_a",
@@ -257,6 +263,30 @@ std::vector<PatternObject> build_pattern_objects()
                 validator(new AlignmentValidator(0x8))},
     }});
 
+    objects.push_back({"NpcUpdateCache", {
+        new DefaultPattern{
+            "npcs",
+            compile_ida_pattern("48 8B 7D ? 44 89 C6"),
+            { "const NpcUpdate**", 8, },
+            (new ImmExtractor(0x3, 0x0, 1))->
+                validator(new AlignmentValidator(0x4))},
+        new DefaultPattern{
+            "size",
+            compile_ida_pattern("48 8B 76 ? 49 8B 9C 24"),
+            { "const uint64_t", 8, },
+            (new ImmExtractor(0x3, 0x0, 1))->
+                validator(new AlignmentValidator(0x8))},
+        new DefaultPattern{
+            "valid_count",
+            compile_ida_pattern("8B 87 ? ? ? ? 85 C0 0F 84 ? ? ? ? 41 57"),
+            { "const uint32_t", 4, },
+            (new ImmExtractor(0x2, 0x0, 4))->
+                validator(new AlignmentValidator(0x4))},
+
+                 
+    }});
+
+    
 
     // clang-format on
     return objects;

@@ -26,57 +26,49 @@ namespace crs
 
         if (engine->state == GameState::in_game)
         {
-            if (auto scene = NRS.scene_003())
+            // clang-format off
+            iterate_players_update([this](const Entity *entity)
             {
-                if (auto node = scene->world_root)
+                if (entity->type == EntityType::player)
                 {
-                    // clang-format off
-                    iterate_entities(node, [this](const Entity *entity)
+                    auto id = std::format("player_{}", (void*)entity);
+                    auto child = find_typed_child(id);
+                    if (!child)
                     {
-                        if (entity->type == EntityType::player)
+                        auto new_dom_node = std::make_shared<PlayerDomNode>(tree, id, "player");
+                        new_dom_node->player = entity;
+
+                        auto address_node = std::make_unique<PointerDomValue>("address", entity);
                         {
-                            auto id = std::format("player_{}", (void*)entity);
-                            auto child = find_typed_child(id);
-                            if (!child)
-                            {
-                                LOG(INFO, "Building new dom node");
-                                
-                                auto new_dom_node = std::make_shared<PlayerDomNode>(tree, id, "player");
-                                new_dom_node->player = entity;
+                            address_node->mark_hidden();
+                            new_dom_node->values.push_back(std::move(address_node));
+                        }
+                        
+                        new_dom_node->values.push_back(std::make_unique<StringDomValue>("name", entity->name.c_str()));
+                        
+                        auto x_node = std::make_unique<FloatDomValue>("x", entity->position.x);
+                        x_node->mark_hidden();
+                        new_dom_node->values.push_back(std::move(x_node));
 
-                                auto address_node = std::make_unique<PointerDomValue>("address", entity);
-                                {
-                                    address_node->mark_hidden();
-                                    new_dom_node->values.push_back(std::move(address_node));
-                                }
-                                
-                                new_dom_node->values.push_back(std::make_unique<StringDomValue>("name", entity->name.c_str()));
-                                
-                                auto x_node = std::make_unique<FloatDomValue>("x", entity->position.x);
-                                x_node->mark_hidden();
-                                new_dom_node->values.push_back(std::move(x_node));
+                        auto y_node = std::make_unique<FloatDomValue>("y", entity->position.y);
+                        y_node->mark_hidden();
+                        new_dom_node->values.push_back(std::move(y_node));
 
-                                auto y_node = std::make_unique<FloatDomValue>("y", entity->position.y);
-                                y_node->mark_hidden();
-                                new_dom_node->values.push_back(std::move(y_node));
+                        auto z_node = std::make_unique<FloatDomValue>("z", entity->position.z);
+                        z_node->mark_hidden();
+                        new_dom_node->values.push_back(std::move(z_node));
 
-                                auto z_node = std::make_unique<FloatDomValue>("z", entity->position.z);
-                                z_node->mark_hidden();
-                                new_dom_node->values.push_back(std::move(z_node));
-
-                                new_dom_node->parent = shared_from_this();
-                                
-                                children[id] = new_dom_node;
-                            }
-                            else
-                            {
-                                child->seen = true;
-                            }
-                        } 
-                    });
-                    // clang-format on
-                }
-            }
+                        new_dom_node->parent = shared_from_this();
+                        
+                        children[id] = new_dom_node;
+                    }
+                    else
+                    {
+                        child->seen = true;
+                    }
+                } 
+            });
+            // clang-format on
         }
 
         // clang-format off
@@ -125,57 +117,49 @@ namespace crs
 
         if (engine->state == GameState::in_game)
         {
-            if (auto scene = NRS.scene_003())
+            // clang-format off
+            iterate_npcs_update([this](const Entity *entity)
             {
-                if (auto node = scene->world_root)
+                if (entity->type == EntityType::npc)
                 {
-                    // clang-format off
-                    iterate_entities(node, [this](const Entity *entity)
+                    auto id = std::format("npc_{}", (void*)entity);
+                    auto child = find_typed_child(id);
+                    if (!child)
                     {
-                        if (entity->type == EntityType::npc)
+                        auto new_dom_node = std::make_shared<NpcDomNode>(tree, id, "npc");
+                        new_dom_node->npc = entity;
+
+                        auto address_node = std::make_unique<PointerDomValue>("address", entity);
                         {
-                            auto id = std::format("npc_{}", (void*)entity);
-                            auto child = find_typed_child(id);
-                            if (!child)
-                            {
-                                LOG(INFO, "Building new dom node");
-                                
-                                auto new_dom_node = std::make_shared<NpcDomNode>(tree, id, "npc");
-                                new_dom_node->npc = entity;
+                            address_node->mark_hidden();
+                            new_dom_node->values.push_back(std::move(address_node));
+                        }
 
-                                auto address_node = std::make_unique<PointerDomValue>("address", entity);
-                                {
-                                    address_node->mark_hidden();
-                                    new_dom_node->values.push_back(std::move(address_node));
-                                }
+                        new_dom_node->values.push_back(std::make_unique<StringDomValue>("name", entity->name.c_str()));
+                        
+                        auto x_node = std::make_unique<FloatDomValue>("x", entity->position.x);
+                        x_node->mark_hidden();
+                        new_dom_node->values.push_back(std::move(x_node));
 
-                                new_dom_node->values.push_back(std::make_unique<StringDomValue>("name", entity->name.c_str()));
-                                
-                                auto x_node = std::make_unique<FloatDomValue>("x", entity->position.x);
-                                x_node->mark_hidden();
-                                new_dom_node->values.push_back(std::move(x_node));
+                        auto y_node = std::make_unique<FloatDomValue>("y", entity->position.y);
+                        y_node->mark_hidden();
+                        new_dom_node->values.push_back(std::move(y_node));
 
-                                auto y_node = std::make_unique<FloatDomValue>("y", entity->position.y);
-                                y_node->mark_hidden();
-                                new_dom_node->values.push_back(std::move(y_node));
+                        auto z_node = std::make_unique<FloatDomValue>("z", entity->position.z);
+                        z_node->mark_hidden();
+                        new_dom_node->values.push_back(std::move(z_node));
 
-                                auto z_node = std::make_unique<FloatDomValue>("z", entity->position.z);
-                                z_node->mark_hidden();
-                                new_dom_node->values.push_back(std::move(z_node));
-
-                                new_dom_node->parent = shared_from_this();
-                                
-                                children[id] = new_dom_node;
-                            }
-                            else
-                            {
-                                child->seen = true;
-                            }
-                        } 
-                    });
-                    // clang-format on
-                }
-            }
+                        new_dom_node->parent = shared_from_this();
+                        
+                        children[id] = new_dom_node;
+                    }
+                    else
+                    {
+                        child->seen = true;
+                    }
+                } 
+            });
+            // clang-format on
         }
 
         // clang-format off
@@ -231,8 +215,6 @@ namespace crs
             }
             else
             {
-                LOG(INFO, "Building new dom node");
-
                 auto new_dom_node = std::make_shared<ItemDomNode>(tree, id, "item");
                 new_dom_node->values.push_back(std::make_unique<Int32DomValue>("id", i->id));
                 new_dom_node->values.push_back(std::make_unique<Int32DomValue>("amount", i->amount));

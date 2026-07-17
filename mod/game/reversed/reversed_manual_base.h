@@ -13,6 +13,19 @@ struct Item
 	Item(const Item &o);
 };
 
+template<typename T>
+struct ObjectHeader
+{
+	// 0x0
+	PAD(0x8); // VT
+	// 0x8
+	uint32_t id1; // could be an id, or a type id
+	// 0xc
+	uint32_t id2; // could be an id, or a type id
+	// 0x10
+	T inner;
+};
+
 template <typename T>
 struct JArray
 {

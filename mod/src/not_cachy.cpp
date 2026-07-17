@@ -25,7 +25,7 @@ namespace crs
         {
             return nullptr;
         }
-        
+
         return scene_002->scene_003;
     }
 
@@ -37,9 +37,9 @@ namespace crs
     const WidgetCache *NotCachyRS::widget_cache() const
     {
         return dref<const WidgetCache *>(
-            RS.get_globals(), 
-            {off(Globals, engine), 
-            off(Engine, widget_cache)});
+            RS.get_globals(),
+            {off(Globals, engine),
+             off(Engine, widget_cache)});
     }
 
     SDL_Window *NotCachyRS::sdl_window() const
@@ -60,5 +60,21 @@ namespace crs
             RS.get_globals(),
             {off(Globals, engine),
              off(Engine, item_cache)});
+    }
+    
+    const PlayerUpdateCache *NotCachyRS::player_update_cache() const
+    {
+        return dref<const PlayerUpdateCache *>(
+            RS.get_globals(),
+            {off(Globals, engine),
+             off(Engine, player_update_cache)});
+    }
+    
+    const NpcUpdateCache *NotCachyRS::npc_update_cache() const
+    {
+        return dref<const NpcUpdateCache *>(
+            RS.get_globals(),
+            {off(Globals, engine),
+             off(Engine, npc_update_cache)});
     }
 }
