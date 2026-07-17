@@ -2,26 +2,51 @@
 #include <sstream>
 #include <algorithm>
 
-std::string compile_object_to_structure(Object object)
+std::string compile_object_to_structure(const Object object)
 {
-    std::sort(object.fields.begin(), object.fields.end(), [](Field a, Field b)
+    std::vector<Field> fields;
+    for (auto &[key, field] : object.fields)
+    {
+        fields.push_back(field);
+    }
+
+    std::sort(fields.begin(), fields.end(), [](Field a, Field b)
               { return a.offset < b.offset; });
 
     std::stringstream ss;
-    ss << "struct " << object.name << std::endl;
-    ss << "{" << std::endl;
-    for (auto i = 0; i < object.fields.size(); i++)
+    if (object.is_class)
     {
-        auto &field = object.fields[i];
+        ss << "class ";
+    }
+    else
+    {
+        ss << "struct ";
+    }
+    ss << object.name;
+    if (object.has_parent)
+    {
+        ss << " : public " << object.parent;
+    }
+
+    ss << std::endl;
+    ss << "{" << std::endl;
+    if (object.is_class)
+    {
+        ss << "public:" << std::endl;
+    }
+    
+    for (auto i = 0; i < fields.size(); i++)
+    {
+        auto &field = fields[i];
         auto is_first = (i == 0);
         if (is_first)
         {
-            ss << "\tPAD(0x" << std::hex << field.offset << ");" << std::endl;
+            ss << "\tPAD(0x" << std::hex << field.relative_offset << ");" << std::endl;
         }
         else
         {
-            auto &prev = object.fields[i - 1];
-            ss << "\tPAD(0x" << std::hex << (field.offset - prev.offset - prev.type.size) << ");" << std::endl;
+            auto &prev = fields[i - 1];
+            ss << "\tPAD(0x" << std::hex << (field.relative_offset - prev.relative_offset - prev.type.size) << ");" << std::endl;
         }
 
         ss << "\t" << field.type.type << " " << field.name;
@@ -33,16 +58,16 @@ std::string compile_object_to_structure(Object object)
         ss << std::endl;
     }
     ss << "};" << std::endl;
-    for (auto i = 0; i < object.fields.size(); i++)
+    for (auto i = 0; i < fields.size(); i++)
     {
-        auto &field = object.fields[i];
+        auto &field = fields[i];
         ss << "static_assert(off(" << object.name << ", " << field.name << ") == 0x" << std::hex << field.offset << ", INVALID_OFFSET);" << std::endl;
     }
     ss << std::endl;
     return ss.str();
 }
 
-std::string compile_objects_to_header(const std::vector<Object> &objects)
+std::string compile_objects_to_header(const std::map<std::string, Object> &objects)
 {
     std::stringstream ss;
     ss << "#pragma once" << std::endl;
@@ -50,13 +75,20 @@ std::string compile_objects_to_header(const std::vector<Object> &objects)
        << std::endl;
 
     ss << "#pragma pack(push, 1)" << std::endl;
-    for (auto &obj : objects)
+    for (auto &[key, obj] : objects)
     {
-        ss << "struct " << obj.name << ";" << std::endl;
+        if (obj.is_class)
+        {
+            ss << "class " << obj.name << ";" << std::endl;
+        }
+        else
+        {
+            ss << "struct " << obj.name << ";" << std::endl;
+        }
     }
 
     ss << std::endl;
-    for (auto &obj : objects)
+    for (auto &[key, obj] : objects)
     {
         ss << compile_object_to_structure(obj);
     }

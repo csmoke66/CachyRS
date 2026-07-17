@@ -148,7 +148,6 @@ std::vector<PatternObject> build_pattern_objects()
     }});
     
     objects.push_back({"Engine", {
-        
         new DummyPattern{
             "window_state",
             { "const WindowState*", 8},
@@ -244,6 +243,14 @@ std::vector<PatternObject> build_pattern_objects()
             { "const EntityType", 1},
             new DummyExtractor(0x10)},
         new DefaultPattern{
+            "Entity_type_end",
+            compile_ida_pattern("48 8D 05 ? ? ? ? C6 47"),
+            { "char", 0x1, },
+            new ConstructorSizeExtractor(capstone_handle, x86_reg::X86_REG_RDI)},
+    }});
+
+    objects.push_back({"NamedEntity", {
+        new DefaultPattern{
             "position",
             compile_ida_pattern("F3 44 0F 11 83 ? ? ? ? F3 44 0F 11 8B ? ? ? ? F3 0F 11 83"),
             { "const Vec3<float>", 12, },
@@ -261,7 +268,16 @@ std::vector<PatternObject> build_pattern_objects()
             { "const EntityStatus*", 4, },
             (new ImmExtractor(0x3, 0x0, 4))->
                 validator(new AlignmentValidator(0x8))},
-    }});
+        new DefaultPattern{
+            "animation_queue",
+            compile_ida_pattern("4C 8B 8D ? ? ? ? 4C 89 8D"),
+            { "const JArray<const uint32_t>", 0X10, },
+            (new ImmExtractor(0x3, 0x0, 4))->
+                validator(new AlignmentValidator(0x8))},
+    },
+    true, true, "Entity"
+    });
+
 
     objects.push_back({"NpcUpdateCache", {
         new DefaultPattern{
@@ -286,10 +302,8 @@ std::vector<PatternObject> build_pattern_objects()
                  
     }});
 
-    
-
-    // clang-format on
-    return objects;
+// clang-format on
+return objects;
 }
 
 int main()

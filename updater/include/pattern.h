@@ -115,6 +115,19 @@ public:
     uint64_t extract(uint64_t rva, const uint8_t *data) override;
 };
 
+class ConstructorSizeExtractor : public Extractor<uint64_t>
+{
+private:
+    csh capstone_handle;
+    x86_reg reg;
+
+public:
+    ConstructorSizeExtractor(csh capstone_handle, x86_reg reg);
+
+public:
+    uint64_t extract(uint64_t rva, const uint8_t *data) override;
+};
+
 //
 // A non-templated extractor that simply passes extraction into
 // an inner extractor so there's no need to deal with generics.
@@ -204,4 +217,8 @@ struct PatternObject
 {
     std::string name;
     std::vector<Pattern *> patterns;
+
+    bool is_class = false;
+    bool has_parent = false;
+    std::string parent;
 };

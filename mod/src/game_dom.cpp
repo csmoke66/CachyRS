@@ -27,7 +27,7 @@ namespace crs
         if (engine->state == GameState::in_game)
         {
             // clang-format off
-            iterate_players_update([this](const Entity *entity)
+            iterate_players_update([this](const NamedEntity *entity)
             {
                 if (entity->type == EntityType::player)
                 {
@@ -47,16 +47,32 @@ namespace crs
                         new_dom_node->values.push_back(std::make_unique<StringDomValue>("name", entity->name.c_str()));
                         
                         auto x_node = std::make_unique<FloatDomValue>("x", entity->position.x);
-                        x_node->mark_hidden();
-                        new_dom_node->values.push_back(std::move(x_node));
+                        {
+                            x_node->mark_hidden();
+                            new_dom_node->values.push_back(std::move(x_node));
+                        }
 
                         auto y_node = std::make_unique<FloatDomValue>("y", entity->position.y);
-                        y_node->mark_hidden();
-                        new_dom_node->values.push_back(std::move(y_node));
+                        {
+                            y_node->mark_hidden();
+                            new_dom_node->values.push_back(std::move(y_node));
+                        }
 
                         auto z_node = std::make_unique<FloatDomValue>("z", entity->position.z);
-                        z_node->mark_hidden();
-                        new_dom_node->values.push_back(std::move(z_node));
+                        {
+                            z_node->mark_hidden();
+                            new_dom_node->values.push_back(std::move(z_node));
+                        }
+
+                        for (auto i = entity->animation_queue.begin; i != entity->animation_queue.end; i++)
+                        {
+                            auto name = std::format("Animation Id #{}", *(i));
+                            
+                            auto animation_id_node = std::make_unique<FloatDomValue>(name, entity->position.z);
+                            animation_id_node->mark_hidden();
+
+                            new_dom_node->values.push_back(std::move(animation_id_node));
+                        }
 
                         new_dom_node->parent = shared_from_this();
                         
@@ -118,7 +134,7 @@ namespace crs
         if (engine->state == GameState::in_game)
         {
             // clang-format off
-            iterate_npcs_update([this](const Entity *entity)
+            iterate_npcs_update([this](const NamedEntity *entity)
             {
                 if (entity->type == EntityType::npc)
                 {

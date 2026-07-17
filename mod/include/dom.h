@@ -18,6 +18,7 @@ namespace crs
     public:
         bool dirty = true;
         bool hidden = false;
+        bool seen = true;
         
     public:
         DomValue(const ::std::string &name);

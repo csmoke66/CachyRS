@@ -61,6 +61,7 @@ struct JArray
 		return &begin[idx];
 	}
 };
+static_assert(sizeof(JArray<void*>) == 0x10, INVALID_SIZE);
 
 // this is actually a typical C++ STL string
 class JString

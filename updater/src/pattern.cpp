@@ -106,6 +106,57 @@ uint64_t MenuActionHandlerExtractor::extract(uint64_t rva, const uint8_t *data)
     return 0;
 }
 
+ConstructorSizeExtractor::ConstructorSizeExtractor(csh capstone_handle, x86_reg reg)
+{
+    this->capstone_handle = capstone_handle;
+    this->reg = reg;
+}
+
+uint64_t ConstructorSizeExtractor::extract(uint64_t rva, const uint8_t *data)
+{
+    size_t count;
+    cs_insn *insn;
+
+    auto ret = false;
+    uint64_t last_written = 0;
+    uint64_t last_sz = 0;
+
+    while (!ret)
+    {
+        count = cs_disasm(capstone_handle, (const uint8_t *)data, 0x15, (uint64_t)rva, 0, &insn);
+
+        if (insn->id == X86_INS_MOV)
+        {
+            auto x86 = &(insn->detail->x86);
+            auto mem = x86->operands[0].mem;
+            if (x86->operands[0].type == x86_op_type::X86_OP_MEM)
+            {
+                if (mem.base == reg)
+                {
+                    last_written = mem.disp;
+                    last_sz = x86->operands[0].size;
+                }
+            }
+        }
+        else if (insn->id == X86_INS_RET)
+        {
+            ret = true;
+        }
+
+        data += insn->size;
+        rva += insn->size;
+    }
+
+    if (last_sz)
+    {
+        // subtract 1 so our SDK generator doesn't overflow
+        // the struct when marking the found value as a char
+        last_sz -= 1;
+    }
+
+    return last_written + last_sz;
+}
+
 GenericExtractor::GenericExtractor(void *extractor)
 {
     this->nested = (Extractor<uint64_t> *)extractor;

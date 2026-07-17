@@ -50,9 +50,9 @@ Status pattern_scan(
     const uint8_t *data,
     size_t size,
     const std::vector<int> &pattern,
-    const uint8_t** out)
+    const uint8_t **out)
 {
-    const uint8_t* found_at = nullptr;
+    const uint8_t *found_at = nullptr;
     size_t found_count = 0;
     for (size_t i = 0; i <= size - pattern.size(); ++i)
     {
@@ -88,13 +88,21 @@ Status pattern_scan(
     return Status::NotFound;
 }
 
-std::vector<Object> match_to_object(uint8_t *text, Elf64_Shdr text_hdr, std::vector<PatternObject> &patterns)
+std::map<std::string, Object> match_to_object(uint8_t *text, Elf64_Shdr text_hdr, std::vector<PatternObject> &patterns)
 {
-    std::vector<Object> matched;
-    for (auto &pattern : patterns)
+    std::map<std::string, Object> matched;
+    for (auto &pattern_obj : patterns)
     {
-        Object obj = {pattern.name};
-        for (auto pattern : pattern.patterns)
+        Object obj = {pattern_obj.name, pattern_obj.is_class, pattern_obj.has_parent, pattern_obj.parent};
+
+        uint64_t parent_size = 0;
+        if (pattern_obj.has_parent)
+        {
+            auto extracted = matched[pattern_obj.parent].fields[pattern_obj.parent + std::string("_type_end")];
+            parent_size = extracted.offset + extracted.type.size;
+        }
+
+        for (auto pattern : pattern_obj.patterns)
         {
             auto result = pattern->find_result(text, text_hdr);
 
@@ -109,9 +117,9 @@ std::vector<Object> match_to_object(uint8_t *text, Elf64_Shdr text_hdr, std::vec
                 continue;
             }
 
-            obj.fields.push_back({pattern->name, extracted, pattern->type});
+            obj.fields[pattern->name] = {pattern->name, extracted, extracted - parent_size, pattern->type};
         }
-        matched.push_back(obj);
+        matched[pattern_obj.name] = obj;
     }
     return matched;
 }

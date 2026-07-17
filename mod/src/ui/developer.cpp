@@ -9,7 +9,7 @@ namespace crs
     void DeveloperOverlay::render_player_overlay(ImDrawList *draw_list, const WorldNode *root)
     {
         // clang-format off
-        iterate_entities(root, [this, &draw_list](const Entity *entity) 
+        iterate_entities(root, [this, &draw_list](const NamedEntity *entity) 
         {
             if (entity->type == EntityType::player && (!player_overlay_target || player_overlay_target == entity))
             {

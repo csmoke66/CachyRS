@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include <map>
 
 struct Type
 {
@@ -15,11 +16,15 @@ struct Field
 {
     std::string name;
     uint64_t offset;
+    uint64_t relative_offset;
     Type type;
 };
 
 struct Object
 {
     std::string name;
-    std::vector<Field> fields;
+    bool is_class;
+    bool has_parent;
+    std::string parent;
+    std::map<std::string, Field> fields;
 };

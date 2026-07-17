@@ -22,7 +22,7 @@ namespace crs
     {
         if (auto entity = node->entity)
         {
-            fn(entity);
+            fn((NamedEntity*)entity);
         }
 
         for (auto c = node->children.begin; c != node->children.end; c++)
