@@ -19,6 +19,7 @@ namespace crs
         }
         RS.mutex.unlock();
 
+        LOG(WHAT, CPU_FIRST_FARG(cpu_state));
         cpu_state->rax = (uint64_t)trampoline(
             engine,
             CPU_FIRST_FARG(cpu_state));

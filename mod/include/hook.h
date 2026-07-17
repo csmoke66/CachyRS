@@ -17,6 +17,8 @@ namespace crs
     {
         union
         {
+            float fp[4];
+            double dfp[2];
             uint64_t qword[2];
         };
     };
@@ -41,9 +43,10 @@ namespace crs
         uint64_t r15;
         Xmm xmm[16];
     };
+    static_assert(sizeof(CpuState) == 0x180, INVALID_SIZE);
 
 #ifdef __linux__
-#define CPU_FIRST_FARG(C) *((float*)&C->xmm[0])
+#define CPU_FIRST_FARG(C) C->xmm[0].fp[2]
 
 #define CPU_FIRST_ARG(C) C->rdi
 #define CPU_SECOND_ARG(C) C->rsi
