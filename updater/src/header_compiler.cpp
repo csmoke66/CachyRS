@@ -47,6 +47,11 @@ std::string compile_object_to_structure(const Object object)
         else
         {
             auto &prev = fields[i - 1];
+            if ((prev.relative_offset + prev.type.size) > field.relative_offset)
+            {
+                LOG(ERROR, "Field " << prev.name << " overlaps " << field.name << " in object " << object.name);
+            }
+
             ss << "\tPAD(0x" << std::hex << (field.relative_offset - prev.relative_offset - prev.type.size) << ");" << std::endl;
         }
 
@@ -74,7 +79,7 @@ std::string compile_object_to_structure(const Object object)
     {
         ss << "static_assert(sizeof(" << object.name << ") == 0x" << std::hex << object.size << ", INVALID_SIZE);" << std::endl;
     }
-    
+
     for (auto i = 0; i < fields.size(); i++)
     {
         auto &field = fields[i];

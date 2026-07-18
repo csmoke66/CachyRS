@@ -7,6 +7,7 @@ struct Entity;
 struct Globals;
 class NamedEntity;
 struct NpcUpdateCache;
+class Player;
 struct Scene003;
 
 struct Engine
@@ -124,14 +125,13 @@ public:
 	const JArray<const uint32_t> animation_queue;
 	PAD(0xc20);
 	const EntityStatus* status;
-	PAD(0x19c);
-	const uint32_t combat_level;
+	PAD(0x154);
 };
+static_assert(sizeof(NamedEntity) == 0x1054, INVALID_SIZE);
 static_assert(off(NamedEntity, name) == 0x90, INVALID_OFFSET);
 static_assert(off(NamedEntity, position) == 0x270, INVALID_OFFSET);
 static_assert(off(NamedEntity, animation_queue) == 0x2c8, INVALID_OFFSET);
 static_assert(off(NamedEntity, status) == 0xef8, INVALID_OFFSET);
-static_assert(off(NamedEntity, combat_level) == 0x109c, INVALID_OFFSET);
 
 struct NpcUpdateCache
 {
@@ -145,6 +145,16 @@ struct NpcUpdateCache
 static_assert(off(NpcUpdateCache, npcs) == 0x10, INVALID_OFFSET);
 static_assert(off(NpcUpdateCache, size) == 0x18, INVALID_OFFSET);
 static_assert(off(NpcUpdateCache, valid_count) == 0xb0a0, INVALID_OFFSET);
+
+class Player : public NamedEntity
+{
+public:
+	PAD(0x48);
+	const uint32_t combat_level;
+	PAD(0x250);
+};
+static_assert(sizeof(Player) == 0x12f0, INVALID_SIZE);
+static_assert(off(Player, combat_level) == 0x109c, INVALID_OFFSET);
 
 struct Scene003
 {

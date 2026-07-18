@@ -274,6 +274,15 @@ std::vector<PatternObject> build_pattern_objects()
             { "const JArray<const uint32_t>", 0x10, },
             (new ImmExtractor(0x3, 0x0, 4))->
                 validator(new AlignmentValidator(0x8))},
+    },
+    true, true, "Entity",
+     new DefaultPattern{
+        "type_size",
+        compile_ida_pattern("49 BD ? ? ? ? ? ? ? ? 49 BF ? ? ? ? ? ? ? ? 48 89 53"),
+        { "char", 0x1, },
+        new ConstructorSizeExtractor(capstone_handle, x86_reg::X86_REG_RBX)}});
+
+    objects.push_back({"Player", {
         new DefaultPattern{
             "combat_level",
             compile_ida_pattern("45 8B 82 ? ? ? ? 48 8D 35"),
@@ -281,10 +290,13 @@ std::vector<PatternObject> build_pattern_objects()
             (new ImmExtractor(0x3, 0x0, 4))->
                 validator(new AlignmentValidator(0x4))},
     },
-    true, true, "Entity"
-    });
-
-
+    true, true, "NamedEntity",
+     new DefaultPattern{
+        "type_size",
+        compile_ida_pattern("80 7C 24 ? ? 49 89 C4 0F 84"),
+        { "char", 0x1, },
+        new ConstructorSizeExtractor(capstone_handle, x86_reg::X86_REG_R12)}});
+        
     objects.push_back({"NpcUpdateCache", {
         new DefaultPattern{
             "npcs",

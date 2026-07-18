@@ -119,22 +119,25 @@ uint64_t ConstructorSizeExtractor::extract(uint64_t rva, const uint8_t *data)
 
     auto ret = false;
     uint64_t last_written = 0;
-    uint64_t last_sz = 0;
+    uint8_t last_sz = 0;
 
     while (!ret)
     {
-        count = cs_disasm(capstone_handle, (const uint8_t *)data, 0x15, (uint64_t)rva, 0, &insn);
-
-        if (insn->id == X86_INS_MOV)
+        count = cs_disasm(capstone_handle, (const uint8_t *)data, 0x15, (uint64_t)rva, 1, &insn);
+        if (count == 1 && insn->id == X86_INS_MOV)
         {
             auto x86 = &(insn->detail->x86);
-            auto mem = x86->operands[0].mem;
             if (x86->operands[0].type == x86_op_type::X86_OP_MEM)
             {
+                auto op = x86->operands[0];
+                auto mem = op.mem;
                 if (mem.base == reg)
                 {
-                    last_written = mem.disp;
-                    last_sz = x86->operands[0].size;
+                    if (mem.disp > last_written)
+                    {
+                        last_written = mem.disp;
+                        last_sz = op.size;
+                    }
                 }
             }
         }
@@ -145,6 +148,8 @@ uint64_t ConstructorSizeExtractor::extract(uint64_t rva, const uint8_t *data)
 
         data += insn->size;
         rva += insn->size;
+
+        cs_free(insn, 1);
     }
 
     return last_written + last_sz;
