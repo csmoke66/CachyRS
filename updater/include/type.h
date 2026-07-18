@@ -2,7 +2,7 @@
 #include <cstdint>
 #include <string>
 #include <vector>
-#include <map>
+#include <unordered_map>
 
 struct Type
 {
@@ -26,7 +26,7 @@ struct Object
     bool is_class;
     bool has_parent;
     std::string parent;
-    std::map<std::string, Field> fields;
+    std::unordered_map<std::string, Field> fields;
     size_t rel_size = 0;
     size_t size = 0;
 };

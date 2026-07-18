@@ -21,7 +21,7 @@ ImmExtractor::ImmExtractor(uint64_t offset_to_data, uint64_t offset, size_t data
     this->factor_in_rip = factor_in_rip;
 }
 
-uint64_t ImmExtractor::extract(uint64_t rva, const uint8_t *data)
+uint64_t ImmExtractor::extract(const ElfInterface &elf, const uint8_t *data)
 {
     auto data_ptr = data + offset_to_data;
     uint64_t v = 0;
@@ -45,7 +45,7 @@ uint64_t ImmExtractor::extract(uint64_t rva, const uint8_t *data)
 
     if (factor_in_rip)
     {
-        v += rva;
+        v += elf.ptr_to_va(elf.offset(data));
     }
 
     return v + offset;
@@ -56,9 +56,9 @@ DirectExtractor::DirectExtractor(uint64_t offset)
     this->offset = offset;
 }
 
-uint64_t DirectExtractor::extract(uint64_t rva, const uint8_t *data)
+uint64_t DirectExtractor::extract(const ElfInterface &elf, const uint8_t *data)
 {
-    return rva;
+    return elf.ptr_to_va(elf.offset(data));
 }
 
 MenuActionHandlerExtractor::MenuActionHandlerExtractor(csh capstone_handle, uint64_t lea_offset)
@@ -67,7 +67,7 @@ MenuActionHandlerExtractor::MenuActionHandlerExtractor(csh capstone_handle, uint
     this->lea_offset = lea_offset;
 }
 
-uint64_t MenuActionHandlerExtractor::extract(uint64_t rva, const uint8_t *data)
+uint64_t MenuActionHandlerExtractor::extract(const ElfInterface &elf, const uint8_t *data)
 {
     uint64_t lea_count = 0;
 
@@ -75,6 +75,7 @@ uint64_t MenuActionHandlerExtractor::extract(uint64_t rva, const uint8_t *data)
     cs_insn *insn;
 
     auto ret = false;
+    auto rva = elf.ptr_to_va(elf.offset(data));
 
     while (!ret)
     {
@@ -106,27 +107,37 @@ uint64_t MenuActionHandlerExtractor::extract(uint64_t rva, const uint8_t *data)
     return 0;
 }
 
-ConstructorSizeExtractor::ConstructorSizeExtractor(csh capstone_handle, x86_reg reg)
+ConstructorSizeExtractor::ConstructorSizeExtractor(csh capstone_handle, x86_reg reg, uint32_t end)
 {
     this->capstone_handle = capstone_handle;
     this->reg = reg;
+    this->end = end;
 }
 
-uint64_t ConstructorSizeExtractor::extract(uint64_t rva, const uint8_t *data)
+uint64_t ConstructorSizeExtractor::extract(const ElfInterface &elf, const uint8_t *data)
 {
     size_t count;
     cs_insn *insn;
+
+    size_t count_call_iat;
+    cs_insn *insn_call_iat;
 
     auto ret = false;
     uint64_t last_written = 0;
     uint8_t last_sz = 0;
 
+    auto rva = elf.ptr_to_va(elf.offset(data));
+
+    ImportedFunction memset_import;
+    elf.find_import("memset", &memset_import);
+
     while (!ret)
     {
-        count = cs_disasm(capstone_handle, (const uint8_t *)data, 0x15, (uint64_t)rva, 1, &insn);
+        count = cs_disasm(capstone_handle, (const uint8_t *)data, 0x15, rva, 1, &insn);
+
+        auto x86 = &(insn->detail->x86);
         if (count == 1 && insn->id == X86_INS_MOV)
         {
-            auto x86 = &(insn->detail->x86);
             if (x86->operands[0].type == x86_op_type::X86_OP_MEM)
             {
                 auto op = x86->operands[0];
@@ -141,7 +152,7 @@ uint64_t ConstructorSizeExtractor::extract(uint64_t rva, const uint8_t *data)
                 }
             }
         }
-        else if (insn->id == X86_INS_RET)
+        else if (insn->id == end)
         {
             ret = true;
         }
@@ -160,9 +171,9 @@ GenericExtractor::GenericExtractor(void *extractor)
     this->nested = (Extractor<uint64_t> *)extractor;
 }
 
-uint64_t GenericExtractor::extract(uint64_t rva, const uint8_t *data)
+uint64_t GenericExtractor::extract(const ElfInterface &elf, const uint8_t *data)
 {
-    return nested->extract(rva, data);
+    return nested->extract(elf, data);
 }
 
 DummyExtractor::DummyExtractor(uint64_t v)
@@ -170,7 +181,7 @@ DummyExtractor::DummyExtractor(uint64_t v)
     this->v = v;
 }
 
-uint64_t DummyExtractor::extract(uint64_t rva, const uint8_t *data)
+uint64_t DummyExtractor::extract(const ElfInterface &elf, const uint8_t *data)
 {
     return v;
 }

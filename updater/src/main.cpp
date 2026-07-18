@@ -247,7 +247,7 @@ std::vector<PatternObject> build_pattern_objects()
         "type_size",
         compile_ida_pattern("48 8D 05 ? ? ? ? C6 47"),
         { "char", 0x1, },
-        new ConstructorSizeExtractor(capstone_handle, x86_reg::X86_REG_RDI)}});
+        new ConstructorSizeExtractor(capstone_handle, x86_reg::X86_REG_RDI, X86_INS_RET)}});
 
     objects.push_back({"NamedEntity", {
         new DefaultPattern{
@@ -280,7 +280,7 @@ std::vector<PatternObject> build_pattern_objects()
         "type_size",
         compile_ida_pattern("49 BD ? ? ? ? ? ? ? ? 49 BF ? ? ? ? ? ? ? ? 48 89 53"),
         { "char", 0x1, },
-        new ConstructorSizeExtractor(capstone_handle, x86_reg::X86_REG_RBX)}});
+        new ConstructorSizeExtractor(capstone_handle, x86_reg::X86_REG_RBX, X86_INS_RET)}});
 
     objects.push_back({"Player", {
         new DefaultPattern{
@@ -295,8 +295,23 @@ std::vector<PatternObject> build_pattern_objects()
         "type_size",
         compile_ida_pattern("80 7C 24 ? ? 49 89 C4 0F 84"),
         { "char", 0x1, },
-        new ConstructorSizeExtractor(capstone_handle, x86_reg::X86_REG_R12)}});
-        
+        new ConstructorSizeExtractor(capstone_handle, x86_reg::X86_REG_R12, X86_INS_RET)}});
+
+    objects.push_back({"Npc", {
+        new DefaultPattern{
+            "visible_level",
+            compile_ida_pattern("44 8B 97 ? ? ? ? 45 39 90"),
+            { "const uint32_t", 0x4, },
+            (new ImmExtractor(0x3, 0x0, 4))->
+                validator(new AlignmentValidator(0x4))},
+    },
+    true, true, "NamedEntity",
+     new DefaultPattern{
+        "type_size",
+        compile_ida_pattern("BA ? ? ? ? 49 89 87 ? ? ? ? 49 89 AF"),
+        { "char", 0x1, },
+        new ConstructorSizeExtractor(capstone_handle, x86_reg::X86_REG_R15, X86_INS_CALL)}});
+
     objects.push_back({"NpcUpdateCache", {
         new DefaultPattern{
             "npcs",
@@ -323,7 +338,6 @@ std::vector<PatternObject> build_pattern_objects()
     // clang-format on
     return objects;
 }
-
 int main()
 {
     cs_open(CS_ARCH_X86, CS_MODE_64, &capstone_handle);
@@ -350,9 +364,21 @@ int main()
         }
     }
 
-    auto pattern_objects = build_pattern_objects();
-    auto matched = match_to_object(text, text_hdr, pattern_objects);
+    auto elf_interface = ElfInterface((Elf64_Addr)data.data());
+    elf_interface.init_base();
+    elf_interface.init();
 
+    ImportedFunction remote_memset;
+    LOG(test, elf_interface.find_import("memset", &remote_memset));
+    LOG(test, remote_memset.name << " " << remote_memset.addr);
+
+    LOG(info, "Building pattern objects...");
+    auto pattern_objects = build_pattern_objects();
+
+    LOG(info, "Matching objects...");
+    auto matched = match_to_object(elf_interface, text, text_hdr, pattern_objects);
+
+    LOG(info, "Compiling to headers...");
     std::ofstream out_header("reversed_generated.h");
     out_header << compile_objects_to_header(matched);
     out_header.close();

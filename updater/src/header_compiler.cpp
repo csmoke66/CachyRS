@@ -2,10 +2,10 @@
 #include <sstream>
 #include <algorithm>
 
-std::string compile_object_to_structure(const Object object)
+std::string compile_object_to_structure(const Object* object)
 {
     std::vector<Field> fields;
-    for (auto &[key, field] : object.fields)
+    for (auto &[key, field] : object->fields)
     {
         fields.push_back(field);
     }
@@ -14,7 +14,7 @@ std::string compile_object_to_structure(const Object object)
               { return a.offset < b.offset; });
 
     std::stringstream ss;
-    if (object.is_class)
+    if (object->is_class)
     {
         ss << "class ";
     }
@@ -22,15 +22,15 @@ std::string compile_object_to_structure(const Object object)
     {
         ss << "struct ";
     }
-    ss << object.name;
-    if (object.has_parent)
+    ss << object->name;
+    if (object->has_parent)
     {
-        ss << " : public " << object.parent;
+        ss << " : public " << object->parent;
     }
 
     ss << std::endl;
     ss << "{" << std::endl;
-    if (object.is_class)
+    if (object->is_class)
     {
         ss << "public:" << std::endl;
     }
@@ -49,7 +49,7 @@ std::string compile_object_to_structure(const Object object)
             auto &prev = fields[i - 1];
             if ((prev.relative_offset + prev.type.size) > field.relative_offset)
             {
-                LOG(ERROR, "Field " << prev.name << " overlaps " << field.name << " in object " << object.name);
+                LOG(ERROR, "Field " << prev.name << " overlaps " << field.name << " in object " << object->name);
             }
 
             ss << "\tPAD(0x" << std::hex << (field.relative_offset - prev.relative_offset - prev.type.size) << ");" << std::endl;
@@ -67,29 +67,29 @@ std::string compile_object_to_structure(const Object object)
         if (is_last)
         {
             auto field_end = field.relative_offset + field.type.size;
-            if (field_end < object.rel_size)
+            if (field_end < object->rel_size)
             {
-                ss << "\tPAD(0x" << std::hex << (object.rel_size - field_end) << ");" << std::endl;
+                ss << "\tPAD(0x" << std::hex << (object->rel_size - field_end) << ");" << std::endl;
             }
         }
     }
 
     ss << "};" << std::endl;
-    if (!!object.size)
+    if (!!object->size)
     {
-        ss << "static_assert(sizeof(" << object.name << ") == 0x" << std::hex << object.size << ", INVALID_SIZE);" << std::endl;
+        ss << "static_assert(sizeof(" << object->name << ") == 0x" << std::hex << object->size << ", INVALID_SIZE);" << std::endl;
     }
 
     for (auto i = 0; i < fields.size(); i++)
     {
         auto &field = fields[i];
-        ss << "static_assert(off(" << object.name << ", " << field.name << ") == 0x" << std::hex << field.offset << ", INVALID_OFFSET);" << std::endl;
+        ss << "static_assert(off(" << object->name << ", " << field.name << ") == 0x" << std::hex << field.offset << ", INVALID_OFFSET);" << std::endl;
     }
     ss << std::endl;
     return ss.str();
 }
 
-std::string compile_objects_to_header(const std::map<std::string, Object> &objects)
+std::string compile_objects_to_header(const std::vector<Object*> &objects)
 {
     std::stringstream ss;
     ss << "#pragma once" << std::endl;
@@ -97,20 +97,20 @@ std::string compile_objects_to_header(const std::map<std::string, Object> &objec
        << std::endl;
 
     ss << "#pragma pack(push, 1)" << std::endl;
-    for (auto &[key, obj] : objects)
+    for (auto &obj : objects)
     {
-        if (obj.is_class)
+        if (obj->is_class)
         {
-            ss << "class " << obj.name << ";" << std::endl;
+            ss << "class " << obj->name << ";" << std::endl;
         }
         else
         {
-            ss << "struct " << obj.name << ";" << std::endl;
+            ss << "struct " << obj->name << ";" << std::endl;
         }
     }
 
     ss << std::endl;
-    for (auto &[key, obj] : objects)
+    for (auto obj : objects)
     {
         ss << compile_object_to_structure(obj);
     }

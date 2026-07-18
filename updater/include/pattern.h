@@ -6,6 +6,7 @@
 #include <elf.h>
 
 #include "type.h"
+#include "elf_interface.h"
 
 #include <capstone.h>
 
@@ -38,11 +39,11 @@ private:
     std::vector<DataValidator<T> *> data_validators;
 
 public:
-    virtual T extract(uint64_t rva, const uint8_t *data) = 0;
+    virtual T extract(const ElfInterface& elf, const uint8_t *data) = 0;
 
-    T extract_validated(uint64_t rva, const uint8_t *data)
+    T extract_validated(const ElfInterface& elf, const uint8_t *data)
     {
-        auto t = extract(rva, data);
+        auto t = extract(elf, data);
         for (auto dv : data_validators)
         {
             if (!dv->validate(&t))
@@ -80,7 +81,7 @@ public:
     ImmExtractor(uint64_t offset_to_data, uint64_t offset, size_t data_size, bool factor_in_rip = false);
 
 public:
-    uint64_t extract(uint64_t rva, const uint8_t *data) override;
+    uint64_t extract(const ElfInterface& elf, const uint8_t *data) override;
 };
 
 //
@@ -94,7 +95,7 @@ public:
     DirectExtractor(uint64_t offset);
 
 public:
-    uint64_t extract(uint64_t rva, const uint8_t *data) override;
+    uint64_t extract(const ElfInterface& elf, const uint8_t *data) override;
 };
 
 //
@@ -112,7 +113,7 @@ public:
     MenuActionHandlerExtractor(csh capstone_handle, uint64_t lea_offset);
 
 public:
-    uint64_t extract(uint64_t rva, const uint8_t *data) override;
+    uint64_t extract(const ElfInterface& elf, const uint8_t *data) override;
 };
 
 class ConstructorSizeExtractor : public Extractor<uint64_t>
@@ -120,12 +121,13 @@ class ConstructorSizeExtractor : public Extractor<uint64_t>
 private:
     csh capstone_handle;
     x86_reg reg;
+    uint32_t end;
 
 public:
-    ConstructorSizeExtractor(csh capstone_handle, x86_reg reg);
+    ConstructorSizeExtractor(csh capstone_handle, x86_reg reg, uint32_t end);
 
 public:
-    uint64_t extract(uint64_t rva, const uint8_t *data) override;
+    uint64_t extract(const ElfInterface& elf, const uint8_t *data) override;
 };
 
 //
@@ -141,7 +143,7 @@ public:
     GenericExtractor(void *extractor);
 
 public:
-    uint64_t extract(uint64_t rva, const uint8_t *data) override;
+    uint64_t extract(const ElfInterface& elf, const uint8_t *data) override;
 };
 
 //
@@ -157,7 +159,7 @@ public:
     DummyExtractor(uint64_t v);
 
 public:
-    uint64_t extract(uint64_t rva, const uint8_t *data) override;
+    uint64_t extract(const ElfInterface& elf, const uint8_t *data) override;
 };
 
 //

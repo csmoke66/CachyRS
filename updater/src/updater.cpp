@@ -88,53 +88,50 @@ Status pattern_scan(
     return Status::NotFound;
 }
 
-std::map<std::string, Object> match_to_object(uint8_t *text, Elf64_Shdr text_hdr, std::vector<PatternObject> &patterns)
+std::vector<Object*> match_to_object(const ElfInterface& elf, uint8_t *text, Elf64_Shdr text_hdr, std::vector<PatternObject> &patterns)
 {
-    std::map<std::string, Object> matched;
+    std::unordered_map<std::string, Object*> matched;
+    std::vector<Object*> linear;
+
     for (auto &pattern_obj : patterns)
     {
-        Object obj = {pattern_obj.name, pattern_obj.is_class, pattern_obj.has_parent, pattern_obj.parent};
+        auto obj = new Object{pattern_obj.name, pattern_obj.is_class, pattern_obj.has_parent, pattern_obj.parent};
+        LOG(info, "Matching " << pattern_obj.name);
 
         if (auto sizepattern = pattern_obj.size_pattern)
         {
+            LOG(info, "Matching size...");
             auto result = sizepattern->find_result(text, text_hdr);
 
-            auto section_offset = result - text;
-            auto file_offset = text_hdr.sh_offset + section_offset;
-            auto vaddr = text_hdr.sh_addr + section_offset;
-
-            obj.size = sizepattern->extractor->extract_validated(vaddr, result);
-            obj.rel_size = obj.size;
+            obj->size = sizepattern->extractor->extract_validated(elf, result);
+            obj->rel_size = obj->size;
             if (pattern_obj.has_parent)
             {
-                obj.rel_size -= matched[pattern_obj.parent].size;
+                obj->rel_size -= matched[pattern_obj.parent]->size;
             }
         }
 
         size_t size = 0;
         if (pattern_obj.has_parent)
         {
-            size = matched[pattern_obj.parent].size;
+            size = matched[pattern_obj.parent]->size;
         }
 
+        LOG(info, "Matching pattern...");
         for (auto pattern : pattern_obj.patterns)
         {
             auto result = pattern->find_result(text, text_hdr);
-
-            auto section_offset = result - text;
-            auto file_offset = text_hdr.sh_offset + section_offset;
-            auto vaddr = text_hdr.sh_addr + section_offset;
-
-            auto extracted = pattern->extractor->extract_validated(vaddr, result);
+            auto extracted = pattern->extractor->extract_validated(elf, result);
             if (!extracted)
             {
-                LOG(ERROR, "Failed to extract " << obj.name << "." << pattern->name);
+                LOG(ERROR, "Failed to extract " << obj->name << "." << pattern->name);
                 continue;
             }
 
-            obj.fields[pattern->name] = {pattern->name, extracted, extracted - size, pattern->type};
+            obj->fields[pattern->name] = {pattern->name, extracted, extracted - size, pattern->type};
         }
         matched[pattern_obj.name] = obj;
+        linear.push_back(obj);
     }
-    return matched;
+    return linear;
 }

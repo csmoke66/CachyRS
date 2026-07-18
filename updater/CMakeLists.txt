@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.22)
 project(updater LANGUAGES CXX)
 
 add_executable(updater
+    src/elf.cpp
     src/main.cpp
     src/pattern.cpp
     src/updater.cpp
