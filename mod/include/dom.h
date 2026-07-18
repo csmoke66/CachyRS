@@ -177,6 +177,7 @@ namespace crs
         DomNode *find_dom_node(const std::string &id);
 
     public:
+        void prune();
         void mark_dirty();
     };
 

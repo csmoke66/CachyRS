@@ -131,6 +131,22 @@ namespace crs
         return find_dom_node(this, id);
     }
 
+    void DomNode::prune()
+    {
+        for (auto it = children.begin(); it != children.end();)
+        {
+            if (it->second->deleted)
+            {
+                tree->remove_dom_node(it->second);
+                it = children.erase(it);
+            }
+            else
+            {
+                it++;
+            }
+        }
+    }
+    
     void DomNode::mark_dirty()
     {
         dirty = true;

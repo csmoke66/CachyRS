@@ -39,6 +39,7 @@ std::string compile_object_to_structure(const Object object)
     {
         auto &field = fields[i];
         auto is_first = (i == 0);
+        auto is_last = (i == fields.size() - 1);
         if (is_first)
         {
             ss << "\tPAD(0x" << std::hex << field.relative_offset << ");" << std::endl;
@@ -54,10 +55,26 @@ std::string compile_object_to_structure(const Object object)
         {
             ss << "[" << field.type.arr_size << "]";
         }
+
         ss << ";";
         ss << std::endl;
+
+        if (is_last)
+        {
+            auto field_end = field.relative_offset + field.type.size;
+            if (field_end < object.rel_size)
+            {
+                ss << "\tPAD(0x" << std::hex << (object.rel_size - field_end) << ");" << std::endl;
+            }
+        }
     }
+
     ss << "};" << std::endl;
+    if (!!object.size)
+    {
+        ss << "static_assert(sizeof(" << object.name << ") == 0x" << std::hex << object.size << ", INVALID_SIZE);" << std::endl;
+    }
+    
     for (auto i = 0; i < fields.size(); i++)
     {
         auto &field = fields[i];

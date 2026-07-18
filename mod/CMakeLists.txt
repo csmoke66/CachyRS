@@ -11,8 +11,11 @@ add_library(mod SHARED
     src/process_linux.cpp
 
     src/dom.cpp
-    src/game_dom.cpp
     src/cachy_dom.cpp
+
+    src/item_container_dom_node.cpp
+    src/npcs_dom_node.cpp
+    src/players_dom_node.cpp
     
     src/ui/ui.cpp
     src/ui/rml_ui.cpp

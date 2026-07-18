@@ -95,11 +95,26 @@ std::map<std::string, Object> match_to_object(uint8_t *text, Elf64_Shdr text_hdr
     {
         Object obj = {pattern_obj.name, pattern_obj.is_class, pattern_obj.has_parent, pattern_obj.parent};
 
-        uint64_t parent_size = 0;
+        if (auto sizepattern = pattern_obj.size_pattern)
+        {
+            auto result = sizepattern->find_result(text, text_hdr);
+
+            auto section_offset = result - text;
+            auto file_offset = text_hdr.sh_offset + section_offset;
+            auto vaddr = text_hdr.sh_addr + section_offset;
+
+            obj.size = sizepattern->extractor->extract_validated(vaddr, result);
+            obj.rel_size = obj.size;
+            if (pattern_obj.has_parent)
+            {
+                obj.rel_size -= matched[pattern_obj.parent].size;
+            }
+        }
+
+        size_t size = 0;
         if (pattern_obj.has_parent)
         {
-            auto extracted = matched[pattern_obj.parent].fields[pattern_obj.parent + std::string("_type_end")];
-            parent_size = extracted.offset + extracted.type.size;
+            size = matched[pattern_obj.parent].size;
         }
 
         for (auto pattern : pattern_obj.patterns)
@@ -117,7 +132,7 @@ std::map<std::string, Object> match_to_object(uint8_t *text, Elf64_Shdr text_hdr
                 continue;
             }
 
-            obj.fields[pattern->name] = {pattern->name, extracted, extracted - parent_size, pattern->type};
+            obj.fields[pattern->name] = {pattern->name, extracted, extracted - size, pattern->type};
         }
         matched[pattern_obj.name] = obj;
     }

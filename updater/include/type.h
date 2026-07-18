@@ -27,4 +27,6 @@ struct Object
     bool has_parent;
     std::string parent;
     std::map<std::string, Field> fields;
+    size_t rel_size = 0;
+    size_t size = 0;
 };

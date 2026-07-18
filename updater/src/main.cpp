@@ -242,12 +242,12 @@ std::vector<PatternObject> build_pattern_objects()
             "type",
             { "const EntityType", 1},
             new DummyExtractor(0x10)},
-        new DefaultPattern{
-            "Entity_type_end",
-            compile_ida_pattern("48 8D 05 ? ? ? ? C6 47"),
-            { "char", 0x1, },
-            new ConstructorSizeExtractor(capstone_handle, x86_reg::X86_REG_RDI)},
-    }});
+    }, false, false, "" ,
+     new DefaultPattern{
+        "type_size",
+        compile_ida_pattern("48 8D 05 ? ? ? ? C6 47"),
+        { "char", 0x1, },
+        new ConstructorSizeExtractor(capstone_handle, x86_reg::X86_REG_RDI)}});
 
     objects.push_back({"NamedEntity", {
         new DefaultPattern{
@@ -265,15 +265,21 @@ std::vector<PatternObject> build_pattern_objects()
         new DefaultPattern{
             "status",
             compile_ida_pattern("4D 8B 95 ? ? ? ? 89 C1"),
-            { "const EntityStatus*", 4, },
+            { "const EntityStatus*", 8, },
             (new ImmExtractor(0x3, 0x0, 4))->
                 validator(new AlignmentValidator(0x8))},
         new DefaultPattern{
             "animation_queue",
             compile_ida_pattern("4C 8B 8D ? ? ? ? 4C 89 8D"),
-            { "const JArray<const uint32_t>", 0X10, },
+            { "const JArray<const uint32_t>", 0x10, },
             (new ImmExtractor(0x3, 0x0, 4))->
                 validator(new AlignmentValidator(0x8))},
+        new DefaultPattern{
+            "combat_level",
+            compile_ida_pattern("45 8B 82 ? ? ? ? 48 8D 35"),
+            { "const uint32_t", 0x4, },
+            (new ImmExtractor(0x3, 0x0, 4))->
+                validator(new AlignmentValidator(0x4))},
     },
     true, true, "Entity"
     });
@@ -302,8 +308,8 @@ std::vector<PatternObject> build_pattern_objects()
                  
     }});
 
-// clang-format on
-return objects;
+    // clang-format on
+    return objects;
 }
 
 int main()

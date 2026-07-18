@@ -147,13 +147,6 @@ uint64_t ConstructorSizeExtractor::extract(uint64_t rva, const uint8_t *data)
         rva += insn->size;
     }
 
-    if (last_sz)
-    {
-        // subtract 1 so our SDK generator doesn't overflow
-        // the struct when marking the found value as a char
-        last_sz -= 1;
-    }
-
     return last_written + last_sz;
 }
 

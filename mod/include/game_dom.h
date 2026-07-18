@@ -4,6 +4,22 @@
 
 namespace crs
 {
+    template<typename T>
+    class GameContainerNode : public TypedChildrenDomNode<T>
+    {
+        public:
+        GameContainerNode(std::shared_ptr<DomTree> tree, const ::std::string& id, const ::std::string& type) : TypedChildrenDomNode<T>(tree, id, type)
+        {
+
+        }
+
+    public:
+        virtual void update() = 0;
+
+    public:
+        void prune();
+    };
+
     class PlayerDomNode : public ValueDomNode<Entity*>
     {
     public:
@@ -14,14 +30,13 @@ namespace crs
         PlayerDomNode(std::shared_ptr<DomTree> tree, const ::std::string& id, const ::std::string& type);
     };
 
-    class PlayersDomNode : public TypedChildrenDomNode<PlayerDomNode>
+    class PlayersDomNode : public GameContainerNode<PlayerDomNode>
     {
     public:
         PlayersDomNode(std::shared_ptr<DomTree> tree, const ::std::string& id, const ::std::string& type);
 
     public:
-        void update();
-        void prune();
+        void update() override;
     };
 
     class NpcDomNode : public ValueDomNode<Entity*>
@@ -34,14 +49,13 @@ namespace crs
         NpcDomNode(std::shared_ptr<DomTree> tree, const ::std::string& id, const ::std::string& type);
     };
 
-    class NpcsDomNode : public TypedChildrenDomNode<NpcDomNode>
+    class NpcsDomNode : public GameContainerNode<NpcDomNode>
     {
     public:
         NpcsDomNode(std::shared_ptr<DomTree> tree, const ::std::string& id, const ::std::string& type);
 
     public:
-        void update();
-        void prune();
+        void update() override;
     };
 
     class ItemDomNode : public ValueDomNode<Item>
@@ -67,13 +81,12 @@ namespace crs
         void update(const std::string& parent_id, const ItemContainer& container);
     };
 
-    class ItemContainersDomNode : public TypedChildrenDomNode<ItemContainerDomNode>
+    class ItemContainersDomNode : public GameContainerNode<ItemContainerDomNode>
     {
     public:
         ItemContainersDomNode(std::shared_ptr<DomTree> tree, const ::std::string& id, const ::std::string& type);
 
     public:
-        void update();
-        void prune();
+        void update() override;
     };
 }

@@ -221,4 +221,6 @@ struct PatternObject
     bool is_class = false;
     bool has_parent = false;
     std::string parent;
+    
+    Pattern* size_pattern;
 };

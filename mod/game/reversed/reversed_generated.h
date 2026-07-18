@@ -53,11 +53,10 @@ struct Entity
 {
 	PAD(0x10);
 	const EntityType type;
-	PAD(0x46);
-	char Entity_type_end;
+	PAD(0x47);
 };
+static_assert(sizeof(Entity) == 0x58, INVALID_SIZE);
 static_assert(off(Entity, type) == 0x10, INVALID_OFFSET);
-static_assert(off(Entity, Entity_type_end) == 0x57, INVALID_OFFSET);
 
 struct Globals
 {
@@ -125,11 +124,14 @@ public:
 	const JArray<const uint32_t> animation_queue;
 	PAD(0xc20);
 	const EntityStatus* status;
+	PAD(0x19c);
+	const uint32_t combat_level;
 };
 static_assert(off(NamedEntity, name) == 0x90, INVALID_OFFSET);
 static_assert(off(NamedEntity, position) == 0x270, INVALID_OFFSET);
 static_assert(off(NamedEntity, animation_queue) == 0x2c8, INVALID_OFFSET);
 static_assert(off(NamedEntity, status) == 0xef8, INVALID_OFFSET);
+static_assert(off(NamedEntity, combat_level) == 0x109c, INVALID_OFFSET);
 
 struct NpcUpdateCache
 {
