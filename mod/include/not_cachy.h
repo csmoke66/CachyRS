@@ -13,6 +13,10 @@ namespace crs
         const ItemCache *item_cache() const;
         const PlayerUpdateCache *player_update_cache() const;
         const NpcUpdateCache *npc_update_cache() const;
+        const Cache001 *cache() const;
+        const CacheIndex *cache_index(CacheIndexOrdinal ordinal) const;
+        const WorldSettingCache *world_setting_cache() const;
+        uint32_t mask_world_setting(const WorldSetting *setting, const WorldSettingMask *mask) const;
     };
 
     extern NotCachyRS NRS;
@@ -22,7 +26,7 @@ namespace crs
     {
         if (auto entity = node->entity)
         {
-            fn((NamedEntity*)entity);
+            fn((NamedEntity *)entity);
         }
 
         for (auto c = node->children.begin; c != node->children.end; c++)

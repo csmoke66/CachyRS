@@ -90,8 +90,8 @@ struct Engine
 	const GameState state;
 	PAD(0x4);
 	const LocalPlayer* local_player;
-	PAD(0x28);
-	const WorldSettingCache* world_settings;
+	PAD(0x8);
+	const WorldSettingCache world_settings;
 };
 static_assert(off(Engine, window_state) == 0x90, INVALID_OFFSET);
 static_assert(off(Engine, time) == 0x504, INVALID_OFFSET);
@@ -104,7 +104,7 @@ static_assert(off(Engine, item_cache) == 0x19550, INVALID_OFFSET);
 static_assert(off(Engine, scene_001) == 0x19558, INVALID_OFFSET);
 static_assert(off(Engine, state) == 0x19b28, INVALID_OFFSET);
 static_assert(off(Engine, local_player) == 0x19b30, INVALID_OFFSET);
-static_assert(off(Engine, world_settings) == 0x19b60, INVALID_OFFSET);
+static_assert(off(Engine, world_settings) == 0x19b40, INVALID_OFFSET);
 
 struct Scene003
 {
@@ -147,21 +147,27 @@ static_assert(off(NamedEntity, status) == 0xef8, INVALID_OFFSET);
 class Player : public NamedEntity
 {
 public:
-	PAD(0x48);
+	PAD(0x14);
+	const Model* model;
+	PAD(0x2c);
 	const uint32_t combat_level;
 	PAD(0x250);
 };
 static_assert(sizeof(Player) == 0x12f0, INVALID_SIZE);
+static_assert(off(Player, model) == 0x1068, INVALID_OFFSET);
 static_assert(off(Player, combat_level) == 0x109c, INVALID_OFFSET);
 
 class Npc : public NamedEntity
 {
 public:
-	PAD(0x104);
+	PAD(0xc);
+	const int32_t cache_id;
+	PAD(0xf4);
 	const uint32_t visible_level;
 	PAD(0x26);
 };
 static_assert(sizeof(Npc) == 0x1182, INVALID_SIZE);
+static_assert(off(Npc, cache_id) == 0x1060, INVALID_OFFSET);
 static_assert(off(Npc, visible_level) == 0x1158, INVALID_OFFSET);
 
 struct NpcUpdateCache

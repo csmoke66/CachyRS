@@ -42,7 +42,7 @@ struct CacheBuffer
 
 class CacheIndexInner
 {
-private:
+public:
 	// 0x0
 	PAD_VT();
 	// 0x8
@@ -57,46 +57,41 @@ private:
 	PAD_VT();
 	// 0x30
 	PAD_VT();
-
-public:
 	// 0x38
+	PAD_VT();
+	// 0x40
 	virtual void* get_cache_descriptor_by_index(uint32_t idx, bool unknown) = 0;
 
 public:
 	// 0x8
 	PAD(0x38);
 	// 0x40
-	const uint64_t size;
-	// 0x48
-	const JArray<const CacheBuffer**> data_buffer;
+	const uint32_t size;
 };
+static_assert(off(CacheIndexInner, size) == 0x40, INVALID_OFFSET);
 
 struct CacheIndex
 {
 	// 0x0
-	PAD(0x30);
-	// 0x30
+	PAD(0x28);
+	// 0x28
 	const uint32_t current_size;
-	// 0x34
+	// 0x2c
 	const uint32_t max_size;
-	// 0x38
+	// 0x30
 	PAD(0x8);
-	// 0x40
+	// 0x38
 	const CacheIndexInner* inner;
-	// 0x48
+	// 0x40
 };
+static_assert(off(CacheIndex, inner) == 0x38, INVALID_OFFSET);
 
 struct Cache001
 {
 	// 0x0
-	PAD(0xa8);
-	// 0xa8
+	PAD(0x80);
+	// 0x80
 	const CacheIndex** indices;
-	// 0xb0
-	PAD(0x110);
-	// 0x1c0
-	const Cache002* cache_002;
-	// 0x1c8
 };
 
 #pragma pack(pop)

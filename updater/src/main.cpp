@@ -216,8 +216,8 @@ std::vector<PatternObject> build_pattern_objects()
             
         new DefaultPattern{
             "world_settings",
-            compile_ida_pattern("48 8D BB ? ? ? ? E8 ? ? ? ? 48 8B B3 ? ? ? ? 48 8B 93"),
-            { "const WorldSettingCache*", 8, },
+            compile_ida_pattern("4D 8D A5 ? ? ? ? ? ? ? ? ? ? ? ? 4C 8B 70"),
+            { "const WorldSettingCache", 0x34, },
             (new ImmExtractor(0x3, 0x0, 4))->
                 validator(new AlignmentValidator(0x8))},
     }});

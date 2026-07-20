@@ -32,6 +32,7 @@ struct EntityStatus;
 struct WorldSettingCache;
 struct WidgetCache;
 class ContainerWidget;
+struct Model;
 
 // generated
 struct Entity;

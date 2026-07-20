@@ -61,7 +61,7 @@ namespace crs
             {off(Globals, engine),
              off(Engine, item_cache)});
     }
-    
+
     const PlayerUpdateCache *NotCachyRS::player_update_cache() const
     {
         return dref<const PlayerUpdateCache *>(
@@ -69,12 +69,46 @@ namespace crs
             {off(Globals, engine),
              off(Engine, player_update_cache)});
     }
-    
+
     const NpcUpdateCache *NotCachyRS::npc_update_cache() const
     {
         return dref<const NpcUpdateCache *>(
             RS.get_globals(),
             {off(Globals, engine),
              off(Engine, npc_update_cache)});
+    }
+
+    const Cache001 *NotCachyRS::cache() const
+    {
+        return dref<const Cache001 *>(
+            RS.get_globals(),
+            {off(Globals, engine),
+             off(Engine, cache)});
+    }
+
+    const CacheIndex *NotCachyRS::cache_index(CacheIndexOrdinal ordinal) const
+    {
+        if (auto cache = this->cache())
+        {
+            return cache->indices[(uint8_t)ordinal];
+        }
+
+        return nullptr;
+    }
+
+    const WorldSettingCache *NotCachyRS::world_setting_cache() const
+    {
+        auto engine = RS.get_globals()->engine;
+        if (!engine)
+        {
+            return nullptr;
+        }
+
+        return &engine->world_settings;
+    }
+
+    uint32_t NotCachyRS::mask_world_setting(const WorldSetting *setting, const WorldSettingMask *mask) const
+    {
+        return ((1 << (mask->end + 1 - mask->begin)) - 1) & (setting->value >> mask->begin);
     }
 }

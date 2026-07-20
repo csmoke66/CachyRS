@@ -23,3 +23,8 @@ enum class WidgetType : uint8_t
 	text = 2,
 	media = 2,
 };
+
+enum class CacheIndexOrdinal : uint8_t
+{
+	varbit = 7,
+};
