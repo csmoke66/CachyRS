@@ -289,6 +289,12 @@ std::vector<PatternObject> build_pattern_objects()
             { "const uint32_t", 0x4, },
             (new ImmExtractor(0x3, 0x0, 4))->
                 validator(new AlignmentValidator(0x4))},
+        new DefaultPattern{
+            "model",
+            compile_ida_pattern("48 8B AA ? ? ? ? 48 85 ED 0F 84 ? ? ? ? 49 8D 8C 9C"),
+            { "const Model*", 0x8, },
+            (new ImmExtractor(0x3, 0x0, 4))->
+                validator(new AlignmentValidator(0x4))},
     },
     true, true, "NamedEntity",
      new DefaultPattern{
@@ -304,6 +310,12 @@ std::vector<PatternObject> build_pattern_objects()
             { "const uint32_t", 0x4, },
             (new ImmExtractor(0x3, 0x0, 4))->
                 validator(new AlignmentValidator(0x4))},
+        new DefaultPattern{
+            "cache_id",
+            compile_ida_pattern("83 BF ? ? ? ? ? 74 ? 48 83 BF ? ? ? ? ? 0F 94 C0"),
+            { "const int32_t", 0x4, },
+            (new ImmExtractor(0x2, 0x0, 4))->
+                validator(new AlignmentValidator(0x4))}, 
     },
     true, true, "NamedEntity",
      new DefaultPattern{

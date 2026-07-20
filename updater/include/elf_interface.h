@@ -25,6 +25,7 @@ private:
 
     ::std::vector<ImportedFunction> imports;
 
+public:
     ElfInterface(Elf64_Addr data);
 
 public:
