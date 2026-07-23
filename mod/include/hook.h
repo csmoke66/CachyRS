@@ -78,7 +78,7 @@ namespace crs
         virtual void handler(CpuState *cpu_state);
 
     public:
-        std::thread::id thread_id() const;
+        std::optional<std::thread::id> thread_id() const;
     };
 
     template <typename T>

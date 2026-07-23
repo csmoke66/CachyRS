@@ -15,7 +15,7 @@ namespace crs
         this->last_thread_id = tid;
     }
 
-    std::thread::id BaseHook::thread_id() const
+    std::optional<std::thread::id> BaseHook::thread_id() const
     {
         return this->last_thread_id.value();
     }

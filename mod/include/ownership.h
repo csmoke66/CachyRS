@@ -16,7 +16,7 @@ namespace crs
     class ThreadOwned
     {
     private:
-        std::thread::id owner;
+        std::optional<std::thread::id> owner;
         T raw;
 
     public:
@@ -31,6 +31,11 @@ namespace crs
             this->raw = raw;
         }
 
+        ThreadOwned(const T &raw)
+        {
+            this->raw = raw;
+        }
+
         ThreadOwned(const ThreadOwned<T> &o)
         {
             this->owner = o.owner;
@@ -38,9 +43,9 @@ namespace crs
         }
 
     private:
-        void check_ownership()
+        void check_ownership() const
         {
-            if (this->owner != std::this_thread::get_id())
+            if (this->owner.has_value() && this->owner != std::this_thread::get_id())
             {
                 throw OwnershipException("Invalid thread for access");
             }

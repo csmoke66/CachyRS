@@ -131,7 +131,16 @@ namespace crs
     ThreadOwned<Globals*> CachyRS::get_globals() const
     {
         auto hook = hook_manager->view_hook<BaseHook>("engine_tick");
-        return ThreadOwned<Globals*>(hook->thread_id(), (Globals*)pi.game_base());
+        if (!!hook)
+        {
+            auto tid = hook->thread_id();
+            if (tid.has_value())
+            {
+                return ThreadOwned<Globals*>(tid.value(), (Globals*)pi.game_base());
+            }
+        }
+
+        return ThreadOwned<Globals*>((Globals*)pi.game_base());
     }
 
     bool CachyRS::project_to_screen(const Vec3<float> scene, Vec2<float> *out) const
