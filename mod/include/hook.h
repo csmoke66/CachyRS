@@ -3,6 +3,8 @@
 #include <map>
 #include <memory>
 #include <concepts>
+#include <thread>
+#include <optional>
 
 #include "process.h"
 #include "reversed/reversed.h"
@@ -63,6 +65,9 @@ namespace crs
 
     class BaseHook
     {
+    private:
+        std::optional<std::thread::id> last_thread_id;
+
     public:
         virtual ~BaseHook()
         {
@@ -70,7 +75,10 @@ namespace crs
         }
 
     public:
-        virtual void handler(CpuState *cpu_state) = 0;
+        virtual void handler(CpuState *cpu_state);
+
+    public:
+        std::thread::id thread_id() const;
     };
 
     template <typename T>

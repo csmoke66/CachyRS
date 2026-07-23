@@ -5,6 +5,8 @@ namespace crs
 {
     void EngineTickHook::handler(CpuState *cpu_state)
     {
+        BaseHook::handler(cpu_state);
+        
         auto engine = (Engine *)CPU_FIRST_ARG(cpu_state);
 
         RS.mutex.lock();

@@ -5,6 +5,8 @@ namespace crs
 {
     void RenderWidgetHook::handler(CpuState *cpu_state)
     {
+        BaseHook::handler(cpu_state);
+        
         auto widget = (Widget *)CPU_FIRST_ARG(cpu_state);
         auto children = (JArray<WidgetChild> *)CPU_THIRD_ARG(cpu_state);
         auto x = (int)CPU_FOURTH_ARG(cpu_state);

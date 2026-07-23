@@ -16,6 +16,8 @@ namespace crs
 {
     void EglSwapBuffersHook::handler(CpuState *cpu_state)
     {
+        BaseHook::handler(cpu_state);
+        
         auto dpy = (EGLDisplay)CPU_FIRST_ARG(cpu_state);
         auto surface = (EGLSurface)CPU_SECOND_ARG(cpu_state);
 

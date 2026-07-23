@@ -4,6 +4,8 @@ namespace crs
 {
     void MenuExecuteHook::handler(CpuState *cpu_state)
     {
+        BaseHook::handler(cpu_state);
+        
         auto action_menu_context = (const ActionMenuContext *)CPU_SECOND_ARG(cpu_state);
         if (auto menu_action_context = action_menu_context->menu_action_context)
         {

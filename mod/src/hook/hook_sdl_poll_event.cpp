@@ -5,6 +5,8 @@ namespace crs
 {
     void SdlPollEventHook::handler(CpuState *cpu_state)
     {
+        BaseHook::handler(cpu_state);
+        
         auto event = (SDL_Event *)CPU_FIRST_ARG(cpu_state);
         auto ret = trampoline(event);
         if (ret)

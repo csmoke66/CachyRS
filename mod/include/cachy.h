@@ -5,6 +5,7 @@
 #include "rml_ui.h"
 #include "developer.h"
 
+#include "ownership.h"
 #include "game_dom.h"
 #include "reversed/reversed.h"
 #include "hook.h"
@@ -63,7 +64,7 @@ namespace crs
         ::std::string resolve_configuration(const ::std::string &file) const;
 
     public:
-        Globals *get_globals() const;
+        ThreadOwned<Globals*> get_globals() const;
 
     public:
         bool project_to_screen(const Vec3<float> scene, Vec2<float> *out) const;
