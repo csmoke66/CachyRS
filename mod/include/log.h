@@ -18,11 +18,11 @@
 
 namespace crs
 {
-#define LOG(LVL, ...)                                                                                       \
-    logx.log_mutex.lock();                                                                                  \
+#define LOG(LVL, ...)                                                                                           \
+    logx.log_mutex.lock();                                                                                      \
     logx.log_stream << "[" << __FUNCTION__ << "][" << #LVL << "] " << __VA_ARGS__ << ::std::dec << ::std::endl; \
-    logx.log_mutex.unlock();                                                                                \
-    logx.flush();
+    logx.log_stream.flush();                                                                                               \
+    logx.log_mutex.unlock();
 
     class Log
     {
@@ -32,7 +32,6 @@ namespace crs
 
     public:
         void init(const ::std::string &file);
-        void flush();
     };
 
     // If you rename this to log, it will compile, the application will do nothing

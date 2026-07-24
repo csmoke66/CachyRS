@@ -11,9 +11,6 @@
 
 namespace crs
 {
-    class RenderWidgetHook;
-    class SdlPollEventHook;
-    
 #pragma pack(push, 1)
     struct Xmm
     {

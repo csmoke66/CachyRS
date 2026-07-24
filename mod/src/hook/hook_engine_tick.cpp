@@ -6,7 +6,7 @@ namespace crs
     void EngineTickHook::handler(CpuState *cpu_state)
     {
         BaseHook::handler(cpu_state);
-        
+
         auto engine = (Engine *)CPU_FIRST_ARG(cpu_state);
 
         RS.mutex.lock();
@@ -14,6 +14,7 @@ namespace crs
         {
             RS.dom_node_item_containers->update();
         }
+
         if (engine->state == GameState::in_game)
         {
             RS.dom_node_npcs->update();
@@ -21,7 +22,9 @@ namespace crs
         }
         RS.mutex.unlock();
 
-        LOG(WHAT, CPU_FIRST_FARG(cpu_state));
+        auto event = EngineTickEvent();
+        RS.event_bus.dispatch(EngineTickEvent::specific_id(), &event);
+
         cpu_state->rax = (uint64_t)trampoline(
             engine,
             CPU_FIRST_FARG(cpu_state));

@@ -6,16 +6,15 @@ add_library(mod SHARED
     src/cachy.cpp
     src/not_cachy.cpp
     src/util.cpp
-
+    src/event_bus.cpp
     src/interop.cpp
     src/process_linux.cpp
 
-    src/dom.cpp
-    src/cachy_dom.cpp
-
-    src/item_container_dom_node.cpp
-    src/npcs_dom_node.cpp
-    src/players_dom_node.cpp
+    src/dom/dom.cpp
+    src/dom/cachy_dom.cpp
+    src/dom/item_containers.cpp
+    src/dom/npcs.cpp
+    src/dom/players.cpp
     
     src/ui/ui.cpp
     src/ui/rml_ui.cpp

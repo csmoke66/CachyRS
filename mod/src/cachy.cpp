@@ -118,6 +118,60 @@ namespace crs
         colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
     }
 
+    void CachyRS::init_dom()
+    {
+        dom_node_item_containers = std::make_shared<ItemContainersDomNode>(dom_tree, "item_containers", "item_containers");
+        dom_tree->add_dom_node(dom_node_item_containers);
+
+        dom_node_players = std::make_shared<PlayersDomNode>(dom_tree, "players", "players");
+        dom_tree->add_dom_node(dom_node_players);
+
+        dom_node_npcs = std::make_shared<NpcsDomNode>(dom_tree, "npcs", "npcs");
+        dom_tree->add_dom_node(dom_node_npcs);
+
+        dom_tree->set_listener(std::make_unique<CachyDomTreeListener>());
+    }
+
+    void CachyRS::init_hooks()
+    {
+        LOG(INFO, "Resolving hook handler in virtual table...");
+        auto dummy = ::std::make_unique<DummyHook>();
+        auto vt = *(void ***)dummy.get();
+
+        // Our hooks rely on being able to call into a virtual object in order to have hook
+        // specific contexts, to avoid global state being scattered everywhere for each hook.
+        //
+        // Due to constructor/deconstructor virtual function layout being different on each compiler
+        // we do not know where our hook handler virtual function will fall in the virtual function table.
+        //
+        // The dummy hook is empty except for 3 'int 3' instructions. We scan the virtual function table
+        // to locate this function, and then we pass it to the hook manager to be inserted into the
+        // shellcode that calls our handler virtual function.
+        uint8_t vt_offset = 0xff;
+        for (auto i = 0; i < 10; i++)
+        {
+            if (!memcmp(vt[i], "\xcc\xcc\xcc", 3))
+            {
+                vt_offset = (uint8_t)(i * sizeof(void *));
+                break;
+            }
+        }
+
+        if (vt_offset == 0xff)
+        {
+            LOG(ERROR, "Failed to find hook handler virtual table function");
+            return;
+        }
+
+        LOG(INFO, "Placing hooks...");
+        hook_manager = ::std::make_unique<HookManager>(&pi, vt_offset);
+        hook_manager->iat("swap_buffers", "eglSwapBuffers", unique_hook<EglSwapBuffersHook>());
+        hook_manager->iat("poll_event", "SDL_PollEvent", unique_hook<SdlPollEventHook>());
+        hook_manager->x86("menu_execute", &get_globals()->menu_execute, unique_hook<MenuExecuteHook>());
+        hook_manager->x86("render_widget", &get_globals()->render_widget, unique_hook<RenderWidgetHook>());
+        hook_manager->x86("engine_tick", &get_globals()->engine_tick, unique_hook<EngineTickHook>());
+    }
+
     ::std::string CachyRS::get_configuration_dir() const
     {
         return interop_get_home_directory() + std::string("/.local/share/cachy-rs/");
@@ -128,7 +182,7 @@ namespace crs
         return get_configuration_dir() + file;
     }
 
-    ThreadOwned<Globals*> CachyRS::get_globals() const
+    ThreadOwned<Globals *> CachyRS::get_globals() const
     {
         auto hook = hook_manager->view_hook<BaseHook>("engine_tick");
         if (!!hook)
@@ -136,11 +190,11 @@ namespace crs
             auto tid = hook->thread_id();
             if (tid.has_value())
             {
-                return ThreadOwned<Globals*>(tid.value(), (Globals*)pi.game_base());
+                return ThreadOwned<Globals *>(tid.value(), (Globals *)pi.game_base());
             }
         }
 
-        return ThreadOwned<Globals*>((Globals*)pi.game_base());
+        return ThreadOwned<Globals *>((Globals *)pi.game_base());
     }
 
     bool CachyRS::project_to_screen(const Vec3<float> scene, Vec2<float> *out) const
@@ -199,54 +253,11 @@ namespace crs
         LOG(INFO, "Initializing capstone...");
         asm_init();
 
-        LOG(INFO, "Resolving hook handler in virtual table...");
-        auto dummy = ::std::make_unique<DummyHook>();
-        auto vt = *(void ***)dummy.get();
-
         LOG(INFO, "Initializing DOM...");
-        dom_node_item_containers = std::make_shared<ItemContainersDomNode>(dom_tree, "item_containers", "item_containers");
-        dom_tree->add_dom_node(dom_node_item_containers);
+        init_dom();
 
-        dom_node_players = std::make_shared<PlayersDomNode>(dom_tree, "players", "players");
-        dom_tree->add_dom_node(dom_node_players);
-
-        dom_node_npcs = std::make_shared<NpcsDomNode>(dom_tree, "npcs", "npcs");
-        dom_tree->add_dom_node(dom_node_npcs);
-
-        dom_tree->set_listener(std::make_unique<CachyDomTreeListener>());
-
-        // Our hooks rely on being able to call into a virtual object in order to have hook
-        // specific contexts, to avoid global state being scattered everywhere for each hook.
-        //
-        // Due to constructor/deconstructor virtual function layout being different on each compiler
-        // we do not know where our hook handler virtual function will fall in the virtual function table.
-        //
-        // The dummy hook is empty except for 3 'int 3' instructions. We scan the virtual function table
-        // to locate this function, and then we pass it to the hook manager to be inserted into the
-        // shellcode that calls our handler virtual function.
-        uint8_t vt_offset = 0xff;
-        for (auto i = 0; i < 10; i++)
-        {
-            if (!memcmp(vt[i], "\xcc\xcc\xcc", 3))
-            {
-                vt_offset = (uint8_t)(i * sizeof(void *));
-                break;
-            }
-        }
-
-        if (vt_offset == 0xff)
-        {
-            LOG(ERROR, "Failed to find hook handler virtual table function");
-            return;
-        }
-
-        LOG(INFO, "Placing hooks...");
-        hook_manager = ::std::make_unique<HookManager>(&pi, vt_offset);
-        hook_manager->iat("swap_buffers", "eglSwapBuffers", unique_hook<EglSwapBuffersHook>());
-        hook_manager->iat("poll_event", "SDL_PollEvent", unique_hook<SdlPollEventHook>());
-        hook_manager->x86("menu_execute", &get_globals()->menu_execute, unique_hook<MenuExecuteHook>());
-        hook_manager->x86("render_widget", &get_globals()->render_widget, unique_hook<RenderWidgetHook>());
-        hook_manager->x86("engine_tick", &get_globals()->engine_tick, unique_hook<EngineTickHook>());
+        LOG(INFO, "Initializing hooks...");
+        init_hooks();
 
         LOG(INFO, "Initializing developer overlay...");
         developer_overlay.init();

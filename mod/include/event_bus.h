@@ -4,6 +4,8 @@
 #include <concepts>
 #include <string>
 
+#include <reversed/reversed.h>
+
 namespace crs
 {
     class Event
@@ -16,6 +18,34 @@ namespace crs
 
     public:
         ::std::string get_id();
+    };
+
+    class EngineTickEvent : public Event
+    {
+    public:
+        static constexpr ::std::string specific_id()
+        {
+            return "on_engine_tick";
+        }
+
+    public:
+        EngineTickEvent();
+    };
+
+    class MenuActionEvent : public Event
+    {
+    public:
+        MenuActionType type;
+        MenuActionArgs* args;
+        
+    public:
+        static constexpr ::std::string specific_id()
+        {
+            return "on_menu_action";
+        }
+
+    public:
+        MenuActionEvent(MenuActionType type, MenuActionArgs* args);
     };
 
     template <std::derived_from<Event> T>

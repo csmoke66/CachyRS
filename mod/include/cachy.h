@@ -17,8 +17,6 @@
 #include "interop.h"
 
 #include "event_bus.h"
-#include "subsystem.h"
-#include "capi.h"
 
 #include "version.hpp"
 
@@ -51,13 +49,14 @@ namespace crs
         RingBuffer<SDL_Event> event_ring_buffer;
 
     public:
-        SubSystemCache subsystem_cache;
         EventBus event_bus;
 
     private:
         void init_logging();
         void init_process_info();
         void init_imgui();
+        void init_dom();
+        void init_hooks();
 
     public:
         ::std::string get_configuration_dir() const;
