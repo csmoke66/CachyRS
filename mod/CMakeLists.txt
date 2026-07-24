@@ -23,13 +23,13 @@ add_library(mod SHARED
     src/reversed.cpp
     
     src/hook/hook.cpp
-    src/hook/hook_linux.cpp
-    src/hook/hook_manager.cpp
-    src/hook/hook_egl_swap_buffers.cpp
-    src/hook/hook_menu_execute.cpp
-    src/hook/hook_sdl_poll_event.cpp
-    src/hook/hook_render_widget.cpp
-    src/hook/hook_engine_tick.cpp
+    src/hook/linux.cpp
+    src/hook/manager.cpp
+    src/hook/egl_swap_buffers.cpp
+    src/hook/menu_execute.cpp
+    src/hook/sdl_poll_event.cpp
+    src/hook/render_widget.cpp
+    src/hook/engine_tick.cpp
 
     # keep this last, since we run our code in a static initializer
     # putting it last puts it last in the initialization list
