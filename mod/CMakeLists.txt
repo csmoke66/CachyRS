@@ -11,13 +11,13 @@ add_library(mod SHARED
     src/process_linux.cpp
 
     src/dom/dom.cpp
-    src/dom/cachy_dom.cpp
+    src/dom/cachy.cpp
     src/dom/item_containers.cpp
     src/dom/npcs.cpp
     src/dom/players.cpp
     
     src/ui/ui.cpp
-    src/ui/rml_ui.cpp
+    src/ui/rml.cpp
     src/ui/developer.cpp
     
     src/reversed.cpp

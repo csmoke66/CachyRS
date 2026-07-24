@@ -5,7 +5,6 @@
 
 namespace crs
 {
-
     class MenuExecuteHook : public Hook<FnMenuExecute>
     {
     public:
