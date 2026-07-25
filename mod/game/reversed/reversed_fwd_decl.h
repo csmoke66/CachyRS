@@ -16,20 +16,25 @@ struct MenuActionContext;
 struct ActionMenuContext;
 class Cache003;
 struct Cache002;
+template<typename T, typename B>
 struct CacheBuffer;
 class CacheIndexInner;
 struct CacheIndex;
 struct Cache001;
 struct LocalPlayer;
-struct EntityUpdate;
-struct EntityUpdateCache;
+struct PlayerUpdate;
+struct PlayerUpdateCache;
+struct NpcUpdate;
+struct NpcUpdateCache;
 struct Item;
 struct ItemContainer;
 struct ItemCache;
 struct EntityStatus;
+struct WorldSettingFull;
 struct WorldSettingCache;
 struct WidgetCache;
 class ContainerWidget;
+struct Model;
 
 // generated
 struct Entity;

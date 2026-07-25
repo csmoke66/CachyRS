@@ -13,6 +13,10 @@ namespace crs
     private:
         bool initialized = false;
 
+    public:
+        bool player_overlay_on = false;
+        const Entity* player_overlay_target = nullptr;
+
     private:
         const RenderWidgetHook *render_widget_hook;
         const SdlPollEventHook *poll_event_hook;

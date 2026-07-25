@@ -6,28 +6,41 @@ add_library(mod SHARED
     src/cachy.cpp
     src/not_cachy.cpp
     src/util.cpp
-
+    src/event_bus.cpp
     src/interop.cpp
     src/process_linux.cpp
 
+    src/dom/dom.cpp
+    src/dom/cachy.cpp
+    src/dom/item_containers.cpp
+    src/dom/npcs.cpp
+    src/dom/players.cpp
+    src/dom/world_settings.cpp
+    
     src/ui/ui.cpp
-    src/ui/rml_ui.cpp
+    src/ui/rml.cpp
     src/ui/developer.cpp
     
-    src/hook/hook_linux.cpp
-    src/hook/hook_manager.cpp
-    src/hook/hook_egl_swap_buffers.cpp
-    src/hook/hook_menu_execute.cpp
-    src/hook/hook_sdl_poll_event.cpp
-    src/hook/hook_render_widget.cpp
+    src/reversed.cpp
+    
+    src/hook/hook.cpp
+    src/hook/linux.cpp
+    src/hook/manager.cpp
+    src/hook/egl_swap_buffers.cpp
+    src/hook/menu_execute.cpp
+    src/hook/sdl_poll_event.cpp
+    src/hook/render_widget.cpp
+    src/hook/engine_tick.cpp
+    src/hook/set_var_bit.cpp
 
     # keep this last, since we run our code in a static initializer
     # putting it last puts it last in the initialization list
     src/main.cpp
 )
 
-target_include_directories(mod PRIVATE 
+target_include_directories(mod PUBLIC 
     include
+    game
 )
 
 execute_process(
@@ -60,7 +73,7 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(rmlui)
 
-find_package(OpenGL REQUIRED COMPONENTS  EGL)
+find_package(OpenGL REQUIRED COMPONENTS EGL)
 find_package(PkgConfig REQUIRED)
 
 pkg_check_modules(capstone REQUIRED IMPORTED_TARGET capstone)

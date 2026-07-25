@@ -2,26 +2,57 @@
 #include <sstream>
 #include <algorithm>
 
-std::string compile_object_to_structure(Object object)
+std::string compile_object_to_structure(const Object* object)
 {
-    std::sort(object.fields.begin(), object.fields.end(), [](Field a, Field b)
+    std::vector<Field> fields;
+    for (auto &[key, field] : object->fields)
+    {
+        fields.push_back(field);
+    }
+
+    std::sort(fields.begin(), fields.end(), [](Field a, Field b)
               { return a.offset < b.offset; });
 
     std::stringstream ss;
-    ss << "struct " << object.name << std::endl;
-    ss << "{" << std::endl;
-    for (auto i = 0; i < object.fields.size(); i++)
+    if (object->is_class)
     {
-        auto &field = object.fields[i];
+        ss << "class ";
+    }
+    else
+    {
+        ss << "struct ";
+    }
+    ss << object->name;
+    if (object->has_parent)
+    {
+        ss << " : public " << object->parent;
+    }
+
+    ss << std::endl;
+    ss << "{" << std::endl;
+    if (object->is_class)
+    {
+        ss << "public:" << std::endl;
+    }
+    
+    for (auto i = 0; i < fields.size(); i++)
+    {
+        auto &field = fields[i];
         auto is_first = (i == 0);
+        auto is_last = (i == fields.size() - 1);
         if (is_first)
         {
-            ss << "\tPAD(0x" << std::hex << field.offset << ");" << std::endl;
+            ss << "\tPAD(0x" << std::hex << field.relative_offset << ");" << std::endl;
         }
         else
         {
-            auto &prev = object.fields[i - 1];
-            ss << "\tPAD(0x" << std::hex << (field.offset - prev.offset - prev.type.size) << ");" << std::endl;
+            auto &prev = fields[i - 1];
+            if ((prev.relative_offset + prev.type.size) > field.relative_offset)
+            {
+                LOG(ERROR, "Field " << prev.name << " overlaps " << field.name << " in object " << object->name);
+            }
+
+            ss << "\tPAD(0x" << std::hex << (field.relative_offset - prev.relative_offset - prev.type.size) << ");" << std::endl;
         }
 
         ss << "\t" << field.type.type << " " << field.name;
@@ -29,20 +60,36 @@ std::string compile_object_to_structure(Object object)
         {
             ss << "[" << field.type.arr_size << "]";
         }
+
         ss << ";";
         ss << std::endl;
+
+        if (is_last)
+        {
+            auto field_end = field.relative_offset + field.type.size;
+            if (field_end < object->rel_size)
+            {
+                ss << "\tPAD(0x" << std::hex << (object->rel_size - field_end) << ");" << std::endl;
+            }
+        }
     }
+
     ss << "};" << std::endl;
-    for (auto i = 0; i < object.fields.size(); i++)
+    if (!!object->size)
     {
-        auto &field = object.fields[i];
-        ss << "static_assert(off(" << object.name << ", " << field.name << ") == 0x" << std::hex << field.offset << ", INVALID_OFFSET);" << std::endl;
+        ss << "static_assert(sizeof(" << object->name << ") == 0x" << std::hex << object->size << ", INVALID_SIZE);" << std::endl;
+    }
+
+    for (auto i = 0; i < fields.size(); i++)
+    {
+        auto &field = fields[i];
+        ss << "static_assert(off(" << object->name << ", " << field.name << ") == 0x" << std::hex << field.offset << ", INVALID_OFFSET);" << std::endl;
     }
     ss << std::endl;
     return ss.str();
 }
 
-std::string compile_objects_to_header(const std::vector<Object> &objects)
+std::string compile_objects_to_header(const std::vector<Object*> &objects)
 {
     std::stringstream ss;
     ss << "#pragma once" << std::endl;
@@ -52,11 +99,18 @@ std::string compile_objects_to_header(const std::vector<Object> &objects)
     ss << "#pragma pack(push, 1)" << std::endl;
     for (auto &obj : objects)
     {
-        ss << "struct " << obj.name << ";" << std::endl;
+        if (obj->is_class)
+        {
+            ss << "class " << obj->name << ";" << std::endl;
+        }
+        else
+        {
+            ss << "struct " << obj->name << ";" << std::endl;
+        }
     }
 
     ss << std::endl;
-    for (auto &obj : objects)
+    for (auto obj : objects)
     {
         ss << compile_object_to_structure(obj);
     }

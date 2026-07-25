@@ -6,6 +6,10 @@ struct Globals;
 struct Engine;
 struct Scene003;
 struct Entity;
+class NamedEntity;
+class Player;
+class Npc;
+struct NpcUpdateCache;
 
 struct Globals
 {
@@ -31,7 +35,9 @@ struct Globals
 	char menu_execute;
 	PAD(0xb552f);
 	char render_widget;
-	PAD(0x92b5af);
+	PAD(0x2e1d7f);
+	char set_varbit;
+	PAD(0x64982f);
 	char engine_tick;
 	PAD(0x14a05f);
 	char heap_alloc;
@@ -55,6 +61,7 @@ static_assert(off(Globals, menu_action_handler_npc2) == 0x162650, INVALID_OFFSET
 static_assert(off(Globals, menu_action_handler_npc1) == 0x162670, INVALID_OFFSET);
 static_assert(off(Globals, menu_execute) == 0x18f950, INVALID_OFFSET);
 static_assert(off(Globals, render_widget) == 0x244e80, INVALID_OFFSET);
+static_assert(off(Globals, set_varbit) == 0x526c00, INVALID_OFFSET);
 static_assert(off(Globals, engine_tick) == 0xb70430, INVALID_OFFSET);
 static_assert(off(Globals, heap_alloc) == 0xcba490, INVALID_OFFSET);
 static_assert(off(Globals, heap_alloc_aligned) == 0xcd8140, INVALID_OFFSET);
@@ -72,8 +79,10 @@ struct Engine
 	const Cache001* cache;
 	PAD(0x7c8);
 	const WidgetCache* widget_cache;
-	PAD(0x48);
-	const EntityUpdateCache* entity_update_cache;
+	PAD(0x28);
+	const NpcUpdateCache* npc_update_cache;
+	PAD(0x18);
+	const PlayerUpdateCache* player_update_cache;
 	PAD(0x58);
 	const void* world_a;
 	PAD(0x10);
@@ -84,20 +93,21 @@ struct Engine
 	const GameState state;
 	PAD(0x4);
 	const LocalPlayer* local_player;
-	PAD(0x28);
-	const WorldSettingCache* world_settings;
+	PAD(0x8);
+	const char world_settings;
 };
 static_assert(off(Engine, window_state) == 0x90, INVALID_OFFSET);
 static_assert(off(Engine, time) == 0x504, INVALID_OFFSET);
 static_assert(off(Engine, cache) == 0x18cb8, INVALID_OFFSET);
 static_assert(off(Engine, widget_cache) == 0x19488, INVALID_OFFSET);
-static_assert(off(Engine, entity_update_cache) == 0x194d8, INVALID_OFFSET);
+static_assert(off(Engine, npc_update_cache) == 0x194b8, INVALID_OFFSET);
+static_assert(off(Engine, player_update_cache) == 0x194d8, INVALID_OFFSET);
 static_assert(off(Engine, world_a) == 0x19538, INVALID_OFFSET);
 static_assert(off(Engine, item_cache) == 0x19550, INVALID_OFFSET);
 static_assert(off(Engine, scene_001) == 0x19558, INVALID_OFFSET);
 static_assert(off(Engine, state) == 0x19b28, INVALID_OFFSET);
 static_assert(off(Engine, local_player) == 0x19b30, INVALID_OFFSET);
-static_assert(off(Engine, world_settings) == 0x19b60, INVALID_OFFSET);
+static_assert(off(Engine, world_settings) == 0x19b40, INVALID_OFFSET);
 
 struct Scene003
 {
@@ -113,16 +123,67 @@ struct Entity
 {
 	PAD(0x10);
 	const EntityType type;
-	PAD(0x7f);
+	PAD(0x47);
+};
+static_assert(sizeof(Entity) == 0x58, INVALID_SIZE);
+static_assert(off(Entity, type) == 0x10, INVALID_OFFSET);
+
+class NamedEntity : public Entity
+{
+public:
+	PAD(0x38);
 	const JString name;
 	PAD(0x1c8);
 	const Vec3<float> position;
-	PAD(0xc7c);
+	PAD(0x4c);
+	const JArray<const uint32_t> animation_queue;
+	PAD(0xc20);
 	const EntityStatus* status;
+	PAD(0x154);
 };
-static_assert(off(Entity, type) == 0x10, INVALID_OFFSET);
-static_assert(off(Entity, name) == 0x90, INVALID_OFFSET);
-static_assert(off(Entity, position) == 0x270, INVALID_OFFSET);
-static_assert(off(Entity, status) == 0xef8, INVALID_OFFSET);
+static_assert(sizeof(NamedEntity) == 0x1054, INVALID_SIZE);
+static_assert(off(NamedEntity, name) == 0x90, INVALID_OFFSET);
+static_assert(off(NamedEntity, position) == 0x270, INVALID_OFFSET);
+static_assert(off(NamedEntity, animation_queue) == 0x2c8, INVALID_OFFSET);
+static_assert(off(NamedEntity, status) == 0xef8, INVALID_OFFSET);
+
+class Player : public NamedEntity
+{
+public:
+	PAD(0x14);
+	const Model* model;
+	PAD(0x2c);
+	const uint32_t combat_level;
+	PAD(0x250);
+};
+static_assert(sizeof(Player) == 0x12f0, INVALID_SIZE);
+static_assert(off(Player, model) == 0x1068, INVALID_OFFSET);
+static_assert(off(Player, combat_level) == 0x109c, INVALID_OFFSET);
+
+class Npc : public NamedEntity
+{
+public:
+	PAD(0xc);
+	const int32_t cache_id;
+	PAD(0xf4);
+	const uint32_t visible_level;
+	PAD(0x26);
+};
+static_assert(sizeof(Npc) == 0x1182, INVALID_SIZE);
+static_assert(off(Npc, cache_id) == 0x1060, INVALID_OFFSET);
+static_assert(off(Npc, visible_level) == 0x1158, INVALID_OFFSET);
+
+struct NpcUpdateCache
+{
+	PAD(0x10);
+	const NpcUpdate** npcs;
+	PAD(0x0);
+	const uint64_t size;
+	PAD(0xb080);
+	const uint32_t valid_count;
+};
+static_assert(off(NpcUpdateCache, npcs) == 0x10, INVALID_OFFSET);
+static_assert(off(NpcUpdateCache, size) == 0x18, INVALID_OFFSET);
+static_assert(off(NpcUpdateCache, valid_count) == 0xb0a0, INVALID_OFFSET);
 
 #pragma pack(pop)

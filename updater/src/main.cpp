@@ -141,6 +141,12 @@ std::vector<PatternObject> build_pattern_objects()
             (new ImmExtractor(0x1, 0x5, 4, true))->
                 validator(new AlignmentValidator(0x10))},
         new DefaultPattern{
+            "set_varbit",
+            compile_ida_pattern("E8 ? ? ? ? 48 89 EF E8 ? ? ? ? 48 83 C4 ? 5B 5D 41 5C 41 5D 41 5E 41 5F C3 0F 1F 44 00 ? 66 2E 0F 1F 84 00 ? ? ? ? 48 8B 7E"),
+            {"char", 1},
+            (new ImmExtractor(0x1, 0x5, 4, true))->
+                validator(new AlignmentValidator(0x10))},
+        new DefaultPattern{
             "menu_action_handler_test_dump",
             compile_ida_pattern("4C 8B 5C 24 ? 4D 89 A5"),
             {"char", 1},
@@ -148,7 +154,6 @@ std::vector<PatternObject> build_pattern_objects()
     }});
     
     objects.push_back({"Engine", {
-        
         new DummyPattern{
             "window_state",
             { "const WindowState*", 8},
@@ -185,10 +190,16 @@ std::vector<PatternObject> build_pattern_objects()
             (new ImmExtractor(0x3, 0x0, 4))->
                 validator(new AlignmentValidator(0x8))},
         new DefaultPattern{
-            "entity_update_cache",
+            "player_update_cache",
             compile_ida_pattern("49 8B B4 24 ? ? ? ? 0F 84 ? ? ? ? 44 8B 4A"),
-            { "const EntityUpdateCache*", 8, },
+            { "const PlayerUpdateCache*", 8, },
             (new ImmExtractor(0x4, 0x0, 4))->
+                validator(new AlignmentValidator(0x8))},
+        new DefaultPattern{
+            "npc_update_cache",
+            compile_ida_pattern("4C 8B A0 ? ? ? ? 89 54 24"),
+            { "const NpcUpdateCache*", 8, },
+            (new ImmExtractor(0x3, 0x0, 4))->
                 validator(new AlignmentValidator(0x8))},
         new DefaultPattern{
             "world_a",
@@ -211,8 +222,8 @@ std::vector<PatternObject> build_pattern_objects()
             
         new DefaultPattern{
             "world_settings",
-            compile_ida_pattern("48 8D BB ? ? ? ? E8 ? ? ? ? 48 8B B3 ? ? ? ? 48 8B 93"),
-            { "const WorldSettingCache*", 8, },
+            compile_ida_pattern("4D 8D A5 ? ? ? ? ? ? ? ? ? ? ? ? 4C 8B 70"),
+            { "const char", 1, },
             (new ImmExtractor(0x3, 0x0, 4))->
                 validator(new AlignmentValidator(0x8))},
     }});
@@ -237,6 +248,14 @@ std::vector<PatternObject> build_pattern_objects()
             "type",
             { "const EntityType", 1},
             new DummyExtractor(0x10)},
+    }, false, false, "" ,
+     new DefaultPattern{
+        "type_size",
+        compile_ida_pattern("48 8D 05 ? ? ? ? C6 47"),
+        { "char", 0x1, },
+        new ConstructorSizeExtractor(capstone_handle, x86_reg::X86_REG_RDI, X86_INS_RET)}});
+
+    objects.push_back({"NamedEntity", {
         new DefaultPattern{
             "position",
             compile_ida_pattern("F3 44 0F 11 83 ? ? ? ? F3 44 0F 11 8B ? ? ? ? F3 0F 11 83"),
@@ -252,16 +271,91 @@ std::vector<PatternObject> build_pattern_objects()
         new DefaultPattern{
             "status",
             compile_ida_pattern("4D 8B 95 ? ? ? ? 89 C1"),
-            { "const EntityStatus*", 4, },
+            { "const EntityStatus*", 8, },
             (new ImmExtractor(0x3, 0x0, 4))->
                 validator(new AlignmentValidator(0x8))},
-    }});
+        new DefaultPattern{
+            "animation_queue",
+            compile_ida_pattern("4C 8B 8D ? ? ? ? 4C 89 8D"),
+            { "const JArray<const uint32_t>", 0x10, },
+            (new ImmExtractor(0x3, 0x0, 4))->
+                validator(new AlignmentValidator(0x8))},
+    },
+    true, true, "Entity",
+     new DefaultPattern{
+        "type_size",
+        compile_ida_pattern("49 BD ? ? ? ? ? ? ? ? 49 BF ? ? ? ? ? ? ? ? 48 89 53"),
+        { "char", 0x1, },
+        new ConstructorSizeExtractor(capstone_handle, x86_reg::X86_REG_RBX, X86_INS_RET)}});
 
+    objects.push_back({"Player", {
+        new DefaultPattern{
+            "combat_level",
+            compile_ida_pattern("45 8B 82 ? ? ? ? 48 8D 35"),
+            { "const uint32_t", 0x4, },
+            (new ImmExtractor(0x3, 0x0, 4))->
+                validator(new AlignmentValidator(0x4))},
+        new DefaultPattern{
+            "model",
+            compile_ida_pattern("48 8B AA ? ? ? ? 48 85 ED 0F 84 ? ? ? ? 49 8D 8C 9C"),
+            { "const Model*", 0x8, },
+            (new ImmExtractor(0x3, 0x0, 4))->
+                validator(new AlignmentValidator(0x4))},
+    },
+    true, true, "NamedEntity",
+     new DefaultPattern{
+        "type_size",
+        compile_ida_pattern("80 7C 24 ? ? 49 89 C4 0F 84"),
+        { "char", 0x1, },
+        new ConstructorSizeExtractor(capstone_handle, x86_reg::X86_REG_R12, X86_INS_RET)}});
+
+    objects.push_back({"Npc", {
+        new DefaultPattern{
+            "visible_level",
+            compile_ida_pattern("44 8B 97 ? ? ? ? 45 39 90"),
+            { "const uint32_t", 0x4, },
+            (new ImmExtractor(0x3, 0x0, 4))->
+                validator(new AlignmentValidator(0x4))},
+        new DefaultPattern{
+            "cache_id",
+            compile_ida_pattern("83 BF ? ? ? ? ? 74 ? 48 83 BF ? ? ? ? ? 0F 94 C0"),
+            { "const int32_t", 0x4, },
+            (new ImmExtractor(0x2, 0x0, 4))->
+                validator(new AlignmentValidator(0x4))}, 
+    },
+    true, true, "NamedEntity",
+     new DefaultPattern{
+        "type_size",
+        compile_ida_pattern("BA ? ? ? ? 49 89 87 ? ? ? ? 49 89 AF"),
+        { "char", 0x1, },
+        new ConstructorSizeExtractor(capstone_handle, x86_reg::X86_REG_R15, X86_INS_CALL)}});
+
+    objects.push_back({"NpcUpdateCache", {
+        new DefaultPattern{
+            "npcs",
+            compile_ida_pattern("48 8B 7D ? 44 89 C6"),
+            { "const NpcUpdate**", 8, },
+            (new ImmExtractor(0x3, 0x0, 1))->
+                validator(new AlignmentValidator(0x4))},
+        new DefaultPattern{
+            "size",
+            compile_ida_pattern("48 8B 76 ? 49 8B 9C 24"),
+            { "const uint64_t", 8, },
+            (new ImmExtractor(0x3, 0x0, 1))->
+                validator(new AlignmentValidator(0x8))},
+        new DefaultPattern{
+            "valid_count",
+            compile_ida_pattern("8B 87 ? ? ? ? 85 C0 0F 84 ? ? ? ? 41 57"),
+            { "const uint32_t", 4, },
+            (new ImmExtractor(0x2, 0x0, 4))->
+                validator(new AlignmentValidator(0x4))},
+
+                 
+    }});
 
     // clang-format on
     return objects;
 }
-
 int main()
 {
     cs_open(CS_ARCH_X86, CS_MODE_64, &capstone_handle);
@@ -288,9 +382,21 @@ int main()
         }
     }
 
-    auto pattern_objects = build_pattern_objects();
-    auto matched = match_to_object(text, text_hdr, pattern_objects);
+    auto elf_interface = ElfInterface((Elf64_Addr)data.data());
+    elf_interface.init_base();
+    elf_interface.init();
 
+    ImportedFunction remote_memset;
+    LOG(test, elf_interface.find_import("memset", &remote_memset));
+    LOG(test, remote_memset.name << " " << remote_memset.addr);
+
+    LOG(info, "Building pattern objects...");
+    auto pattern_objects = build_pattern_objects();
+
+    LOG(info, "Matching objects...");
+    auto matched = match_to_object(elf_interface, text, text_hdr, pattern_objects);
+
+    LOG(info, "Compiling to headers...");
     std::ofstream out_header("reversed_generated.h");
     out_header << compile_objects_to_header(matched);
     out_header.close();

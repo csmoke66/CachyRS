@@ -1,6 +1,8 @@
 #include "cachy.h"
 #include "not_cachy.h"
 
+#include "cachy_dom.h"
+
 #include <format>
 #include <filesystem>
 
@@ -116,6 +118,64 @@ namespace crs
         colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
     }
 
+    void CachyRS::init_dom()
+    {
+        dom_node_item_containers = std::make_shared<ItemContainersDomNode>(dom_tree, "item_containers", "item_containers");
+        dom_tree->add_dom_node(dom_node_item_containers);
+
+        dom_node_players = std::make_shared<PlayersDomNode>(dom_tree, "players", "players");
+        dom_tree->add_dom_node(dom_node_players);
+
+        dom_node_npcs = std::make_shared<NpcsDomNode>(dom_tree, "npcs", "npcs");
+        dom_tree->add_dom_node(dom_node_npcs);
+
+        dom_node_world_settings = std::make_shared<WorldSettingsDomNode>(dom_tree, "world_settings", "world_settings");
+        dom_tree->add_dom_node(dom_node_world_settings);
+
+        dom_tree->set_listener(std::make_unique<CachyDomTreeListener>());
+    }
+
+    void CachyRS::init_hooks()
+    {
+        LOG(INFO, "Resolving hook handler in virtual table...");
+        auto dummy = ::std::make_unique<DummyHook>();
+        auto vt = *(void ***)dummy.get();
+
+        // Our hooks rely on being able to call into a virtual object in order to have hook
+        // specific contexts, to avoid global state being scattered everywhere for each hook.
+        //
+        // Due to constructor/deconstructor virtual function layout being different on each compiler
+        // we do not know where our hook handler virtual function will fall in the virtual function table.
+        //
+        // The dummy hook is empty except for 3 'int 3' instructions. We scan the virtual function table
+        // to locate this function, and then we pass it to the hook manager to be inserted into the
+        // shellcode that calls our handler virtual function.
+        uint8_t vt_offset = 0xff;
+        for (auto i = 0; i < 10; i++)
+        {
+            if (!memcmp(vt[i], "\xcc\xcc\xcc", 3))
+            {
+                vt_offset = (uint8_t)(i * sizeof(void *));
+                break;
+            }
+        }
+
+        if (vt_offset == 0xff)
+        {
+            LOG(ERROR, "Failed to find hook handler virtual table function");
+            return;
+        }
+
+        LOG(INFO, "Placing hooks...");
+        hook_manager = ::std::make_unique<HookManager>(&pi, vt_offset);
+        hook_manager->iat("swap_buffers", "eglSwapBuffers", unique_hook<EglSwapBuffersHook>());
+        hook_manager->iat("poll_event", "SDL_PollEvent", unique_hook<SdlPollEventHook>());
+        hook_manager->x86("menu_execute", &get_globals()->menu_execute, unique_hook<MenuExecuteHook>());
+        hook_manager->x86("render_widget", &get_globals()->render_widget, unique_hook<RenderWidgetHook>());
+        hook_manager->x86("set_varbit", &get_globals()->set_varbit, unique_hook<SetVarBitHook>());
+        hook_manager->x86("engine_tick", &get_globals()->engine_tick, unique_hook<EngineTickHook>());
+    }
+
     ::std::string CachyRS::get_configuration_dir() const
     {
         return interop_get_home_directory() + std::string("/.local/share/cachy-rs/");
@@ -126,9 +186,22 @@ namespace crs
         return get_configuration_dir() + file;
     }
 
-    Globals *CachyRS::get_globals() const
+    ThreadOwned<Globals *> CachyRS::get_globals() const
     {
-        return (Globals *)pi.game_base();
+        if (!!hook_manager)
+        {
+            auto hook = hook_manager->view_hook<BaseHook>("engine_tick");
+            if (!!hook)
+            {
+                auto tid = hook->thread_id();
+                if (tid.has_value())
+                {
+                    return ThreadOwned<Globals *>(tid.value(), (Globals *)pi.game_base());
+                }
+            }
+        }
+
+        return ThreadOwned<Globals *>((Globals *)pi.game_base());
     }
 
     bool CachyRS::project_to_screen(const Vec3<float> scene, Vec2<float> *out) const
@@ -178,46 +251,20 @@ namespace crs
         init_imgui();
 
         LOG(INFO, "Initializing UI...");
-        ui = ::std::make_unique<RmlUserInterface>();
+        auto rml_ui = ::std::make_shared<RmlUserInterface>();
+        ui = rml_ui;
+        dom_tree = rml_ui;
+
+        rml_ui->pre_init();
 
         LOG(INFO, "Initializing capstone...");
         asm_init();
 
-        LOG(INFO, "Resolving hook handler in virtual table...");
-        auto dummy = ::std::make_unique<DummyHook>();
-        auto vt = *(void ***)dummy.get();
+        LOG(INFO, "Initializing DOM...");
+        init_dom();
 
-        // Our hooks rely on being able to call into a virtual object in order to have hook
-        // specific contexts, to avoid global state being scattered everywhere for each hook.
-        //
-        // Due to constructor/deconstructor virtual function layout being different on each compiler
-        // we do not know where our hook handler virtual function will fall in the virtual function table.
-        //
-        // The dummy hook is empty except for 3 'int 3' instructions. We scan the virtual function table
-        // to locate this function, and then we pass it to the hook manager to be inserted into the
-        // shellcode that calls our handler virtual function.
-        uint8_t vt_offset = 0xff;
-        for (auto i = 0; i < 10; i++)
-        {
-            if (!memcmp(vt[i], "\xcc\xcc\xcc", 3))
-            {
-                vt_offset = (uint8_t)(i * sizeof(void *));
-                break;
-            }
-        }
-
-        if (vt_offset == 0xff)
-        {
-            LOG(ERROR, "Failed to find hook handler virtual table function");
-            return;
-        }
-
-        LOG(INFO, "Placing hooks...");
-        hook_manager = ::std::make_unique<HookManager>(&pi, vt_offset);
-        hook_manager->iat("swap_buffers", "eglSwapBuffers", unique_hook<EglSwapBuffersHook>());
-        hook_manager->iat("poll_event", "SDL_PollEvent", unique_hook<SdlPollEventHook>());
-        hook_manager->x86("menu_execute", &get_globals()->menu_execute, unique_hook<MenuExecuteHook>());
-        hook_manager->x86("render_widget", &get_globals()->render_widget, unique_hook<RenderWidgetHook>());
+        LOG(INFO, "Initializing hooks...");
+        init_hooks();
 
         LOG(INFO, "Initializing developer overlay...");
         developer_overlay.init();
@@ -225,33 +272,14 @@ namespace crs
 
     void CachyRS::push_ui_state()
     {
-        UserInterfaceState state;
-        if (auto scene = NRS.scene_003())
-        {
-            state.projection_matrix = scene->projection_matrix;
-        }
+        dom_node_item_containers->prune();
+        dom_node_players->prune();
+        dom_node_npcs->prune();
+        dom_node_world_settings->prune();
 
-        if (auto item_cache = NRS.item_cache())
-        {
-            auto &containers = item_cache->containers;
-            for (auto i = containers.begin; i != containers.end; i++)
-            {
-                UserInterfaceItemContainer ui_container;
-                ui_container.id = i->id;
-                for (auto j = i->items.begin; j < i->items.end; j++)
-                {
-                    UserInterfaceItem ui_item;
-                    ui_item.id = j->id;
-                    ui_item.amount = j->amount;
-                    if (ui_item.id != -1 && ui_item.amount > 0)
-                    {
-                        ui_container.items.push_back(ui_item);
-                    }
-                }
-                state.item_containers.push_back(ui_container);
-            }
-        }
-        
-        ui->propagate(state);
+        dom_tree->build_dom_node(dom_node_item_containers);
+        dom_tree->build_dom_node(dom_node_players);
+        dom_tree->build_dom_node(dom_node_npcs);
+        dom_tree->build_dom_node(dom_node_world_settings);
     }
 }

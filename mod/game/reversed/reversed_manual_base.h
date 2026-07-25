@@ -8,16 +8,32 @@ struct Item
 	// 0x4
 	const int32_t amount;
 	// 0xc
+
+	Item();
+	Item(const Item &o);
 };
 
 template<typename T>
+struct ObjectHeader
+{
+	// 0x0
+	PAD(0x8); // VT
+	// 0x8
+	uint32_t id1; // could be an id, or a type id
+	// 0xc
+	uint32_t id2; // could be an id, or a type id
+	// 0x10
+	T inner;
+};
+
+template <typename T>
 struct JArray
 {
-    // 0x0
-    T* begin;
-    // 0x8
-    T* end;
-    // 0x10
+	// 0x0
+	T *begin;
+	// 0x8
+	T *end;
+	// 0x10
 
 	FINLINE size_t size() const
 	{
@@ -31,11 +47,11 @@ struct JArray
 		{
 			return false;
 		}
-		
+
 		return idx < size();
 	}
 
-	FINLINE T* reference(size_t idx) const
+	FINLINE T *reference(size_t idx) const
 	{
 		if (!is_valid(idx))
 		{
@@ -45,6 +61,7 @@ struct JArray
 		return &begin[idx];
 	}
 };
+static_assert(sizeof(JArray<void*>) == 0x10, INVALID_SIZE);
 
 // this is actually a typical C++ STL string
 class JString
@@ -55,7 +72,7 @@ public:
 		const char data[0x17];
 		struct
 		{
-			char* data_ptr;
+			char *data_ptr;
 			const uint8_t len1;
 			PAD(0x7);
 			const uint8_t len2;
@@ -69,7 +86,7 @@ public:
 	};
 
 public:
-	FINLINE const char* c_str() const
+	FINLINE const char *c_str() const
 	{
 		if (flag == 0x80)
 		{
@@ -82,5 +99,13 @@ public:
 	}
 };
 static_assert(sizeof(JString) == 0x18, INVALID_SIZE);
+
+template<typename I, uint64_t S, typename T>
+struct IdObject
+{
+	I id;
+	PAD(S);
+	T body;
+};
 
 #pragma pack(pop)

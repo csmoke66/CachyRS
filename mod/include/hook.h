@@ -2,20 +2,22 @@
 #include <cstdint>
 #include <map>
 #include <memory>
+#include <concepts>
+#include <thread>
+#include <optional>
 
 #include "process.h"
 #include "reversed/reversed.h"
 
 namespace crs
 {
-    class RenderWidgetHook;
-    class SdlPollEventHook;
-    
 #pragma pack(push, 1)
     struct Xmm
     {
         union
         {
+            float fp[4];
+            double dfp[2];
             uint64_t qword[2];
         };
     };
@@ -40,8 +42,11 @@ namespace crs
         uint64_t r15;
         Xmm xmm[16];
     };
+    static_assert(sizeof(CpuState) == 0x180, INVALID_SIZE);
 
 #ifdef __linux__
+#define CPU_FIRST_FARG(C) C->xmm[0].fp[2]
+
 #define CPU_FIRST_ARG(C) C->rdi
 #define CPU_SECOND_ARG(C) C->rsi
 #define CPU_THIRD_ARG(C) C->rdx
@@ -55,73 +60,37 @@ namespace crs
 #endif
 #pragma pack(pop)
 
+    class BaseHook
+    {
+    private:
+        std::optional<std::thread::id> last_thread_id;
+
+    public:
+        virtual ~BaseHook()
+        {
+
+        }
+
+    public:
+        virtual void handler(CpuState *cpu_state);
+
+    public:
+        std::optional<std::thread::id> thread_id() const;
+    };
+
     template <typename T>
-    class Hook
+    class Hook : public BaseHook
     {
     public:
         T trampoline;
-
-    public:
-        virtual ~Hook();
-
-    public:
-        virtual void handler(CpuState *cpu_state) = 0;
     };
 
-    template <typename T>
-    Hook<T>::~Hook()
-    {
-    }
+    typedef Hook<void*> GenericHook;
 
-    class DummyHook : public Hook<void *>
+    class DummyHook : public BaseHook
     {
     public:
         void handler(CpuState *cpu_state);
-    };
-
-    class MenuExecuteHook : public Hook<FnMenuExecute>
-    {
-    public:
-        void handler(CpuState *cpu_state) override;
-    };
-
-    class EglSwapBuffersHook : public Hook<FnEglSwapBuffers>
-    {
-    private:
-        EGLint cached_width, cached_height;
-        bool is_first_run = true;
-
-    private:
-        void render_widget(const Engine *engine, const RenderWidgetHook *rw_hook, const SdlPollEventHook* spe_hook, const Widget *widget, int x, int y);
-
-    public:
-        void handler(CpuState *cpu_state) override;
-    };
-
-    class SdlPollEventHook : public Hook<FnSDL_PollEvent>
-    {
-    public:
-        Vec2<float> mouse_pos;
-
-    public:
-        void handler(CpuState *cpu_state) override;
-    };
-
-    struct RenderedWidget
-    {
-        const Widget *widget;
-        uint32_t time;
-        uint32_t absolute_x;
-        uint32_t absolute_y;
-    };
-
-    class RenderWidgetHook : public Hook<FnRenderWidget>
-    {
-    public:
-        std::map<const Widget *, RenderedWidget> rendered;
-
-    public:
-        void handler(CpuState *cpu_state) override;
     };
 
     class HookManager
@@ -129,30 +98,36 @@ namespace crs
     private:
         ProcessInterface *pi;
         uint8_t vt_offset;
-        ::std::map<std::string, std::unique_ptr<Hook<void *>>> hooks;
+        ::std::map<std::string, std::unique_ptr<BaseHook>> hooks;
 
     public:
         HookManager(ProcessInterface *pi, uint8_t vt_offset);
 
     public:
-        template <typename T>
+        template <std::derived_from<BaseHook> T>
         const T *view_hook(const ::std::string &name)
         {
-            return (const T *)hooks[name].get();
+            auto hook = hooks.find(name);
+            if (hook == hooks.end())
+            {
+                return nullptr;
+            }
+
+            return (const T *)hook->second.get();
         }
 
     public:
-        void iat(const ::std::string &name, const ::std::string &symbol, ::std::unique_ptr<Hook<void *>> hook);
-        void x86(const ::std::string &name, void *target, ::std::unique_ptr<Hook<void *>> hook);
+        void iat(const ::std::string &name, const ::std::string &symbol, ::std::unique_ptr<GenericHook> hook);
+        void x86(const ::std::string &name, void *target, ::std::unique_ptr<GenericHook> hook);
     };
 
-    template <typename T>
-    FINLINE ::std::unique_ptr<Hook<void *>> unique_hook()
+    template <std::derived_from<BaseHook> T>
+    FINLINE ::std::unique_ptr<GenericHook> unique_hook()
     {
-        return ::std::unique_ptr<Hook<void *>>((Hook<void *> *)new T());
+        return ::std::unique_ptr<GenericHook>((GenericHook *)new T());
     }
 
     void asm_init();
-    void asm_hook(uint8_t vt_offset, void *target, Hook<void *> *hook);
-    void iat_hook(uint8_t vt_offset, void *target, Hook<void *> *hook);
+    void asm_hook(uint8_t vt_offset, void *target, GenericHook *hook);
+    void iat_hook(uint8_t vt_offset, void *target, GenericHook *hook);
 }
