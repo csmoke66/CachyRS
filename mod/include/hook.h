@@ -107,7 +107,13 @@ namespace crs
         template <std::derived_from<BaseHook> T>
         const T *view_hook(const ::std::string &name)
         {
-            return (const T *)hooks[name].get();
+            auto hook = hooks.find(name);
+            if (hook == hooks.end())
+            {
+                return nullptr;
+            }
+
+            return (const T *)hook->second.get();
         }
 
     public:

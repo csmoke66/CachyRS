@@ -15,9 +15,6 @@ namespace crs
 
     public:
         virtual void update() = 0;
-
-    public:
-        void prune();
     };
 
     class PlayerDomNode : public ValueDomNode<Entity*>

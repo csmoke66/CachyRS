@@ -184,13 +184,16 @@ namespace crs
 
     ThreadOwned<Globals *> CachyRS::get_globals() const
     {
-        auto hook = hook_manager->view_hook<BaseHook>("engine_tick");
-        if (!!hook)
+        if (!!hook_manager)
         {
-            auto tid = hook->thread_id();
-            if (tid.has_value())
+            auto hook = hook_manager->view_hook<BaseHook>("engine_tick");
+            if (!!hook)
             {
-                return ThreadOwned<Globals *>(tid.value(), (Globals *)pi.game_base());
+                auto tid = hook->thread_id();
+                if (tid.has_value())
+                {
+                    return ThreadOwned<Globals *>(tid.value(), (Globals *)pi.game_base());
+                }
             }
         }
 

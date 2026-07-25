@@ -36,8 +36,8 @@ namespace crs
     {
     public:
         MenuActionType type;
-        MenuActionArgs* args;
-        
+        MenuActionArgs *args;
+
     public:
         static constexpr ::std::string specific_id()
         {
@@ -45,7 +45,7 @@ namespace crs
         }
 
     public:
-        MenuActionEvent(MenuActionType type, MenuActionArgs* args);
+        MenuActionEvent(MenuActionType type, MenuActionArgs *args);
     };
 
     template <std::derived_from<Event> T>
@@ -62,11 +62,15 @@ namespace crs
         ::std::vector<EventReceiver<Event> *> event_receivers;
 
     public:
-        EventBusLane(::std::string id);
-        EventBusLane(EventBusLane &o);
+        EventBusLane();
+        EventBusLane(const ::std::string &id);
+        EventBusLane(const EventBusLane &o);
 
     public:
         void add_receiver(EventReceiver<Event> *receiver);
+
+    public:
+        void dispatch(Event *event);
 
     public:
         ::std::string get_id();

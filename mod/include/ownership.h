@@ -88,5 +88,10 @@ namespace crs
             check_ownership();
             return raw;
         }
+        
+        T unwrap_unsafe()
+        {
+            return raw;
+        }
     };
 }
