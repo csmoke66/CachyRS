@@ -61,4 +61,9 @@ namespace crs
         void handler(CpuState *cpu_state) override;
     };
 
+    class SetVarBitHook : public Hook<FnSetVarBit>
+    {
+    public:
+        void handler(CpuState *cpu_state) override;
+    };
 }

@@ -4,17 +4,11 @@
 struct WorldSettingMask
 {
 	// 0x0
-	PAD(0x38);
-	// 0x38
+	PAD(0x8);
+	// 0x8
 	uint32_t world_setting_id;
-	// 0x3c
-	PAD(0xc);
-	// 0x48
-	uint32_t begin;
-	// 0x4c
-	uint32_t end;
+	// 0xc
 };
-static_assert(off(WorldSettingMask, begin) == 0x48, INVALID_OFFSET);
 
 struct WorldSetting
 {

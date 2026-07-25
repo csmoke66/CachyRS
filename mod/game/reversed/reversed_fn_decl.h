@@ -9,3 +9,4 @@ typedef void* (*FnHeapAllocate)(void* heap, size_t size, size_t alignment);
 typedef void* (*FnHeapAllocateAligned)(size_t size);
 typedef void* (*FnEngineTick)(Engine* engine, float delta);
 typedef void* (*FnRenderWidget)(Widget* widget, void*, JArray<WidgetChild>* widget_list, int c_x, int c_y, void*, void*, void*, void*, void*, void*, void*, void*);
+typedef void* (*FnSetVarBit)(const WorldSettingCache* cache, const CacheBuffer<void, WorldSettingMask> *buffer, const uint32_t* value);

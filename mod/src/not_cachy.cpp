@@ -119,6 +119,8 @@ namespace crs
 
     uint32_t NotCachyRS::mask_world_setting(const WorldSetting *setting, const WorldSettingMask *mask) const
     {
-        return ((1 << (mask->end + 1 - mask->begin)) - 1) & (setting->value >> mask->begin);
+        // TODO FIXME
+        return 0;
+        //return ((1 << (mask->end + 1 - mask->begin)) - 1) & (setting->value >> mask->begin);
     }
 }

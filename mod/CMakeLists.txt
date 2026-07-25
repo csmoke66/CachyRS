@@ -31,6 +31,7 @@ add_library(mod SHARED
     src/hook/sdl_poll_event.cpp
     src/hook/render_widget.cpp
     src/hook/engine_tick.cpp
+    src/hook/set_var_bit.cpp
 
     # keep this last, since we run our code in a static initializer
     # putting it last puts it last in the initialization list

@@ -10,13 +10,13 @@ namespace crs
     {
         if (engine->state == GameState::lobby_screen || engine->state == GameState::in_game)
         {
-            //RS.dom_node_item_containers->update();
+            RS.dom_node_item_containers->update();
         }
 
         if (engine->state == GameState::in_game)
         {
-            //RS.dom_node_npcs->update();
-            //RS.dom_node_players->update();
+            RS.dom_node_npcs->update();
+            RS.dom_node_players->update();
             RS.dom_node_world_settings->update();
         }
     }

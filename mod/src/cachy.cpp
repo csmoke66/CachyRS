@@ -172,6 +172,7 @@ namespace crs
         hook_manager->iat("poll_event", "SDL_PollEvent", unique_hook<SdlPollEventHook>());
         hook_manager->x86("menu_execute", &get_globals()->menu_execute, unique_hook<MenuExecuteHook>());
         hook_manager->x86("render_widget", &get_globals()->render_widget, unique_hook<RenderWidgetHook>());
+        hook_manager->x86("set_varbit", &get_globals()->set_varbit, unique_hook<SetVarBitHook>());
         hook_manager->x86("engine_tick", &get_globals()->engine_tick, unique_hook<EngineTickHook>());
     }
 
@@ -271,14 +272,14 @@ namespace crs
 
     void CachyRS::push_ui_state()
     {
-        //dom_node_item_containers->prune();
-        //dom_node_players->prune();
-        //dom_node_npcs->prune();
+        dom_node_item_containers->prune();
+        dom_node_players->prune();
+        dom_node_npcs->prune();
         dom_node_world_settings->prune();
 
-        //dom_tree->build_dom_node(dom_node_item_containers);
-        //dom_tree->build_dom_node(dom_node_players);
-        //dom_tree->build_dom_node(dom_node_npcs);
+        dom_tree->build_dom_node(dom_node_item_containers);
+        dom_tree->build_dom_node(dom_node_players);
+        dom_tree->build_dom_node(dom_node_npcs);
         dom_tree->build_dom_node(dom_node_world_settings);
     }
 }

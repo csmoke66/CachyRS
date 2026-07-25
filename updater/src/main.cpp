@@ -141,6 +141,12 @@ std::vector<PatternObject> build_pattern_objects()
             (new ImmExtractor(0x1, 0x5, 4, true))->
                 validator(new AlignmentValidator(0x10))},
         new DefaultPattern{
+            "set_varbit",
+            compile_ida_pattern("E8 ? ? ? ? 48 89 EF E8 ? ? ? ? 48 83 C4 ? 5B 5D 41 5C 41 5D 41 5E 41 5F C3 0F 1F 44 00 ? 66 2E 0F 1F 84 00 ? ? ? ? 48 8B 7E"),
+            {"char", 1},
+            (new ImmExtractor(0x1, 0x5, 4, true))->
+                validator(new AlignmentValidator(0x10))},
+        new DefaultPattern{
             "menu_action_handler_test_dump",
             compile_ida_pattern("4C 8B 5C 24 ? 4D 89 A5"),
             {"char", 1},

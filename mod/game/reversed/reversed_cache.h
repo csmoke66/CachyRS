@@ -31,12 +31,13 @@ struct Cache002
 	// 0x48
 };
 
+template<typename T, typename B>
 struct CacheBuffer
 {
 	// 0x0
-	const void* tag;
+	const T* tag;
 	// 0x8
-	const void* body;
+	const B* body;
 	// 0x10
 };
 
@@ -60,7 +61,7 @@ public:
 	// 0x38
 	PAD_VT();
 	// 0x40
-	virtual CacheBuffer* get_cache_descriptor_by_index(uint32_t idx, bool unknown) const = 0;
+	virtual CacheBuffer<void, void>* get_cache_descriptor_by_index(uint32_t idx, bool unknown) const = 0;
 
 public:
 	// 0x8
