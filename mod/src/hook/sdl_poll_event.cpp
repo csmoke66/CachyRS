@@ -24,7 +24,7 @@ namespace crs
                 steal_processing = true;
             }
 
-            if (RS.ui->wants_input())
+            if (RS.ui_visible && RS.ui->wants_input())
             {
                 steal_processing = true;
             }

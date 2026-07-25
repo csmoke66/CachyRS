@@ -13,6 +13,7 @@
 
 #include "ring_buffer.h"
 #include "util.h"
+#include "timer.h"
 #include "log.h"
 #include "interop.h"
 
@@ -28,8 +29,34 @@
 
 namespace crs
 {
+    struct Stats
+    {
+        uint64_t player_dom_nodes_created = 0;
+        std::atomic<uint64_t> player_dom_nodes_created_recent = 0;
+        std::atomic<uint64_t> player_dom_nodes_removed_recent = 0;
+        
+        uint64_t npc_dom_nodes_created = 0;
+        std::atomic<uint64_t> npc_dom_nodes_created_recent = 0;
+        std::atomic<uint64_t> npc_dom_nodes_removed_recent = 0;
+
+        uint64_t item_container_dom_nodes_created = 0;
+        std::atomic<uint64_t> item_container_dom_nodes_created_recent = 0;
+        std::atomic<uint64_t> item_container_dom_nodes_removed_recent = 0;
+
+        uint64_t item_dom_nodes_created = 0;
+        std::atomic<uint64_t> item_dom_nodes_created_recent = 0;
+        std::atomic<uint64_t> item_dom_nodes_removed_recent = 0;
+        
+        Stopwatch push_ui_state_stopwatch;
+        Stopwatch render_ui_stopwatch;
+    };
+
     class CachyRS
     {
+    public:
+        Stats stats;
+        Timer stats_timer;
+        
     public:
         ::std::mutex mutex;
 
@@ -43,6 +70,7 @@ namespace crs
         std::shared_ptr<NpcsDomNode> dom_node_npcs;
 
     public:
+        bool ui_visible = false;
         DeveloperOverlay developer_overlay;
         ::std::shared_ptr<UserInterface> ui = nullptr;
         ::std::shared_ptr<DomTree> dom_tree = nullptr;
@@ -63,7 +91,7 @@ namespace crs
         ::std::string resolve_configuration(const ::std::string &file) const;
 
     public:
-        ThreadOwned<Globals*> get_globals() const;
+        ThreadOwned<Globals *> get_globals() const;
 
     public:
         bool project_to_screen(const Vec3<float> scene, Vec2<float> *out) const;

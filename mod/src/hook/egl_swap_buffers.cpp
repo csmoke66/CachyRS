@@ -59,10 +59,20 @@ namespace crs
         }
 
         // clang-format off
-        RS.event_ring_buffer.process([](auto& event)
+        RS.event_ring_buffer.process([](SDL_Event& event)
         {
+            if (event.type == SDL_KEYDOWN &&
+                event.key.keysym.scancode == SDL_SCANCODE_INSERT)
+            {
+                RS.ui_visible = !RS.ui_visible;
+            }
+    
             ImGui_ImplSDL2_ProcessEvent(&event);
-            RS.ui->process(&event);
+
+            if (RS.ui_visible)
+            {
+                RS.ui->process(&event);
+            }
         });
 
         // clang-format on
@@ -89,8 +99,16 @@ namespace crs
         FLUSH_GL_ERRORS();
 
         { /* ui */
+            RS.stats.push_ui_state_stopwatch.reset();
             RS.push_ui_state();
-            RS.ui->render();
+            RS.stats.push_ui_state_stopwatch.stop();
+
+            if (RS.ui_visible)
+            {
+                RS.stats.render_ui_stopwatch.reset();
+                RS.ui->render();
+                RS.stats.render_ui_stopwatch.stop();
+            }
         }
 
         cpu_state->rax = (uint64_t)trampoline(dpy, surface);

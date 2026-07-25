@@ -84,6 +84,8 @@ namespace crs
                         new_dom_node->parent = shared_from_this();
                         
                         children[id] = new_dom_node;
+                        RS.stats.player_dom_nodes_created += 1;
+                        RS.stats.player_dom_nodes_created_recent += 1;
                     }
                     else
                     {
@@ -97,7 +99,12 @@ namespace crs
         // clang-format off
         iterate_typed_children([this](PlayerDomNode *node)
         { 
-            return !node->seen;
+            auto remove = !node->seen;
+            if (remove)
+            {
+                RS.stats.player_dom_nodes_removed_recent += 1;
+            }
+            return remove;
         });
         // clang-format on
     }
