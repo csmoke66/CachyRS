@@ -58,7 +58,8 @@ namespace crs
         Timer stats_timer;
         
     public:
-        ::std::mutex mutex;
+        ::std::mutex ui_mutex;
+        ::std::mutex imgui_mutex;
 
     public:
         ProcessInterface pi;

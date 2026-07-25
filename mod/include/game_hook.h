@@ -13,12 +13,12 @@ namespace crs
 
     class EglSwapBuffersHook : public Hook<FnEglSwapBuffers>
     {
-    private:
+    public:
         EGLint cached_width, cached_height;
         bool is_first_run = true;
 
     private:
-        void render_widget(const Engine *engine, const RenderWidgetHook *rw_hook, const SdlPollEventHook* spe_hook, const Widget *widget, int x, int y);
+        void render_widget(const Engine *engine, const RenderWidgetHook *rw_hook, const SdlPollEventHook *spe_hook, const Widget *widget, int x, int y);
 
     public:
         void handler(CpuState *cpu_state) override;
@@ -35,6 +35,11 @@ namespace crs
 
     class EngineTickHook : public Hook<FnEngineTick>
     {
+    private:
+        void tick_ui(Engine* engine);
+        void tick_imgui(Engine* engine);
+        void tick_stats();
+        
     public:
         void handler(CpuState *cpu_state) override;
     };

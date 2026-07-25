@@ -78,21 +78,12 @@ namespace crs
         // clang-format on
 
         { /* imgui */
-            ImGui_ImplOpenGL3_NewFrame();
-            ImGui::NewFrame();
-            if (ImGui::Begin("Developer"))
+            RS.imgui_mutex.lock();
+            if (auto draw_data = ImGui::GetDrawData())
             {
-                if (ImGui::Button("Reload UI"))
-                {
-                    RS.ui->reload();
-                }
+                ImGui_ImplOpenGL3_RenderDrawData(draw_data);
             }
-
-            RS.developer_overlay.render();
-
-            ImGui::End();
-            ImGui::Render();
-            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+            RS.imgui_mutex.unlock();
         }
 
         // flush OpenGL errors so they don't propagate to rmlui

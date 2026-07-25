@@ -268,7 +268,7 @@ namespace crs
 
     void CachyRS::push_ui_state()
     {
-        RS.mutex.lock();
+        RS.ui_mutex.lock();
         dom_node_item_containers->prune();
         dom_node_players->prune();
         dom_node_npcs->prune();
@@ -276,6 +276,6 @@ namespace crs
         dom_tree->build_dom_node(dom_node_item_containers);
         dom_tree->build_dom_node(dom_node_players);
         dom_tree->build_dom_node(dom_node_npcs);
-        RS.mutex.unlock();
+        RS.ui_mutex.unlock();
     }
 }
