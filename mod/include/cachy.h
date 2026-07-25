@@ -59,7 +59,6 @@ namespace crs
         
     public:
         ::std::mutex ui_mutex;
-        ::std::mutex imgui_mutex;
 
     public:
         ProcessInterface pi;
@@ -69,6 +68,7 @@ namespace crs
         std::shared_ptr<ItemContainersDomNode> dom_node_item_containers;
         std::shared_ptr<PlayersDomNode> dom_node_players;
         std::shared_ptr<NpcsDomNode> dom_node_npcs;
+        std::shared_ptr<WorldSettingsDomNode> dom_node_world_settings;
 
     public:
         bool ui_visible = false;

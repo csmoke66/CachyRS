@@ -5,7 +5,7 @@
 namespace crs
 {
 
-    PlayerDomNode::PlayerDomNode(std::shared_ptr<DomTree> tree, const ::std::string &id, const ::std::string &type) : ValueDomNode<Entity *>(tree, id, type)
+    PlayerDomNode::PlayerDomNode(std::shared_ptr<DomTree> tree, const ::std::string &id, const ::std::string &type) : ValueDomNode<const Entity *>(tree, id, type)
     {
     }
 
@@ -37,7 +37,7 @@ namespace crs
                     if (!child)
                     {
                         auto new_dom_node = std::make_shared<PlayerDomNode>(tree, id, "player");
-                        new_dom_node->player = entity;
+                        new_dom_node->value = entity;
 
                         auto address_node = std::make_unique<PointerDomValue>("address", entity);
                         {

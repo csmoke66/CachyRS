@@ -15,6 +15,7 @@ namespace crs
         const NpcUpdateCache *npc_update_cache() const;
         const Cache001 *cache() const;
         const CacheIndex *cache_index(CacheIndexOrdinal ordinal) const;
+        const CacheIndex *cache_index_world_settings() const;
         const WorldSettingCache *world_setting_cache() const;
         uint32_t mask_world_setting(const WorldSetting *setting, const WorldSettingMask *mask) const;
     };

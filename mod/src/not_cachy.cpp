@@ -96,6 +96,16 @@ namespace crs
         return nullptr;
     }
 
+    const CacheIndex *NotCachyRS::cache_index_world_settings() const
+    {
+        if (auto cache = this->cache())
+        {
+            return cache->get_world_settings_index();
+        }
+
+        return nullptr;
+    }
+
     const WorldSettingCache *NotCachyRS::world_setting_cache() const
     {
         auto engine = RS.get_globals()->engine;
@@ -104,7 +114,7 @@ namespace crs
             return nullptr;
         }
 
-        return &engine->world_settings;
+        return (const WorldSettingCache *)&engine->world_settings;
     }
 
     uint32_t NotCachyRS::mask_world_setting(const WorldSetting *setting, const WorldSettingMask *mask) const

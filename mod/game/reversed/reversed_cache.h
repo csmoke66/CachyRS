@@ -60,13 +60,26 @@ public:
 	// 0x38
 	PAD_VT();
 	// 0x40
-	virtual void* get_cache_descriptor_by_index(uint32_t idx, bool unknown) = 0;
+	virtual CacheBuffer* get_cache_descriptor_by_index(uint32_t idx, bool unknown) const = 0;
 
 public:
 	// 0x8
 	PAD(0x38);
 	// 0x40
 	const uint32_t size;
+
+public:
+	template<typename T>
+	T* get_cache_descriptor_by_index_generic(uint32_t idx) const
+	{
+		auto x = get_cache_descriptor_by_index(idx, false);
+		if (!x)
+		{
+			return nullptr;
+		}
+
+		return (T*)x->body;
+	}
 };
 static_assert(off(CacheIndexInner, size) == 0x40, INVALID_OFFSET);
 
@@ -86,10 +99,36 @@ struct CacheIndex
 };
 static_assert(off(CacheIndex, inner) == 0x38, INVALID_OFFSET);
 
-struct Cache001
+class Cache001
 {
+public:
 	// 0x0
-	PAD(0x80);
+	PAD_VT();
+	// 0x8
+	PAD_VT();
+	// 0x10
+	PAD_VT();
+	// 0x18
+	PAD_VT();
+	// 0x20
+	PAD_VT();
+	// 0x28
+	PAD_VT();
+	// 0x30
+	PAD_VT();
+	// 0x38
+	PAD_VT();
+	// 0x40
+	PAD_VT();
+	// 0x48
+	PAD_VT();
+	// 0x50
+	virtual CacheIndex* get_world_settings_index() const = 0;
+	// 0x58
+
+public:
+	// 0x0
+	PAD(0x78);
 	// 0x80
 	const CacheIndex** indices;
 };

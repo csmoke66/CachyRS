@@ -29,6 +29,7 @@ struct Item;
 struct ItemContainer;
 struct ItemCache;
 struct EntityStatus;
+struct WorldSettingFull;
 struct WorldSettingCache;
 struct WidgetCache;
 class ContainerWidget;

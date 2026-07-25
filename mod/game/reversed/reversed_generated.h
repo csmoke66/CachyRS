@@ -91,7 +91,7 @@ struct Engine
 	PAD(0x4);
 	const LocalPlayer* local_player;
 	PAD(0x8);
-	const WorldSettingCache world_settings;
+	const char world_settings;
 };
 static_assert(off(Engine, window_state) == 0x90, INVALID_OFFSET);
 static_assert(off(Engine, time) == 0x504, INVALID_OFFSET);

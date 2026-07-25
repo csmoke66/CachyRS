@@ -100,4 +100,12 @@ public:
 };
 static_assert(sizeof(JString) == 0x18, INVALID_SIZE);
 
+template<typename I, uint64_t S, typename T>
+struct IdObject
+{
+	I id;
+	PAD(S);
+	T body;
+};
+
 #pragma pack(pop)

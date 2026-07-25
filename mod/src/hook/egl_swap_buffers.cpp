@@ -58,6 +58,7 @@ namespace crs
             io.DeltaTime = 1.0f / 60.0f;
         }
 
+        RS.ui_mutex.lock();
         // clang-format off
         RS.event_ring_buffer.process([](SDL_Event& event)
         {
@@ -78,12 +79,10 @@ namespace crs
         // clang-format on
 
         { /* imgui */
-            RS.imgui_mutex.lock();
             if (auto draw_data = ImGui::GetDrawData())
             {
                 ImGui_ImplOpenGL3_RenderDrawData(draw_data);
             }
-            RS.imgui_mutex.unlock();
         }
 
         // flush OpenGL errors so they don't propagate to rmlui
@@ -102,6 +101,7 @@ namespace crs
             }
         }
 
+        RS.ui_mutex.unlock();
         cpu_state->rax = (uint64_t)trampoline(dpy, surface);
     }
 }

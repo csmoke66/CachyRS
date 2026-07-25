@@ -17,10 +17,9 @@ namespace crs
         virtual void update() = 0;
     };
 
-    class PlayerDomNode : public ValueDomNode<Entity*>
+    class PlayerDomNode : public ValueDomNode<const Entity*>
     {
     public:
-        const Entity *player;
         bool seen = true;
 
     public:
@@ -36,10 +35,9 @@ namespace crs
         void update() override;
     };
 
-    class NpcDomNode : public ValueDomNode<Entity*>
+    class NpcDomNode : public ValueDomNode<const Entity*>
     {
     public:
-        const Entity *npc;
         bool seen = true;
 
     public:
@@ -82,6 +80,24 @@ namespace crs
     {
     public:
         ItemContainersDomNode(std::shared_ptr<DomTree> tree, const ::std::string& id, const ::std::string& type);
+
+    public:
+        void update() override;
+    };
+
+    class WorldSettingDomNode : public DomNode
+    {
+    public:
+        bool seen = true;
+
+    public:
+        WorldSettingDomNode(std::shared_ptr<DomTree> tree, const ::std::string& id, const ::std::string& type);
+    };
+
+    class WorldSettingsDomNode : public GameContainerNode<WorldSettingDomNode>
+    {
+    public:
+        WorldSettingsDomNode(std::shared_ptr<DomTree> tree, const ::std::string& id, const ::std::string& type);
 
     public:
         void update() override;

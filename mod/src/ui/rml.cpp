@@ -382,21 +382,21 @@ namespace crs
 
     void RmlUserInterface::render()
     {
-        // auto hovered = get_dom_parent(context->GetHoverElement());
-        // if (hovered != last_hovered)
-        // {
-        //     if (last_hovered)
-        //     {
-        //         last_hovered->SetClass("hovered", false);
-        //     }
+        auto hovered = get_dom_parent(context->GetHoverElement());
+        if (hovered != last_hovered)
+        {
+            if (last_hovered)
+            {
+                last_hovered->SetClass("hovered", false);
+            }
 
-        //     last_hovered = hovered;
+            last_hovered = hovered;
 
-        //     if (last_hovered)
-        //     {
-        //         last_hovered->SetClass("hovered", true);
-        //     }
-        // }
+            if (last_hovered)
+            {
+                last_hovered->SetClass("hovered", true);
+            }
+        }
 
         context->Update();
 

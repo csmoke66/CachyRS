@@ -8,18 +8,17 @@ namespace crs
 {
     void EngineTickHook::tick_ui(Engine *engine)
     {
-        RS.ui_mutex.lock();
         if (engine->state == GameState::lobby_screen || engine->state == GameState::in_game)
         {
-            RS.dom_node_item_containers->update();
+            //RS.dom_node_item_containers->update();
         }
 
         if (engine->state == GameState::in_game)
         {
-            RS.dom_node_npcs->update();
-            RS.dom_node_players->update();
+            //RS.dom_node_npcs->update();
+            //RS.dom_node_players->update();
+            RS.dom_node_world_settings->update();
         }
-        RS.ui_mutex.unlock();
     }
 
     void EngineTickHook::tick_imgui(Engine *engine)
@@ -27,7 +26,6 @@ namespace crs
         auto swap_buffers_hook = RS.hook_manager->view_hook<EglSwapBuffersHook>("swap_buffers");
         if (!!swap_buffers_hook && !swap_buffers_hook->is_first_run)
         {
-            RS.imgui_mutex.lock();
             ImGui_ImplOpenGL3_NewFrame();
             ImGui::NewFrame();
             if (ImGui::Begin("Developer"))
@@ -42,7 +40,6 @@ namespace crs
 
             ImGui::End();
             ImGui::Render();
-            RS.imgui_mutex.unlock();
         }
     }
 
@@ -81,8 +78,13 @@ namespace crs
         BaseHook::handler(cpu_state);
 
         auto engine = (Engine *)CPU_FIRST_ARG(cpu_state);
-        tick_ui(engine);
-        tick_imgui(engine);
+        RS.ui_mutex.lock();
+        {
+            tick_ui(engine);
+            tick_imgui(engine);
+            RS.ui_mutex.unlock();
+        }
+
         tick_stats();
 
         auto event = EngineTickEvent();

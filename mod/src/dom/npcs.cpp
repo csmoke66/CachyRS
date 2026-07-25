@@ -5,7 +5,7 @@
 namespace crs
 {
 
-    NpcDomNode::NpcDomNode(std::shared_ptr<DomTree> tree, const ::std::string &id, const ::std::string &type) : ValueDomNode<Entity *>(tree, id, type)
+    NpcDomNode::NpcDomNode(std::shared_ptr<DomTree> tree, const ::std::string &id, const ::std::string &type) : ValueDomNode<const Entity *>(tree, id, type)
     {
     }
 
@@ -37,7 +37,7 @@ namespace crs
                     if (!child)
                     {
                         auto new_dom_node = std::make_shared<NpcDomNode>(tree, id, "npc");
-                        new_dom_node->npc = entity;
+                        new_dom_node->value = entity;
 
                         auto address_node = std::make_unique<PointerDomValue>("address", entity);
                         {

@@ -129,6 +129,9 @@ namespace crs
         dom_node_npcs = std::make_shared<NpcsDomNode>(dom_tree, "npcs", "npcs");
         dom_tree->add_dom_node(dom_node_npcs);
 
+        dom_node_world_settings = std::make_shared<WorldSettingsDomNode>(dom_tree, "world_settings", "world_settings");
+        dom_tree->add_dom_node(dom_node_world_settings);
+
         dom_tree->set_listener(std::make_unique<CachyDomTreeListener>());
     }
 
@@ -268,14 +271,14 @@ namespace crs
 
     void CachyRS::push_ui_state()
     {
-        RS.ui_mutex.lock();
-        dom_node_item_containers->prune();
-        dom_node_players->prune();
-        dom_node_npcs->prune();
+        //dom_node_item_containers->prune();
+        //dom_node_players->prune();
+        //dom_node_npcs->prune();
+        dom_node_world_settings->prune();
 
-        dom_tree->build_dom_node(dom_node_item_containers);
-        dom_tree->build_dom_node(dom_node_players);
-        dom_tree->build_dom_node(dom_node_npcs);
-        RS.ui_mutex.unlock();
+        //dom_tree->build_dom_node(dom_node_item_containers);
+        //dom_tree->build_dom_node(dom_node_players);
+        //dom_tree->build_dom_node(dom_node_npcs);
+        dom_tree->build_dom_node(dom_node_world_settings);
     }
 }

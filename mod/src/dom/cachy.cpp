@@ -14,7 +14,7 @@ namespace crs
             RS.developer_overlay.player_overlay_on = true;
             if (!!player_dom_node)
             {
-                RS.developer_overlay.player_overlay_target = player_dom_node->player;
+                RS.developer_overlay.player_overlay_target = player_dom_node->value;
             }
             else
             {
