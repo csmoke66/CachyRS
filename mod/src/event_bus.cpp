@@ -7,14 +7,24 @@ namespace crs
         this->id = id;
     }
 
+    void* Event::get_args()
+    {
+        return nullptr;
+    }
+
     EngineTickEvent::EngineTickEvent() : Event(EngineTickEvent::specific_id())
     {
     }
 
     MenuActionEvent::MenuActionEvent(MenuActionType type, MenuActionArgs *args) : Event(MenuActionEvent::specific_id())
     {
-        this->type = type;
-        this->args = args;
+        this->args.type = type;
+        this->args.args = args;
+    }
+
+    void* MenuActionEvent::get_args()
+    {
+        return &args;
     }
 
     EventBusLane::EventBusLane()

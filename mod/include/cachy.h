@@ -16,7 +16,7 @@
 #include "timer.h"
 #include "log.h"
 #include "interop.h"
-
+#include "plugin.h"
 #include "event_bus.h"
 
 #include "version.hpp"
@@ -63,7 +63,8 @@ namespace crs
     public:
         ProcessInterface pi;
         ::std::unique_ptr<HookManager> hook_manager = nullptr;
-
+        PluginManager plugin_manager;
+        
     public:
         std::shared_ptr<ItemContainersDomNode> dom_node_item_containers;
         std::shared_ptr<PlayersDomNode> dom_node_players;

@@ -9,7 +9,8 @@ add_library(mod SHARED
     src/event_bus.cpp
     src/interop.cpp
     src/process_linux.cpp
-
+    src/plugin.cpp
+    
     src/dom/dom.cpp
     src/dom/cachy.cpp
     src/dom/item_containers.cpp
@@ -65,6 +66,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 add_subdirectory(imgui)
 add_subdirectory(rmlui_backend)
+add_subdirectory(plugins/test)
 
 FetchContent_Declare(
         rmlui

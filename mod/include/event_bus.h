@@ -18,6 +18,9 @@ namespace crs
 
     public:
         ::std::string get_id();
+
+    public:
+        virtual void* get_args();
     };
 
     class EngineTickEvent : public Event
@@ -32,12 +35,17 @@ namespace crs
         EngineTickEvent();
     };
 
+    struct MenuActionEventArgs
+    {
+        MenuActionType type;
+        MenuActionArgs *args;
+    };
+
     class MenuActionEvent : public Event
     {
     public:
-        MenuActionType type;
-        MenuActionArgs *args;
-
+        MenuActionEventArgs args;
+        
     public:
         static constexpr ::std::string specific_id()
         {
@@ -46,6 +54,9 @@ namespace crs
 
     public:
         MenuActionEvent(MenuActionType type, MenuActionArgs *args);
+
+    public:
+        void* get_args() override;
     };
 
     template <std::derived_from<Event> T>

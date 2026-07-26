@@ -263,6 +263,10 @@ namespace crs
         LOG(INFO, "Initializing DOM...");
         init_dom();
 
+        LOG(INFO, "Loading plugins...");
+        plugin_manager.init();
+        plugin_manager.load_all(resolve_configuration("plugins/"));
+        
         LOG(INFO, "Initializing hooks...");
         init_hooks();
 
