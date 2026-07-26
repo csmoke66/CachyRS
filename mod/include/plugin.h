@@ -2,6 +2,10 @@
 #include <vector>
 #include <memory>
 
+#include "reversed/reversed.h"
+
+#include "ownership.h"
+
 #define PLUGIN_API __attribute((visibility("default"))) extern "C"
 
 namespace crs
@@ -11,12 +15,16 @@ namespace crs
 
     typedef void (*FnPluginLog)(const char* message);
 
+    typedef ThreadOwned<Globals*> (*FnPluginGetGlobals)();
+
     typedef void (*FnPluginEventBusReceiver)(void* args, void* context);
     typedef void (*FnPluginEventBusRegister)(const char* id, void* receiver, void* context);
 
     struct PluginApi
     {
         FnPluginLog log;
+        FnPluginGetGlobals get_globals;
+
         FnPluginEventBusRegister event_bus_register;
     };
 

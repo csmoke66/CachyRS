@@ -17,7 +17,9 @@
 #include "log.h"
 #include "interop.h"
 #include "plugin.h"
+
 #include "event_bus.h"
+#include "game_events.h"
 
 #include "version.hpp"
 

@@ -6,10 +6,12 @@ add_library(mod SHARED
     src/cachy.cpp
     src/not_cachy.cpp
     src/util.cpp
-    src/event_bus.cpp
     src/interop.cpp
     src/process_linux.cpp
     src/plugin.cpp
+    
+    src/event_bus.cpp
+    src/game_events.cpp
     
     src/dom/dom.cpp
     src/dom/cachy.cpp

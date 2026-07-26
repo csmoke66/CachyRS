@@ -32,6 +32,11 @@ namespace crs
         LOG(PLUGIN, message);
     }
 
+    static ThreadOwned<Globals*> plugin_api_get_globals()
+    {
+        return RS.get_globals();
+    }
+
     static void plugin_api_event_bus_register(const char* id, FnPluginEventBusReceiver receiver, void* context)
     {
         RS.event_bus.add_receiver(std::string(id), new CEventBusReceiver(receiver, context));
@@ -40,6 +45,7 @@ namespace crs
     void PluginManager::init()
     {
         api.log = plugin_api_log;
+        api.get_globals = plugin_api_get_globals;
         api.event_bus_register = (FnPluginEventBusRegister)plugin_api_event_bus_register;
     }
 

@@ -23,42 +23,7 @@ namespace crs
         virtual void* get_args();
     };
 
-    class EngineTickEvent : public Event
-    {
-    public:
-        static constexpr ::std::string specific_id()
-        {
-            return "on_engine_tick";
-        }
-
-    public:
-        EngineTickEvent();
-    };
-
-    struct MenuActionEventArgs
-    {
-        MenuActionType type;
-        MenuActionArgs *args;
-    };
-
-    class MenuActionEvent : public Event
-    {
-    public:
-        MenuActionEventArgs args;
-        
-    public:
-        static constexpr ::std::string specific_id()
-        {
-            return "on_menu_action";
-        }
-
-    public:
-        MenuActionEvent(MenuActionType type, MenuActionArgs *args);
-
-    public:
-        void* get_args() override;
-    };
-
+    
     template <std::derived_from<Event> T>
     class EventReceiver
     {
