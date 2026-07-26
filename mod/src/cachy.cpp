@@ -204,7 +204,7 @@ namespace crs
         return ThreadOwned<Globals *>((Globals *)pi.game_base());
     }
 
-    bool CachyRS::project_to_screen(const Vec3<float> scene, Vec2<float> *out) const
+    bool CachyRS::project_to_screen(const Vec3<float>& scene, Vec2<float> *out) const
     {
         auto scene_003 = NRS.scene_003();
         if (!scene_003)

@@ -252,6 +252,10 @@ std::vector<PatternObject> build_pattern_objects()
             "type",
             { "const EntityType", 1},
             new DummyExtractor(0x10)},
+        new DummyPattern{
+            "terrain",
+            { "const Terrain*", 8},
+            new DummyExtractor(0x50)},
     }, false, false, "" ,
      new DefaultPattern{
         "type_size",
@@ -281,7 +285,7 @@ std::vector<PatternObject> build_pattern_objects()
         new DefaultPattern{
             "animation_queue",
             compile_ida_pattern("4C 8B 8D ? ? ? ? 4C 89 8D"),
-            { "const JArray<const uint32_t>", 0x10, },
+            { "const JArray<const uint32_t>", 0x18, },
             (new ImmExtractor(0x3, 0x0, 4))->
                 validator(new AlignmentValidator(0x8))},
     },

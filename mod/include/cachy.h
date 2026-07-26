@@ -98,7 +98,7 @@ namespace crs
         ThreadOwned<Globals *> get_globals() const;
 
     public:
-        bool project_to_screen(const Vec3<float> scene, Vec2<float> *out) const;
+        bool project_to_screen(const Vec3<float>& scene, Vec2<float> *out) const;
 
     public:
         void init();

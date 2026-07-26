@@ -18,6 +18,30 @@ namespace crs
                 {
                     draw_list->AddText(ImVec2(screen_pos.x, screen_pos.y), IM_COL32(255, 0, 0, 170), entity->name.c_str());
                 }
+
+                if (auto parent = entity->parent)
+                {
+                    Vec2<float> screen_pos;
+                    if (RS.project_to_screen(parent->pos_a, &screen_pos))
+                    {
+                        draw_list->AddCircle(ImVec2(screen_pos.x, screen_pos.y), 3.f, IM_COL32(255, 0, 0, 170));
+                    }
+
+                    if (RS.project_to_screen(parent->pos_b, &screen_pos))
+                    {
+                        draw_list->AddCircle(ImVec2(screen_pos.x, screen_pos.y), 3.f, IM_COL32(0, 255, 0, 170));
+                    }
+
+                    if (RS.project_to_screen(parent->pos_c, &screen_pos))
+                    {
+                        draw_list->AddCircle(ImVec2(screen_pos.x, screen_pos.y), 3.f, IM_COL32(0, 0, 255, 170));
+                    }
+
+                    if (RS.project_to_screen(parent->pos_avg, &screen_pos))
+                    {
+                        draw_list->AddCircle(ImVec2(screen_pos.x, screen_pos.y), 3.f, IM_COL32(255, 255, 0, 170));
+                    }
+                }
             }
         });
         // clang-format on

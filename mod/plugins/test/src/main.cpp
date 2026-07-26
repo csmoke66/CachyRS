@@ -50,7 +50,7 @@ static void event_handler_engine_tick(void *args, TestPlugin *plugin)
     {
         return;
     }
-
+    
     auto &anim_queue = entity->animation_queue;
     if (anim_queue.size() == 0)
     {

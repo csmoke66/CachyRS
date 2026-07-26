@@ -1,33 +1,66 @@
 #pragma once
 
 #pragma pack(push, 1)
+struct TerrainHeightData
+{
+
+};
+
+struct TerrainGrid002
+{
+    PAD(0x160);
+    // 0x160
+    JArray<TaggedObject<void, JArray<TerrainHeightData>>> height_data_1; 
+    // 0x178
+    PAD(0x70);
+    JArray<TerrainHeightData>* height_data_2;
+};
+
+struct TerrainGrid001
+{
+    // 0x0
+    PAD(0x8);
+    // 0x8
+    TerrainGrid002* grid_002;
+    // 0x10
+    void *unknown;
+};
+
+struct Terrain
+{
+    // 0x0
+    PAD(0x14020);
+    // 0x14020
+    JArray<JArray<TerrainGrid001>> grid;
+};
+
 struct WorldNode
 {
-	// 0x0
+    // 0x0
     PAD(0x30);
-	// 0x30
-	const Vec3<const float> pos_b;
-	// 0x3c
+    // 0x30
+    const Vec3<float> pos_b;
+    // 0x3c
     PAD(0x4);
-	// 0x40
-	const Vec3<const float> pos_a;
-	// 0x4c
+    // 0x40
+    const Vec3<float> pos_a;
+    // 0x4c
     PAD(0x4);
     // 0x50
-    const Vec3<const float> pos_c;
+    const Vec3<float> pos_c;
     // 0x5c
     PAD(0x24);
     // 0x80
-    const Vec3<const float> pos_avg;
+    const Vec3<float> pos_avg;
     // 0x8c
     PAD(0xac);
-	// 0x138
-	const JArray<const WorldNode*> children;
-	// 0x148
-    PAD(0x58);
-	// 0x1a0
-	const Entity* entity;
-	// 0x1d8
+    // 0x138
+    const JArray<const WorldNode *> children;
+    // 0x150
+    PAD(0x50);
+    // 0x1a0
+    const Entity *entity;
+    // 0x1d8
 };
 static_assert(off(WorldNode, children) == 0x138, INVALID_OFFSET);
 static_assert(off(WorldNode, entity) == 0x1a0, INVALID_OFFSET);
@@ -37,7 +70,7 @@ struct Scene002
     // 0x0
     PAD(0x8);
     // 0x8
-    const Scene003* scene_003;
+    const Scene003 *scene_003;
 };
 
 struct Scene001
@@ -46,8 +79,6 @@ struct Scene001
     PAD(0x58);
     // 0x58
     const JArray<const Scene002> scene_002;
-    // 0x68
-    PAD(0x8);
     // 0x70
     const int32_t scene_index;
 };

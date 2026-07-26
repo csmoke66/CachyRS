@@ -34,6 +34,8 @@ struct JArray
 	// 0x8
 	T *end;
 	// 0x10
+	T *max;
+	// 0x18
 
 	FINLINE size_t size() const
 	{
@@ -61,7 +63,7 @@ struct JArray
 		return &begin[idx];
 	}
 };
-static_assert(sizeof(JArray<void*>) == 0x10, INVALID_SIZE);
+static_assert(sizeof(JArray<void*>) == 0x18, INVALID_SIZE);
 
 // this is actually a typical C++ STL string
 class JString
@@ -106,6 +108,16 @@ struct IdObject
 	I id;
 	PAD(S);
 	T body;
+};
+
+template<typename T, typename B>
+struct TaggedObject
+{
+	// 0x0
+	const T* tag;
+	// 0x8
+	const B* body;
+	// 0x10
 };
 
 #pragma pack(pop)
