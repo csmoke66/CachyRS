@@ -121,11 +121,14 @@ static_assert(off(Scene003, projection_matrix) == 0x13200, INVALID_OFFSET);
 
 struct Entity
 {
-	PAD(0x10);
+	PAD(0x8);
+	const WorldNode* parent;
+	PAD(0x0);
 	const EntityType type;
 	PAD(0x47);
 };
 static_assert(sizeof(Entity) == 0x58, INVALID_SIZE);
+static_assert(off(Entity, parent) == 0x8, INVALID_OFFSET);
 static_assert(off(Entity, type) == 0x10, INVALID_OFFSET);
 
 class NamedEntity : public Entity

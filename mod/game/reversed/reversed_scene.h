@@ -4,15 +4,23 @@
 struct WorldNode
 {
 	// 0x0
-    PAD(0x50);
-	// 0x50
-	const Vec3<const float> max;
-	// 0x5c
+    PAD(0x30);
+	// 0x30
+	const Vec3<const float> pos_b;
+	// 0x3c
+    PAD(0x4);
+	// 0x40
+	const Vec3<const float> pos_a;
+	// 0x4c
+    PAD(0x4);
+    // 0x50
+    const Vec3<const float> pos_c;
+    // 0x5c
     PAD(0x24);
-	// 0x80
-	const Vec3<const float> min;
-	// 0x8c
-    PAD(0xAC);
+    // 0x80
+    const Vec3<const float> pos_avg;
+    // 0x8c
+    PAD(0xac);
 	// 0x138
 	const JArray<const WorldNode*> children;
 	// 0x148

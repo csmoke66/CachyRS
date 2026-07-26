@@ -245,6 +245,10 @@ std::vector<PatternObject> build_pattern_objects()
     
     objects.push_back({"Entity", {
         new DummyPattern{
+            "parent",
+            { "const WorldNode*", 8},
+            new DummyExtractor(0x8)},
+        new DummyPattern{
             "type",
             { "const EntityType", 1},
             new DummyExtractor(0x10)},
