@@ -32,7 +32,8 @@ namespace crs
         eglQuerySurface(dpy, surface, EGL_HEIGHT, &height);
 
         if (is_first_run)
-        {// TODO FIXME this could be unsafe
+        {
+            // TODO FIXME this could be unsafe
             auto globals = RS.get_globals().unwrap_unsafe();
             auto sdl_window = dref<SDL_Window *>(
                 globals,
@@ -45,7 +46,10 @@ namespace crs
 
             ImGui_ImplSDL2_InitForOpenGL(sdl_window, nullptr);
 
-            ImGui_ImplOpenGL3_Init("#version 330"); // TODO FIXME check error
+            if (!ImGui_ImplOpenGL3_Init("#version 330"))
+            {
+                LOG(EglSwapBuffersHook, "Failed to initialize ImGui OpenGL backend");
+            }
 
             
             RS.ui->init(std::string(FEATURE_VERSION) + CACHYRS_VERSION, RS.get_configuration_dir(), sdl_window, width, height);
@@ -53,6 +57,9 @@ namespace crs
             // flush OpenGL errors so they don't propagate to rmlui
             FLUSH_GL_ERRORS();
 
+            auto &io = ImGui::GetIO();
+            io.DeltaTime = 1.0f / 60.0f;
+            
             is_first_run = false;
         }
 
@@ -64,7 +71,6 @@ namespace crs
 
             auto &io = ImGui::GetIO();
             io.DisplaySize = ImVec2(width, height);
-            io.DeltaTime = 1.0f / 60.0f;
         }
 
         // clang-format off
