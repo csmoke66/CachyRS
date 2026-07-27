@@ -5,9 +5,6 @@
 #include <dlfcn.h>
 #include <pci/pci.h>
 
-typedef int (*libc_start_main_t)(int (*)(int, char **, char **), int, char **,
-                                 void (*)(void), void (*)(void), void (*)(void), void *);
-
 static void redirect_output()
 {
     freopen("/tmp/cachy-rs-stdout.txt", "w", stdout);
@@ -31,7 +28,7 @@ extern "C" int __libc_start_main(
     void (*rtld_fini)(void),
     void *stack_end)
 {
-    auto real_libc_start_main = (libc_start_main_t)dlsym(RTLD_NEXT, "__libc_start_main");
+    auto real_libc_start_main = (decltype(__libc_start_main)*)dlsym(RTLD_NEXT, "__libc_start_main");
     redirect_output();
     
     if (is_nvidia_wayland())
