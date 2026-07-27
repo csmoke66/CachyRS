@@ -20,11 +20,6 @@ namespace crs
 {
     CachyRS RS;
 
-    void CachyRS::init_logging()
-    {
-        logx.init("/tmp/cachy-rs.txt");
-    }
-
     void CachyRS::init_process_info()
     {
         pi.init();
@@ -242,8 +237,6 @@ namespace crs
 
     void CachyRS::init()
     {
-        init_logging();
-
         LOG(DEBUG, "Initializing configuration directory at " << get_configuration_dir());
         std::filesystem::create_directories(std::filesystem::path(get_configuration_dir()));
 

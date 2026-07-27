@@ -13,30 +13,16 @@
 // not vertically stacked, and I plan to keep it that way. Abstractions are used
 // where they have real benefits, such as the UserInterface backends.
 //
-#include <fstream>
-#include <mutex>
+#include <sstream>
+#include <iostream>
 
 namespace crs
 {
-#define LOG(LVL, ...)                                                                                           \
-    logx.log_mutex.lock();                                                                                      \
-    logx.log_stream << "[" << __FUNCTION__ << "][" << #LVL << "] " << __VA_ARGS__ << ::std::dec << ::std::endl; \
-    logx.log_stream.flush();                                                                                               \
-    logx.log_mutex.unlock();
-
-    class Log
-    {
-    public:
-        ::std::ofstream log_stream;
-        ::std::mutex log_mutex;
-
-    public:
-        void init(const ::std::string &file);
-    };
-
-    // If you rename this to log, it will compile, the application will do nothing
-    // and you will be in compiler/linker bug hell. You can name it log, but only
-    // if no STL objects are in the log object. Why? Because fuck you that's why.
-    // Hours of my life I'll never get back.
-    extern Log logx;
+#define LOG(LVL, ...)                                                                                  \
+    do                                                                                                 \
+    {                                                                                                  \
+        std::stringstream ss;                                                                          \
+        ss << "[" << __FUNCTION__ << "][" << #LVL << "] " << __VA_ARGS__ << ::std::dec << ::std::endl; \
+        std::cout << ss.str();                                                                         \
+    } while (0);
 }

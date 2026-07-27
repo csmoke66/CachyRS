@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.22)
 project(mod LANGUAGES CXX)
 
 add_library(mod SHARED
-    src/log.cpp
     src/cachy.cpp
     src/not_cachy.cpp
     src/util.cpp

@@ -84,7 +84,6 @@ namespace crs
         EventBus event_bus;
 
     private:
-        void init_logging();
         void init_process_info();
         void init_imgui();
         void init_dom();
