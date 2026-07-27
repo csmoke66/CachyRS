@@ -56,6 +56,7 @@ namespace crs
             is_first_run = false;
         }
 
+        RS.ui_mutex.lock();
         if (cached_width != width || cached_height != height)
         {
             cached_width = width;
@@ -66,7 +67,6 @@ namespace crs
             io.DeltaTime = 1.0f / 60.0f;
         }
 
-        RS.ui_mutex.lock();
         // clang-format off
         RS.event_ring_buffer.process([](SDL_Event& event)
         {
