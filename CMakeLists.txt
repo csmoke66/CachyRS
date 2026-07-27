@@ -9,6 +9,5 @@ include(FetchContent)
 
 find_package(FakeIt CONFIG REQUIRED)
 
-add_subdirectory(injector)
 add_subdirectory(mod)
 add_subdirectory(updater)

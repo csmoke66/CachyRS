@@ -18,6 +18,12 @@ namespace crs
     {
         BaseHook::handler(cpu_state);
 
+        auto tick_hook = RS.hook_manager->view_hook<BaseHook>("engine_tick");
+        if (!tick_hook || !tick_hook->thread_id().has_value())
+        {
+            return;
+        }
+
         auto dpy = (EGLDisplay)CPU_FIRST_ARG(cpu_state);
         auto surface = (EGLSurface)CPU_SECOND_ARG(cpu_state);
 
@@ -27,8 +33,6 @@ namespace crs
 
         if (is_first_run)
         {
-            ImGui_ImplOpenGL3_Init("#version 330"); // TODO FIXME check error
-
             // TODO FIXME this could be unsafe
             auto globals = RS.get_globals().unwrap_unsafe();
             auto sdl_window = dref<SDL_Window *>(
@@ -40,14 +44,26 @@ namespace crs
                  off(Linux004, linux_005),
                  off(Linux005, sdl_window)});
 
+            ImGui_ImplSDL2_InitForOpenGL(sdl_window, nullptr);
+
+            if (!ImGui_ImplOpenGL3_Init("#version 330"))
+            {
+                LOG(EglSwapBuffersHook, "Failed to initialize ImGui OpenGL backend");
+            }
+
+            
             RS.ui->init(std::string(FEATURE_VERSION) + CACHYRS_VERSION, RS.get_configuration_dir(), sdl_window, width, height);
 
             // flush OpenGL errors so they don't propagate to rmlui
             FLUSH_GL_ERRORS();
 
+            auto &io = ImGui::GetIO();
+            io.DeltaTime = 1.0f / 60.0f;
+            
             is_first_run = false;
         }
 
+        RS.ui_mutex.lock();
         if (cached_width != width || cached_height != height)
         {
             cached_width = width;
@@ -55,10 +71,8 @@ namespace crs
 
             auto &io = ImGui::GetIO();
             io.DisplaySize = ImVec2(width, height);
-            io.DeltaTime = 1.0f / 60.0f;
         }
 
-        RS.ui_mutex.lock();
         // clang-format off
         RS.event_ring_buffer.process([](SDL_Event& event)
         {

@@ -35,6 +35,7 @@ struct WorldSettingCache;
 struct WidgetCache;
 class ContainerWidget;
 struct Model;
+struct Terrain;
 
 // generated
 struct Entity;

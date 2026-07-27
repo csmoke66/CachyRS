@@ -40,7 +40,7 @@ struct EntityStatus
 	PAD(0x28);
 	// 0x28
 	const JArray<const StatusBar> bars;
-	// 0x30
+	// 0x38
 };
 
 #pragma pack(pop)

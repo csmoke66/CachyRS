@@ -59,8 +59,8 @@ public:
 	PAD(0x70);
 	// 0x178
 	const JArray<WidgetChild> children;
-	// 0x188
-	PAD(0x20);
+	// 0x190
+	PAD(0x18);
 	// 0x1a8
 	const JArray<WidgetChild> item_children;
 };
@@ -142,7 +142,7 @@ struct Widget002
 	PAD(0x1c);
 	// 0x20
 	const JArray<Widget003> widgets_003;
-	// 0x30
+	// 0x38
 };
 
 struct Widget001

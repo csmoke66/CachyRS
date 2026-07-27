@@ -16,7 +16,7 @@ struct PlayerUpdateCache
 	PAD(0x10);
 	// 0x10
 	const JArray<const PlayerUpdate*> updates;
-	// 0x20
+	// 0x28
 };
 
 struct NpcUpdate

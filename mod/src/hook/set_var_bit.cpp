@@ -11,6 +11,9 @@ namespace crs
         auto buffer = (const CacheBuffer<void, WorldSettingMask>*)CPU_SECOND_ARG(cpu_state);
         auto value = (const uint32_t*)CPU_THIRD_ARG(cpu_state);
 
+        auto event = SetVarBitEvent(buffer->body->world_setting_id, *value);
+        RS.event_bus.dispatch(SetVarBitEvent::specific_id(), &event);
+
         LOG(INFO, "Update world setting: " << buffer->body->world_setting_id << " to " << *value);
         cpu_state->rax = (uint64_t)trampoline(wsc, buffer, value);
     }

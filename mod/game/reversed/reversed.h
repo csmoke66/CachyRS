@@ -8,6 +8,8 @@
 #pragma clang diagnostic ignored "-Wuninitialized"
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
 
+struct SDL_SysWMinfo;
+
 namespace crs
 {
 #include "reversed_util.h"

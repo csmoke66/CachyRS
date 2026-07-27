@@ -121,12 +121,17 @@ static_assert(off(Scene003, projection_matrix) == 0x13200, INVALID_OFFSET);
 
 struct Entity
 {
-	PAD(0x10);
+	PAD(0x8);
+	const WorldNode* parent;
+	PAD(0x0);
 	const EntityType type;
-	PAD(0x47);
+	PAD(0x3f);
+	const Terrain* terrain;
 };
 static_assert(sizeof(Entity) == 0x58, INVALID_SIZE);
+static_assert(off(Entity, parent) == 0x8, INVALID_OFFSET);
 static_assert(off(Entity, type) == 0x10, INVALID_OFFSET);
+static_assert(off(Entity, terrain) == 0x50, INVALID_OFFSET);
 
 class NamedEntity : public Entity
 {
@@ -137,7 +142,7 @@ public:
 	const Vec3<float> position;
 	PAD(0x4c);
 	const JArray<const uint32_t> animation_queue;
-	PAD(0xc20);
+	PAD(0xc18);
 	const EntityStatus* status;
 	PAD(0x154);
 };

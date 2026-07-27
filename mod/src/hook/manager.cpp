@@ -1,4 +1,5 @@
 #include "hook.h"
+#include "log.h"
 
 namespace crs
 {
@@ -17,6 +18,10 @@ namespace crs
             iat_hook(vt_offset, (void *)fn.addr, hook.get());
 
             hooks[name] = std::move(hook);
+        }
+        else
+        {
+            LOG(ERROR, "Failed to find import with name '" << symbol << "'");
         }
     }
 

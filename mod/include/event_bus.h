@@ -18,36 +18,12 @@ namespace crs
 
     public:
         ::std::string get_id();
+
+    public:
+        virtual void* get_args();
     };
 
-    class EngineTickEvent : public Event
-    {
-    public:
-        static constexpr ::std::string specific_id()
-        {
-            return "on_engine_tick";
-        }
-
-    public:
-        EngineTickEvent();
-    };
-
-    class MenuActionEvent : public Event
-    {
-    public:
-        MenuActionType type;
-        MenuActionArgs *args;
-
-    public:
-        static constexpr ::std::string specific_id()
-        {
-            return "on_menu_action";
-        }
-
-    public:
-        MenuActionEvent(MenuActionType type, MenuActionArgs *args);
-    };
-
+    
     template <std::derived_from<Event> T>
     class EventReceiver
     {

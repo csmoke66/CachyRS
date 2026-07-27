@@ -3,6 +3,8 @@
 #ifdef __linux__
 #include <limits.h>
 #include <unistd.h>
+#include <link.h>
+#include <climits>
 
 #include <fstream>
 #include <sstream>
@@ -41,38 +43,26 @@ namespace crs
 
     Elf64_Addr ProcessInterface::main_module_base() const
     {
-        char exe[PATH_MAX];
-        ssize_t len = readlink("/proc/self/exe", exe, sizeof(exe) - 1);
-        exe[len] = '\0';
-
-        std::ifstream maps("/proc/self/maps");
-        std::string line;
-
-        while (std::getline(maps, line))
+        struct CallbackData
         {
-            if (line.find(exe) == std::string::npos)
+            Elf64_Addr base_address = 0;
+        } data;
+
+        // clang-format off
+        dl_iterate_phdr([](struct dl_phdr_info *info, size_t size, void *data_ptr) -> int
+        {
+            auto res = (CallbackData *)data_ptr;
+
+            if (info->dlpi_name != nullptr && info->dlpi_name[0] == '\0')
             {
-                continue;
+                res->base_address = info->dlpi_addr;
+                return 1;
             }
 
-            std::istringstream iss(line);
-
-            std::string range;
-            std::string perms;
-            std::string offset;
-
-            iss >> range >> perms >> offset;
-
-            if (offset != "00000000")
-            {
-                continue;
-            }
-
-            auto dash = range.find('-');
-            return std::stoull(range.substr(0, dash), nullptr, 16);
-        }
-
-        return 0;
+            return 0;
+        }, &data);
+        // clang-format on
+        return data.base_address;
     }
 
     void ProcessInterface::init_game_handle()

@@ -1,4 +1,5 @@
 #include "event_bus.h"
+#include "game_events.h"
 
 namespace crs
 {
@@ -7,14 +8,9 @@ namespace crs
         this->id = id;
     }
 
-    EngineTickEvent::EngineTickEvent() : Event(EngineTickEvent::specific_id())
+    void* Event::get_args()
     {
-    }
-
-    MenuActionEvent::MenuActionEvent(MenuActionType type, MenuActionArgs *args) : Event(MenuActionEvent::specific_id())
-    {
-        this->type = type;
-        this->args = args;
+        return nullptr;
     }
 
     EventBusLane::EventBusLane()
