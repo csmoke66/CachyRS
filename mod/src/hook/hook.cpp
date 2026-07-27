@@ -13,6 +13,7 @@ namespace crs
         }
 
         this->last_thread_id = tid;
+        this->call_count += 1;
     }
 
     std::optional<std::thread::id> BaseHook::thread_id() const

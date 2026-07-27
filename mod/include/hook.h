@@ -62,8 +62,9 @@ namespace crs
 
     class BaseHook
     {
-    private:
+    protected:
         std::optional<std::thread::id> last_thread_id;
+        std::atomic<uint64_t> call_count = 0;
 
     public:
         virtual ~BaseHook()

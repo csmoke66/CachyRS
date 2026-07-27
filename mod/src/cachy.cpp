@@ -36,11 +36,6 @@ namespace crs
         ImGui::CreateContext();
         ImGui::StyleColorsDark();
 
-        if (auto sdl_window = NRS.sdl_window())
-        {
-            ImGui_ImplSDL2_InitForOpenGL(sdl_window, nullptr);
-        }
-
         auto style = &ImGui::GetStyle();
         auto colors = style->Colors;
 
@@ -166,10 +161,18 @@ namespace crs
             return;
         }
 
-        LOG(INFO, "Placing hooks...");
         hook_manager = ::std::make_unique<HookManager>(&pi, vt_offset);
-        hook_manager->iat("swap_buffers", "eglSwapBuffers", unique_hook<EglSwapBuffersHook>());
-        hook_manager->iat("poll_event", "SDL_PollEvent", unique_hook<SdlPollEventHook>());
+
+        LOG(INFO, "Placing IAT hooks...");
+        hook_manager->iat("egl_swap_buffers", "eglSwapBuffers", unique_hook<EglSwapBuffersHook>());
+        hook_manager->iat("egl_get_display", "eglGetDisplay", unique_hook<EglGetDisplayHook>());
+        hook_manager->iat("egl_init", "eglInitialize", unique_hook<EglInitHook>());
+        hook_manager->iat("egl_create_window_surface", "eglCreateWindowSurface", unique_hook<EglCreateWindowSurfaceHook>());
+        hook_manager->iat("egl_choose_config", "eglChooseConfig", unique_hook<EglChooseConfigHook>());
+        hook_manager->iat("sdl_get_window_wm_info", "SDL_GetWindowWMInfo", unique_hook<SdlGetWindowWMInfoHook>());
+        hook_manager->iat("sdl_poll_event", "SDL_PollEvent", unique_hook<SdlPollEventHook>());
+
+        LOG(INFO, "Placing x86 hooks...");
         hook_manager->x86("menu_execute", &get_globals()->menu_execute, unique_hook<MenuExecuteHook>());
         hook_manager->x86("render_widget", &get_globals()->render_widget, unique_hook<RenderWidgetHook>());
         hook_manager->x86("set_varbit", &get_globals()->set_varbit, unique_hook<SetVarBitHook>());
@@ -246,6 +249,8 @@ namespace crs
 
         LOG(INFO, "Initializing process info...");
         init_process_info();
+        LOG(INFO, "Game= " << pi.game_base());
+
 
         LOG(INFO, "Initializing ImGui...");
         init_imgui();

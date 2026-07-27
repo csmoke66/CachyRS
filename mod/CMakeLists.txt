@@ -30,11 +30,20 @@ add_library(mod SHARED
     src/hook/linux.cpp
     src/hook/manager.cpp
     src/hook/egl_swap_buffers.cpp
+    src/hook/egl_get_display.cpp
+    src/hook/egl_init.cpp
+    src/hook/egl_create_window_surface.cpp
+    src/hook/egl_choose_config.cpp
+    src/hook/sdl_get_window_wm_info.cpp
+    src/hook/sdl_create_window.cpp
+    src/hook/sdl_create_context.cpp
+    src/hook/sdl_destroy_context.cpp
     src/hook/menu_execute.cpp
     src/hook/sdl_poll_event.cpp
     src/hook/render_widget.cpp
     src/hook/engine_tick.cpp
     src/hook/set_var_bit.cpp
+    src/hook/dl_open.cpp
 
     # keep this last, since we run our code in a static initializer
     # putting it last puts it last in the initialization list

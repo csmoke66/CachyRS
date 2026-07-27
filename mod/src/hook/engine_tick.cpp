@@ -23,7 +23,7 @@ namespace crs
 
     void EngineTickHook::tick_imgui(Engine *engine)
     {
-        auto swap_buffers_hook = RS.hook_manager->view_hook<EglSwapBuffersHook>("swap_buffers");
+        auto swap_buffers_hook = RS.hook_manager->view_hook<EglSwapBuffersHook>("egl_swap_buffers");
         if (!!swap_buffers_hook && !swap_buffers_hook->is_first_run)
         {
             ImGui_ImplOpenGL3_NewFrame();
