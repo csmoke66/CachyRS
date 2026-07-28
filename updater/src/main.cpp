@@ -308,14 +308,18 @@ std::vector<PatternObject> build_pattern_objects()
         { "char", 0x1, },
         new ConstructorSizeExtractor(capstone_handle, x86_reg::X86_REG_RBX, X86_INS_RET)}});
 
-        
-
     objects.push_back({"Player", {
         new DefaultPattern{
             "combat_level",
             compile_ida_pattern("45 8B 82 ? ? ? ? 48 8D 35"),
-            { "const uint32_t", 0x4, },
+            { "const int32_t", 0x4, },
             (new ImmExtractor(0x3, 0x0, 4))->
+                validator(new AlignmentValidator(0x4))},
+        new DefaultPattern{
+            "skill_level",
+            compile_ida_pattern("8B 8D ? ? ? ? 44 8B B2"),
+            { "const int32_t", 0x4, },
+            (new ImmExtractor(0x2, 0x0, 4))->
                 validator(new AlignmentValidator(0x4))},
         new DefaultPattern{
             "model",
