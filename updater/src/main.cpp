@@ -291,7 +291,7 @@ std::vector<PatternObject> build_pattern_objects()
         new DefaultPattern{
             "animation_queue",
             compile_ida_pattern("4C 8B 8D ? ? ? ? 4C 89 8D"),
-            { "const JArray<const uint32_t>", 0x18, },
+            { "const JVector<const uint32_t>", 0x18, },
             (new ImmExtractor(0x3, 0x0, 4))->
                 validator(new AlignmentValidator(0x8))},
         new DefaultPattern{

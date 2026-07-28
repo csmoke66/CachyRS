@@ -83,7 +83,7 @@ struct Menu
 {
 	PAD(0x13a0);
 	// 0x13a0
-	JArray<MenuOption001*> menu_options;
+	JVector<MenuOption001*> menu_options;
 	// 0x13b8
 };
 #pragma pack(pop)

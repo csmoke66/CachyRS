@@ -58,11 +58,11 @@ public:
 	// 0x108
 	PAD(0x70);
 	// 0x178
-	const JArray<WidgetChild> children;
+	const JVector<WidgetChild> children;
 	// 0x190
 	PAD(0x18);
 	// 0x1a8
-	const JArray<WidgetChild> item_children;
+	const JVector<WidgetChild> item_children;
 };
 static_assert(off(ContainerWidget, children) == 0x178, INVALID_OFFSET);
 static_assert(off(ContainerWidget, item_children) == 0x1a8, INVALID_OFFSET);
@@ -141,7 +141,7 @@ struct Widget002
 	// 0x4
 	PAD(0x1c);
 	// 0x20
-	const JArray<Widget003> widgets_003;
+	const JVector<Widget003> widgets_003;
 	// 0x38
 };
 
@@ -158,6 +158,6 @@ struct WidgetCache
 	// 0x0
 	PAD(0x68);
 	// 0x68
-	const JArray<Widget001> c;
+	const JVector<Widget001> c;
 };
 #pragma pack(pop)

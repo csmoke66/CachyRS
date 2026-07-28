@@ -15,7 +15,7 @@ struct PlayerUpdateCache
 	// 0x0
 	PAD(0x10);
 	// 0x10
-	const JArray<const PlayerUpdate*> updates;
+	const JVector<const PlayerUpdate*> updates;
 	// 0x28
 };
 

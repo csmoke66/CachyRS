@@ -30,6 +30,17 @@ template <typename T>
 struct JArray
 {
 	// 0x0
+	uint64_t size;
+	// 0x8
+	T* data;
+	// 0x10
+};
+static_assert(sizeof(JArray<void*>) == 0x10, INVALID_SIZE);
+
+template <typename T>
+struct JVector
+{
+	// 0x0
 	T *begin;
 	// 0x8
 	T *end;
@@ -63,7 +74,7 @@ struct JArray
 		return &begin[idx];
 	}
 };
-static_assert(sizeof(JArray<void*>) == 0x18, INVALID_SIZE);
+static_assert(sizeof(JVector<void*>) == 0x18, INVALID_SIZE);
 
 // this is actually a typical C++ STL string
 class JString

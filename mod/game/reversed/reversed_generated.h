@@ -146,7 +146,7 @@ public:
 	PAD(0x1c8);
 	const Vec3<float> position;
 	PAD(0x4c);
-	const JArray<const uint32_t> animation_queue;
+	const JVector<const uint32_t> animation_queue;
 	PAD(0xc18);
 	const EntityStatus* status;
 	PAD(0x154);

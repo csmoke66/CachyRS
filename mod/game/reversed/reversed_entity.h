@@ -39,7 +39,7 @@ struct EntityStatus
 	// 0x0
 	PAD(0x28);
 	// 0x28
-	const JArray<const StatusBar> bars;
+	const JVector<const StatusBar> bars;
 	// 0x38
 };
 

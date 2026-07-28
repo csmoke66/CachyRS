@@ -21,6 +21,6 @@ typedef void* (*FnMenuExecute)(void*, const ActionMenuContext*, void*);
 typedef void* (*FnHeapAllocate)(void*, size_t, size_t);
 typedef void* (*FnHeapAllocateAligned)(size_t);
 typedef void* (*FnEngineTick)(Engine*, float);
-typedef void* (*FnRenderWidget)(Widget*, void*, JArray<WidgetChild>*, int, int, void*, void*, void*, void*, void*, void*, void*, void*);
+typedef void* (*FnRenderWidget)(Widget*, void*, JVector<WidgetChild>*, int, int, void*, void*, void*, void*, void*, void*, void*, void*);
 typedef void* (*FnSetVarBit)(const WorldSettingCache*, const CacheBuffer<void, WorldSettingMask>*, const uint32_t*);
 typedef void (*FnAddMenuOption)(void*, const char*, uint8_t*, int32_t, void*, int32_t*, int32_t, int32_t, int32_t, int32_t, uint8_t, uint8_t, int32_t, uint8_t, uint8_t, void*, uint8_t, int32_t);

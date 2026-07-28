@@ -9,7 +9,7 @@ struct ItemContainer
 	// 0x14
 	PAD(0x4);
 	// 0x18
-	const JArray<const Item> items;
+	const JVector<const Item> items;
 	// 0x30
 	PAD(0x18);
 	// 0x48
@@ -21,7 +21,7 @@ struct ItemCache
 	// 0x0
 	PAD(0x8);
 	// 0x8
-	const JArray<const ItemContainer> containers;
+	const JVector<const ItemContainer> containers;
 	// 0x20
 };
 #pragma pack(pop)

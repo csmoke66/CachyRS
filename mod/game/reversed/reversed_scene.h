@@ -10,10 +10,10 @@ struct TerrainGrid002
 {
     PAD(0x160);
     // 0x160
-    JArray<TaggedObject<void, JArray<TerrainHeightData>>> height_data_1; 
+    JVector<TaggedObject<void, JVector<TerrainHeightData>>> height_data_1; 
     // 0x178
     PAD(0x70);
-    JArray<TerrainHeightData>* height_data_2;
+    JVector<TerrainHeightData>* height_data_2;
 };
 
 struct TerrainGrid001
@@ -31,7 +31,7 @@ struct Terrain
     // 0x0
     PAD(0x14020);
     // 0x14020
-    JArray<JArray<TerrainGrid001>> grid;
+    JVector<JVector<TerrainGrid001>> grid;
 };
 
 struct WorldNode
@@ -55,7 +55,7 @@ struct WorldNode
     // 0x8c
     PAD(0xac);
     // 0x138
-    const JArray<const WorldNode *> children;
+    const JVector<const WorldNode *> children;
     // 0x150
     PAD(0x50);
     // 0x1a0
@@ -78,7 +78,7 @@ struct Scene001
     // 0x0
     PAD(0x58);
     // 0x58
-    const JArray<const Scene002> scene_002;
+    const JVector<const Scene002> scene_002;
     // 0x70
     const int32_t scene_index;
 };
