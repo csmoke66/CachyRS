@@ -139,7 +139,9 @@ static_assert(off(Entity, terrain) == 0x50, INVALID_OFFSET);
 class NamedEntity : public Entity
 {
 public:
-	PAD(0x38);
+	PAD(0x30);
+	int32_t server_index;
+	PAD(0x4);
 	const JString name;
 	PAD(0x1c8);
 	const Vec3<float> position;
@@ -150,6 +152,7 @@ public:
 	PAD(0x154);
 };
 static_assert(sizeof(NamedEntity) == 0x1054, INVALID_SIZE);
+static_assert(off(NamedEntity, server_index) == 0x88, INVALID_OFFSET);
 static_assert(off(NamedEntity, name) == 0x90, INVALID_OFFSET);
 static_assert(off(NamedEntity, position) == 0x270, INVALID_OFFSET);
 static_assert(off(NamedEntity, animation_queue) == 0x2c8, INVALID_OFFSET);
