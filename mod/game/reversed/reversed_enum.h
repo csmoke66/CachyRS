@@ -28,3 +28,10 @@ enum class CacheIndexOrdinal : uint8_t
 {
 	varbit = 7,
 };
+
+enum class ModelItemOrdinal : uint8_t
+{
+	// TODO FIXME add more of these..
+	weapon_primary = 15,
+	weapon_offhand = 16,
+};
