@@ -135,7 +135,7 @@ namespace crs
         }
 
         auto engine = RS.get_globals()->engine;
-        if (!engine)
+        if (!engine || engine->state != GameState::in_game)
         {
             return;
         }
@@ -146,9 +146,12 @@ namespace crs
         if (engine->state == GameState::in_game)
         {
             auto root_world_node = NRS.root_node();
-            if (player_overlay_on)
+            if (root_world_node)
             {
-                render_player_overlay(draw_list, root_world_node);
+                if (player_overlay_on)
+                {
+                    render_player_overlay(draw_list, root_world_node);
+                }
             }
         }
     }

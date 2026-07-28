@@ -25,14 +25,17 @@ namespace crs
     template <typename FN>
     static void iterate_entities(const WorldNode *node, FN fn)
     {
-        if (auto entity = node->entity)
+        if (node)
         {
-            fn((NamedEntity *)entity);
-        }
+            if (auto entity = node->entity)
+            {
+                fn((NamedEntity *)entity);
+            }
 
-        for (auto c = node->children.begin; c != node->children.end; c++)
-        {
-            iterate_entities(*c, fn);
+            for (auto c = node->children.begin; c != node->children.end; c++)
+            {
+                iterate_entities(*c, fn);
+            }
         }
     }
 

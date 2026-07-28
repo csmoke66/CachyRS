@@ -33,7 +33,9 @@ struct Globals
 	char menu_action_handler_npc1;
 	PAD(0x2d2df);
 	char menu_execute;
-	PAD(0xb552f);
+	PAD(0x3bddf);
+	char add_menu_option;
+	PAD(0x7974f);
 	char render_widget;
 	PAD(0x2e1d7f);
 	char set_varbit;
@@ -60,6 +62,7 @@ static_assert(off(Globals, menu_action_handler_npc3) == 0x162630, INVALID_OFFSET
 static_assert(off(Globals, menu_action_handler_npc2) == 0x162650, INVALID_OFFSET);
 static_assert(off(Globals, menu_action_handler_npc1) == 0x162670, INVALID_OFFSET);
 static_assert(off(Globals, menu_execute) == 0x18f950, INVALID_OFFSET);
+static_assert(off(Globals, add_menu_option) == 0x1cb730, INVALID_OFFSET);
 static_assert(off(Globals, render_widget) == 0x244e80, INVALID_OFFSET);
 static_assert(off(Globals, set_varbit) == 0x526c00, INVALID_OFFSET);
 static_assert(off(Globals, engine_tick) == 0xb70430, INVALID_OFFSET);

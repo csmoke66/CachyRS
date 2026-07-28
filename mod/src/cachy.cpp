@@ -172,6 +172,7 @@ namespace crs
         hook_manager->x86("render_widget", &get_globals()->render_widget, unique_hook<RenderWidgetHook>());
         hook_manager->x86("set_varbit", &get_globals()->set_varbit, unique_hook<SetVarBitHook>());
         hook_manager->x86("engine_tick", &get_globals()->engine_tick, unique_hook<EngineTickHook>());
+        hook_manager->x86("add_menu_option", &get_globals()->add_menu_option, unique_hook<AddMenuOptionHook>());
     }
 
     ::std::string CachyRS::get_configuration_dir() const
