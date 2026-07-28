@@ -43,4 +43,26 @@ struct EntityStatus
 	// 0x38
 };
 
+struct MovementPoint
+{
+	PAD(0x4);
+	// 0x4
+	float scene_x;
+	// 0x8
+	PAD(0x4);
+	// 0xc
+	float scene_y;
+	// 0x10
+	PAD(0x8);
+	// 0x18
+};
+
+struct MovementQueue
+{
+	// 0x0
+	PAD(0x28);
+	// 0x28
+	JArray2<MovementPoint> points;
+	// 0x38
+};
 #pragma pack(pop)

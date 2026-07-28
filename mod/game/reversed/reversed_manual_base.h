@@ -37,6 +37,18 @@ struct JArray
 };
 static_assert(sizeof(JArray<void*>) == 0x10, INVALID_SIZE);
 
+// do we really need both variations of this..?
+template <typename T>
+struct JArray2
+{
+	// 0x0
+	T* data;
+	// 0x8
+	uint64_t size;
+	// 0x10
+};
+static_assert(sizeof(JArray2<void*>) == 0x10, INVALID_SIZE);
+
 template <typename T>
 struct JVector
 {

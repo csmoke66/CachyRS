@@ -36,6 +36,7 @@ struct WidgetCache;
 class ContainerWidget;
 struct Model;
 struct Terrain;
+struct MovementQueue;
 
 // generated
 struct Entity;

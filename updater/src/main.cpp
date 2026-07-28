@@ -300,6 +300,12 @@ std::vector<PatternObject> build_pattern_objects()
             { "int32_t", 4, },
             (new ImmExtractor(0x3, 0x0, 4))->
                 validator(new AlignmentValidator(0x8))},
+        new DefaultPattern{
+            "movement_queue",
+            compile_ida_pattern("4D 8B 8D ? ? ? ? 41 8B 49"),
+            { "const MovementQueue*", 8, },
+            (new ImmExtractor(0x3, 0x0, 4))->
+                validator(new AlignmentValidator(0x8))},
     },
     true, true, "Entity",
      new DefaultPattern{

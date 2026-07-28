@@ -143,7 +143,9 @@ public:
 	int32_t server_index;
 	PAD(0x4);
 	const JString name;
-	PAD(0x1c8);
+	PAD(0x1c0);
+	const MovementQueue* movement_queue;
+	PAD(0x0);
 	const Vec3<float> position;
 	PAD(0x4c);
 	const JVector<const uint32_t> animation_queue;
@@ -154,6 +156,7 @@ public:
 static_assert(sizeof(NamedEntity) == 0x1054, INVALID_SIZE);
 static_assert(off(NamedEntity, server_index) == 0x88, INVALID_OFFSET);
 static_assert(off(NamedEntity, name) == 0x90, INVALID_OFFSET);
+static_assert(off(NamedEntity, movement_queue) == 0x268, INVALID_OFFSET);
 static_assert(off(NamedEntity, position) == 0x270, INVALID_OFFSET);
 static_assert(off(NamedEntity, animation_queue) == 0x2c8, INVALID_OFFSET);
 static_assert(off(NamedEntity, status) == 0xef8, INVALID_OFFSET);
