@@ -164,12 +164,15 @@ public:
 	PAD(0x14);
 	const Model* model;
 	PAD(0x2c);
-	const uint32_t combat_level;
-	PAD(0x250);
+	const int32_t combat_level;
+	PAD(0x8);
+	const int32_t skill_level;
+	PAD(0x244);
 };
 static_assert(sizeof(Player) == 0x12f0, INVALID_SIZE);
 static_assert(off(Player, model) == 0x1068, INVALID_OFFSET);
 static_assert(off(Player, combat_level) == 0x109c, INVALID_OFFSET);
+static_assert(off(Player, skill_level) == 0x10a8, INVALID_OFFSET);
 
 class Npc : public NamedEntity
 {
