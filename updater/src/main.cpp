@@ -87,6 +87,49 @@ std::vector<PatternObject> build_pattern_objects()
                 validator(new AlignmentValidator(0x10))},
 
         new DefaultPattern{
+            "menu_action_handler_obj1",
+            compile_ida_pattern("4C 8B 5C 24 ? 4D 89 A5"),
+            {"char", 1},
+            (new MenuActionHandlerExtractor(capstone_handle, 21))->
+                validator(new AlignmentValidator(0x10))},
+        new DefaultPattern{
+            "menu_action_handler_obj2",
+            compile_ida_pattern("4C 8B 5C 24 ? 4D 89 A5"),
+            {"char", 1},
+            (new MenuActionHandlerExtractor(capstone_handle, 23))->
+                validator(new AlignmentValidator(0x10))},
+        new DefaultPattern{
+            "menu_action_handler_obj3",
+            compile_ida_pattern("4C 8B 5C 24 ? 4D 89 A5"),
+            {"char", 1},
+            (new MenuActionHandlerExtractor(capstone_handle, 25))->
+                validator(new AlignmentValidator(0x10))},
+        new DefaultPattern{
+            "menu_action_handler_obj4",
+            compile_ida_pattern("4C 8B 5C 24 ? 4D 89 A5"),
+            {"char", 1},
+            (new MenuActionHandlerExtractor(capstone_handle, 27))->
+                validator(new AlignmentValidator(0x10))},
+        new DefaultPattern{
+            "menu_action_handler_obj5",
+            compile_ida_pattern("4C 8B 5C 24 ? 4D 89 A5"),
+            {"char", 1},
+            (new MenuActionHandlerExtractor(capstone_handle, 29))->
+                validator(new AlignmentValidator(0x10))},
+        new DefaultPattern{
+            "menu_action_handler_obj6",
+            compile_ida_pattern("4C 8B 5C 24 ? 4D 89 A5"),
+            {"char", 1},
+            (new MenuActionHandlerExtractor(capstone_handle, 31))->
+                validator(new AlignmentValidator(0x10))},
+        new DefaultPattern{
+            "menu_action_handler_obj7",
+            compile_ida_pattern("4C 8B 5C 24 ? 4D 89 A5"),
+            {"char", 1},
+            (new MenuActionHandlerExtractor(capstone_handle, 33))->
+                validator(new AlignmentValidator(0x10))},
+
+        new DefaultPattern{
             "menu_action_handler_npc1",
             compile_ida_pattern("4C 8B 5C 24 ? 4D 89 A5"),
             {"char", 1},

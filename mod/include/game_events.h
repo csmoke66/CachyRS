@@ -17,8 +17,8 @@ namespace crs
 
     struct MenuActionEventArgs
     {
-        MenuActionType type;
         MenuActionArgs *args;
+        MenuActionTemplate** action_template;
     };
 
     class MenuActionEvent : public Event
@@ -33,7 +33,7 @@ namespace crs
         }
 
     public:
-        MenuActionEvent(MenuActionType type, MenuActionArgs *args);
+        MenuActionEvent(MenuActionArgs *args, MenuActionTemplate** action_template);
 
     public:
         void *get_args() override;

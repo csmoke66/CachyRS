@@ -11,7 +11,7 @@ namespace crs
         {
             if (auto tmpl = menu_action_context->tmpl)
             {
-                auto event = MenuActionEvent(MenuActionType::unknown, &menu_action_context->args);
+                auto event = MenuActionEvent(&menu_action_context->args, &menu_action_context->tmpl);
                 RS.event_bus.dispatch(MenuActionEvent::specific_id(), &event);
 
                 LOG(INFO, "Menu execute: " << std::hex << RS.pi.offset(tmpl->handler) << " "

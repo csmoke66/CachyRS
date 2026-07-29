@@ -11,13 +11,8 @@ public:
 	// 0x20
 	uint32_t id;
 	// 0x24
-	uint32_t type;
+	MenuActionType type;
 	// 0x28
-};
-
-enum class MenuActionType : uint8_t
-{
-	unknown,
 };
 
 union MenuActionArgs
@@ -37,6 +32,13 @@ union MenuActionArgs
 		uint32_t always_0_1;
 		uint32_t always_1;
 	} args_npc;
+	struct
+	{
+		uint32_t object_id;
+		uint32_t tile_x;
+		uint32_t tile_y;
+		uint32_t always_1;
+	} args_obj;
 };
 
 struct MenuActionContext

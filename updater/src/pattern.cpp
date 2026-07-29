@@ -69,6 +69,12 @@ MenuActionHandlerExtractor::MenuActionHandlerExtractor(csh capstone_handle, uint
 
 uint64_t MenuActionHandlerExtractor::extract(const ElfInterface &elf, const uint8_t *data)
 {
+    struct Candidate
+    {
+        uint64_t lea_count;
+        uint64_t rip;
+    };
+
     uint64_t lea_count = 0;
 
     size_t count;
@@ -76,6 +82,7 @@ uint64_t MenuActionHandlerExtractor::extract(const ElfInterface &elf, const uint
 
     auto ret = false;
     auto rva = elf.ptr_to_va(elf.offset(data));
+    std::vector<Candidate> candidates;
 
     while (!ret)
     {
@@ -92,6 +99,7 @@ uint64_t MenuActionHandlerExtractor::extract(const ElfInterface &elf, const uint
                 return rip;
             }
 
+            candidates.push_back({lea_count, rip});
             lea_count += 1;
         }
         else if (insn->id == X86_INS_RET)
@@ -103,6 +111,11 @@ uint64_t MenuActionHandlerExtractor::extract(const ElfInterface &elf, const uint
         rva += insn->size;
     }
 
+    LOG(WARNING, "Failed to find LEA");
+    for (auto& c : candidates)
+    {
+        LOG(WARNING, " -> Candidate: " << c.lea_count << " " << std::hex << c.rip);
+    }
     return 0;
 }
 
