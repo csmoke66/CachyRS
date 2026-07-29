@@ -159,5 +159,12 @@ struct WidgetCache
 	PAD(0x68);
 	// 0x68
 	const JVector<Widget001> c;
+	// 0x80
+	PAD(0x1a8);
+	// 0x228
+	uint8_t widget_item_selected;
+	// 0x229
 };
+static_assert(off(WidgetCache, widget_item_selected) == 0x228, INVALID_OFFSET);
+
 #pragma pack(pop)
