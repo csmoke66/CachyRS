@@ -19,6 +19,7 @@ namespace crs
     {
         MenuActionArgs *args;
         MenuActionTemplate** action_template;
+        bool bypass_logic = false;
     };
 
     class MenuActionEvent : public Event
@@ -27,13 +28,18 @@ namespace crs
         MenuActionEventArgs args;
 
     public:
-        static constexpr ::std::string specific_id()
+        static constexpr ::std::string pre_id()
         {
-            return "on_menu_action";
+            return "on_menu_action_pre";
+        }
+
+        static constexpr ::std::string post_id()
+        {
+            return "on_menu_action_post";
         }
 
     public:
-        MenuActionEvent(MenuActionArgs *args, MenuActionTemplate** action_template);
+        MenuActionEvent(const std::string& id, MenuActionArgs *args, MenuActionTemplate** action_template);
 
     public:
         void *get_args() override;
