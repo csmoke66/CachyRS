@@ -96,6 +96,9 @@ namespace crs
     class EngineTickHook : public Hook<FnEngineTick>
     {
     private:
+        bool plugins_loaded = false;
+        
+    private:
         void tick_ui(Engine *engine);
         void tick_imgui(Engine *engine);
         void tick_stats();

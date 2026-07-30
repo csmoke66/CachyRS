@@ -76,6 +76,15 @@ namespace crs
     void EngineTickHook::handler(CpuState *cpu_state)
     {
         BaseHook::handler(cpu_state);
+        auto swap_buffers_hook = RS.hook_manager->view_hook<EglSwapBuffersHook>("egl_swap_buffers");
+        if (!plugins_loaded && !swap_buffers_hook->is_first_run)
+        {
+            LOG(INFO, "Loading plugins...");
+            RS.plugin_manager.init();
+            RS.plugin_manager.load_all(RS.resolve_configuration("plugins/"));
+
+            plugins_loaded = true;
+        }
 
         auto engine = (Engine *)CPU_FIRST_ARG(cpu_state);
         RS.ui_mutex.lock();

@@ -1,6 +1,7 @@
 #include "ui.h"
 
 #include <map>
+#include <atomic>
 
 #include <RmlUi/Core.h>
 #include <RmlUi/Debugger.h>
@@ -40,23 +41,32 @@ namespace crs
         Rml::Element *selected_tab_button = nullptr;
         Rml::Element *selected_content = nullptr;
 
+        Rml::Element *selected_plugin_tab_button = nullptr;
+        Rml::Element *selected_plugin_content = nullptr;
+
         Rml::Element *home_tab_button = nullptr;
         Rml::Element *home_content = nullptr;
 
         Rml::Element *plugins_tab_button = nullptr;
         Rml::Element *plugins_content = nullptr;
-
+        Rml::Element *plugins_buttons = nullptr;
+        
         Rml::Element *debug_tab_button = nullptr;
         Rml::Element *debug_content = nullptr;
 
         Rml::Element *dom_inspector_content = nullptr;
 
-        Rml::Element* last_hovered = nullptr;
+        Rml::Element *last_hovered = nullptr;
 
     public:
         std::unique_ptr<DomTreeListener> dom_tree_listener;
         std::shared_ptr<DomNode> root_dom_node;
         std::map<std::shared_ptr<DomNode>, RmlDomNode> dom_nodes;
+
+    private:
+        std::atomic<uint64_t> component_allocation = 1;
+        std::map<uint64_t, Rml::ElementDocument *> document_map;
+        std::map<uint64_t, Rml::Element *> component_map;
 
     public:
         RmlUserInterface();
@@ -66,6 +76,7 @@ namespace crs
 
     private:
         void load_fonts();
+        Rml::ElementDocument* load_document(const std::string& path);
 
     public:
         void pre_init();
@@ -82,12 +93,18 @@ namespace crs
         void build_dom_node(std::shared_ptr<DomNode> node, int depth = 0) override;
         void add_dom_node(std::shared_ptr<DomNode> node) override;
         void remove_dom_node(std::shared_ptr<DomNode> node) override;
-        Rml::Element* get_dom_parent(Rml::Element* element);
+        Rml::Element *get_dom_parent(Rml::Element *element);
 
     public:
         void inspect_dom_node(std::shared_ptr<DomNode> node);
 
     public:
         void render() override;
+
+    public:
+        uint64_t allocate_tab(const std::string& name) override;
+        uint64_t allocate_component(ComponentType type, uint64_t parent_id) override;
+        void update_component_text(uint64_t component_id, std::string text) override;
+        bool is_component_checked(uint64_t component_id) override;
     };
 }

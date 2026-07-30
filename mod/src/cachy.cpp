@@ -245,7 +245,6 @@ namespace crs
         init_process_info();
         LOG(INFO, "Game= " << pi.game_base());
 
-
         LOG(INFO, "Initializing ImGui...");
         init_imgui();
 
@@ -256,15 +255,18 @@ namespace crs
 
         rml_ui->pre_init();
 
+        LOG(INFO, "Binding plugin manager to UI...");
+        
+        plugin_manager.add_load_callback([this](Plugin* plugin)
+        {
+            plugin->ui_tab_container_id = ui->allocate_tab(plugin->name);
+        });
+
         LOG(INFO, "Initializing capstone...");
         asm_init();
 
         LOG(INFO, "Initializing DOM...");
         init_dom();
-
-        LOG(INFO, "Loading plugins...");
-        plugin_manager.init();
-        plugin_manager.load_all(resolve_configuration("plugins/"));
         
         LOG(INFO, "Initializing hooks...");
         init_hooks();
