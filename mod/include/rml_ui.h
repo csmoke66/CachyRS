@@ -2,6 +2,7 @@
 
 #include <map>
 #include <atomic>
+#include <vector>
 
 #include <RmlUi/Core.h>
 #include <RmlUi/Debugger.h>
@@ -68,6 +69,9 @@ namespace crs
         std::map<uint64_t, Rml::ElementDocument *> document_map;
         std::map<uint64_t, Rml::Element *> component_map;
 
+    private:
+        std::vector<std::function<void()>> reload_callbacks;
+
     public:
         RmlUserInterface();
 
@@ -82,6 +86,7 @@ namespace crs
         void pre_init();
         void init(const std::string &version, const std::string &config_folder, SDL_Window *window, int width, int height) override;
         void reload() override;
+        void add_reload_callback(std::function<void()> function) override;
 
     public:
         void process(SDL_Event *event) override;

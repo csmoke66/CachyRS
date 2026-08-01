@@ -163,6 +163,7 @@ bool RmlSDL::InputEventHandler(Rml::Context* context, SDL_Window* window, SDL_Ev
 	constexpr auto event_key_up = SDL_KEYUP;
 	constexpr auto event_text_input = SDL_TEXTINPUT;
 	constexpr auto event_window_size_changed = SDL_WINDOWEVENT_SIZE_CHANGED;
+	constexpr auto event_window_resized = SDL_WINDOWEVENT_RESIZED;
 	constexpr auto event_window_leave = SDL_WINDOWEVENT_LEAVE;
 	constexpr auto event_finger_down = SDL_FINGERDOWN;
 	constexpr auto event_finger_up = SDL_FINGERUP;
@@ -241,6 +242,7 @@ bool RmlSDL::InputEventHandler(Rml::Context* context, SDL_Window* window, SDL_Ev
 		RMLSDL_WINDOW_EVENTS_BEGIN
 
 	case event_window_size_changed:
+	case event_window_resized:
 	{
 		Rml::Vector2i dimensions(ev.window.data1, ev.window.data2);
 		

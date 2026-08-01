@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <vector>
 #include <map>
+#include <functional>
 
 #include <SDL2/SDL.h>
 
@@ -60,18 +61,19 @@ namespace crs
     public:
         virtual void init(const std::string &version, const std::string &config_folder, SDL_Window *window, int width, int height) = 0;
         virtual void reload();
-
+        virtual void add_reload_callback(std::function<void()> function);
+        
     public:
         virtual void process(SDL_Event *event) = 0;
         virtual bool wants_input() = 0;
-
-    public:
-        virtual void render() = 0;
 
     public:
         virtual uint64_t allocate_tab(const std::string& name) = 0;
         virtual uint64_t allocate_component(ComponentType type, uint64_t parent_id) = 0;
         virtual void update_component_text(uint64_t component_id, std::string text) = 0;
         virtual bool is_component_checked(uint64_t component_id) = 0;
+
+    public:
+        virtual void render() = 0;
     };
 }

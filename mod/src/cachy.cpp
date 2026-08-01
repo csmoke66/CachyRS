@@ -203,7 +203,7 @@ namespace crs
         return ThreadOwned<Globals *>((Globals *)pi.game_base());
     }
 
-    bool CachyRS::project_to_screen(const Vec3<float>& scene, Vec2<float> *out) const
+    bool CachyRS::project_to_screen(const Vec3<float> &scene, Vec2<float> *out) const
     {
         auto scene_003 = NRS.scene_003();
         if (!scene_003)
@@ -256,18 +256,37 @@ namespace crs
         rml_ui->pre_init();
 
         LOG(INFO, "Binding plugin manager to UI...");
-        
-        plugin_manager.add_load_callback([this](Plugin* plugin)
+
+        // clang-format off
+        plugin_manager.add_load_callback([this](Plugin *plugin)
         {
-            plugin->ui_tab_container_id = ui->allocate_tab(plugin->name);
+            ui_locked([this, plugin]()
+            {
+                plugin->ui_tab_container_id = ui->allocate_tab(plugin->name);
+                return false;
+            });
         });
+
+        ui->add_reload_callback([this]() 
+        {
+            ui_locked([this]()
+            {
+                for (auto& plugin : plugin_manager.view_plugins())
+                {
+                    plugin->ui_tab_container_id = ui->allocate_tab(plugin->name);
+                    plugin->init(crs::InitType::refreshed, plugin.get());
+                }
+                return false;
+            });
+        });
+        // clang-format on
 
         LOG(INFO, "Initializing capstone...");
         asm_init();
 
         LOG(INFO, "Initializing DOM...");
         init_dom();
-        
+
         LOG(INFO, "Initializing hooks...");
         init_hooks();
 

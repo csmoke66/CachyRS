@@ -9,4 +9,9 @@ namespace crs
     void UserInterface::reload()
     {
     }
+    
+    void UserInterface::add_reload_callback(std::function<void()> function)
+    {
+
+    }
 }

@@ -39,17 +39,33 @@ namespace crs
 
     static uint64_t plugin_api_user_interface_allocate_component(PluginComponentType type, uint64_t parent_id)
     {
-        return RS.ui->allocate_component((ComponentType)type, parent_id);
+        // clang-format off
+        return RS.ui_locked([type, parent_id]()
+        { 
+            return RS.ui->allocate_component((ComponentType)type, parent_id);
+        });
+        // clang-format on
     }
 
     static void plugin_api_user_interface_update_component_text(uint64_t component_id, const char *text)
     {
-        RS.ui->update_component_text(component_id, std::string(text));
+        // clang-format off
+        RS.ui_locked([component_id, text]()
+        { 
+            RS.ui->update_component_text(component_id, std::string(text));
+            return false;
+        });
+        // clang-format on
     }
 
     static bool plugin_api_user_interface_is_component_checked(uint64_t component_id)
     {
-        return RS.ui->is_component_checked(component_id);
+        // clang-format off
+        return RS.ui_locked([component_id]()
+        { 
+            return RS.ui->is_component_checked(component_id);
+        });
+        // clang-format on
     }
 
     static void plugin_api_event_bus_register(const char *id, FnPluginEventBusReceiver receiver, void *context)
@@ -103,17 +119,19 @@ namespace crs
         }
 
         auto name = get_name();
-        
+
         auto new_plugin = std::make_unique<Plugin>();
         new_plugin->name = name;
+        new_plugin->get_name = get_name;
+        new_plugin->init = init;
         new_plugin->api = api;
 
-        for (auto& function : plugin_load_callbacks)
+        for (auto &function : plugin_load_callbacks)
         {
             function(new_plugin.get());
         }
 
-        init(new_plugin.get());
+        init(InitType::loaded, new_plugin.get());
 
         LOG(INFO, "Loaded plugin '" << new_plugin->name << "' at '" + path << "'");
         plugins.push_back(std::move(new_plugin));
@@ -140,5 +158,10 @@ namespace crs
         {
             LOG(ERROR, "Plugin directory '" << path << "' is invalid");
         }
+    }
+    
+    const std::vector<std::unique_ptr<Plugin>> &PluginManager::view_plugins() const
+    {
+        return this->plugins;
     }
 }

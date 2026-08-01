@@ -28,17 +28,8 @@ namespace crs
         {
             ImGui_ImplOpenGL3_NewFrame();
             ImGui::NewFrame();
-            if (ImGui::Begin("Developer"))
-            {
-                if (ImGui::Button("Reload UI"))
-                {
-                    RS.ui->reload();
-                }
-            }
-
             RS.developer_overlay.render();
 
-            ImGui::End();
             ImGui::Render();
         }
     }
@@ -87,12 +78,16 @@ namespace crs
         }
 
         auto engine = (Engine *)CPU_FIRST_ARG(cpu_state);
-        RS.ui_mutex.lock();
+
+        // clang-format off
+        RS.ui_locked([this, engine]()
         {
             tick_ui(engine);
             tick_imgui(engine);
             RS.ui_mutex.unlock();
-        }
+            return false;
+        });
+        // clang-format on
 
         tick_stats();
 

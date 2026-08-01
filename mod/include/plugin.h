@@ -21,11 +21,16 @@ namespace crs
         line,
     };
 
+    enum class InitType
+    {
+        loaded,
+        refreshed
+    };
+
     struct Plugin;
     
     typedef const char* (*FnPluginGetName)();
-    typedef void (*FnPluginInit)(Plugin *plugin);
-
+    typedef void (*FnPluginInit)(InitType type, Plugin *plugin);
     typedef void (*FnPluginLog)(const char *message);
 
     typedef ThreadOwned<Globals *> (*FnPluginGetGlobals)();
@@ -55,6 +60,9 @@ namespace crs
         const char *name = nullptr;
         uint64_t ui_tab_container_id;
 
+        FnPluginGetName get_name;
+        FnPluginInit init;
+
         PluginApi api;
     };
 
@@ -77,5 +85,7 @@ namespace crs
     public:
         void load_all(const ::std::string &path);
         
+    public:
+        const std::vector<std::unique_ptr<Plugin>>& view_plugins() const;
     };
 }

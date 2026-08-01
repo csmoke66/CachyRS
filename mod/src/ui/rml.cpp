@@ -8,6 +8,7 @@
 #include "version.hpp"
 
 #include <RmlUi_Platform_SDL.h>
+#include <SDL2/SDL.h>
 
 namespace crs
 {
@@ -56,6 +57,24 @@ namespace crs
 
             *current_tab = tab;
             *current_content = content;
+        }
+    };
+
+    class RefreshEventHandler : public Rml::EventListener
+    {
+    private:
+        RmlUserInterface *rml_ui;
+
+    public:
+        RefreshEventHandler(RmlUserInterface *rml_ui)
+        {
+            this->rml_ui = rml_ui;
+        }
+
+    public:
+        void ProcessEvent(Rml::Event &event) override
+        {
+            rml_ui->reload();
         }
     };
 
@@ -263,9 +282,37 @@ namespace crs
             root_document->ReloadStyleSheet();
             root_document->Close();
             root_document = nullptr;
+
             selected_tab_button = nullptr;
             selected_content = nullptr;
+
+            selected_plugin_tab_button = nullptr;
+            selected_plugin_content = nullptr;
+
+            home_tab_button = nullptr;
+            home_content = nullptr;
+
+            plugins_tab_button = nullptr;
+            plugins_content = nullptr;
+            plugins_buttons = nullptr;
+
+            debug_tab_button = nullptr;
+            debug_content = nullptr;
+
+            dom_inspector_content = nullptr;
+
+            last_hovered = nullptr;
         }
+
+        for (auto &[key, value] : dom_nodes)
+        {
+            key->is_built = false;
+            key->dirty = true;
+        }
+
+        dom_nodes.clear();
+        document_map.clear();
+        component_map.clear();
 
         root_document = load_document(config_folder + "rmlui/main.html");
         if (root_document)
@@ -298,13 +345,27 @@ namespace crs
 
             auto rmlui_dom_node = get_rmlui_dom_node(root_dom_node);
             rmlui_dom_node->element = debug_content->GetElementById("dom-tree");
+
+            auto refresh_button = root_document->GetElementById("refresh_button");
+            refresh_button->AddEventListener(Rml::EventId::Click, new RefreshEventHandler(this));
+
             root_document->Show();
         }
+
+        for (auto &f : this->reload_callbacks)
+        {
+            f();
+        }
+    }
+
+    void RmlUserInterface::add_reload_callback(std::function<void()> function)
+    {
+        this->reload_callbacks.push_back(function);
     }
 
     void RmlUserInterface::process(SDL_Event *event)
     {
-        wants_input_last = !RmlSDL::InputEventHandler(context, sdl_window, *event);
+        wants_input_last = !Backend::ProcessEvents(context, event);
     }
 
     bool RmlUserInterface::wants_input()
