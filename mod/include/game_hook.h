@@ -87,7 +87,7 @@ namespace crs
         void handler(CpuState *cpu_state) override;
     };
 
-    class DlOpenHook : public Hook<decltype(dlopen)*>
+    class DlOpenHook : public Hook<decltype(dlopen) *>
     {
     public:
         void handler(CpuState *cpu_state) override;
@@ -97,7 +97,7 @@ namespace crs
     {
     private:
         bool plugins_loaded = false;
-        
+
     private:
         void tick_ui(Engine *engine);
         void tick_imgui(Engine *engine);
@@ -113,6 +113,12 @@ namespace crs
         void handler(CpuState *cpu_state) override;
     };
 
+    class AddChatMessageHook : public Hook<FnAddChatMessage>
+    {
+    public:
+        void handler(CpuState *cpu_state) override;
+    };
+    
     struct RenderedWidget
     {
         const Widget *widget;

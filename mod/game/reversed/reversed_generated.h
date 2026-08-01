@@ -47,7 +47,9 @@ struct Globals
 	char menu_action_handler_obj1;
 	PAD(0x2cd8f);
 	char menu_execute;
-	PAD(0x3bddf);
+	PAD(0x10a6f);
+	char add_chat_message;
+	PAD(0x2b36f);
 	char add_menu_option;
 	PAD(0x7972f);
 	char render_widget;
@@ -83,6 +85,7 @@ static_assert(off(Globals, menu_action_handler_obj3) == 0x163540, INVALID_OFFSET
 static_assert(off(Globals, menu_action_handler_obj2) == 0x163560, INVALID_OFFSET);
 static_assert(off(Globals, menu_action_handler_obj1) == 0x163580, INVALID_OFFSET);
 static_assert(off(Globals, menu_execute) == 0x190310, INVALID_OFFSET);
+static_assert(off(Globals, add_chat_message) == 0x1a0d80, INVALID_OFFSET);
 static_assert(off(Globals, add_menu_option) == 0x1cc0f0, INVALID_OFFSET);
 static_assert(off(Globals, render_widget) == 0x245820, INVALID_OFFSET);
 static_assert(off(Globals, set_varbit) == 0x527150, INVALID_OFFSET);

@@ -97,7 +97,7 @@ public:
 		const char data[0x17];
 		struct
 		{
-			char *data_ptr;
+			const char *data_ptr;
 			const uint8_t len1;
 			PAD(0x7);
 			const uint8_t len2;
