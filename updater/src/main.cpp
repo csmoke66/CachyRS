@@ -268,11 +268,16 @@ std::vector<PatternObject> build_pattern_objects()
             { "const WidgetCache*", 8, },
             (new ImmExtractor(0x3, 0x0, 4))->
                 validator(new AlignmentValidator(0x8))},
-            
         new DefaultPattern{
             "world_settings",
             compile_ida_pattern("4D 8D A5 ? ? ? ? ? ? ? ? ? ? ? ? 4C 8B 70"),
             { "const char", 1, },
+            (new ImmExtractor(0x3, 0x0, 4))->
+                validator(new AlignmentValidator(0x8))},
+        new DefaultPattern{
+            "social_cache",
+            compile_ida_pattern("48 8B BB ? ? ? ? 48 89 EE E8 ? ? ? ? 84 C0 0F 84 ? ? ? ? 48 8D 3D"),
+            { "const SocialCache*", 8, },
             (new ImmExtractor(0x3, 0x0, 4))->
                 validator(new AlignmentValidator(0x8))},
     }});

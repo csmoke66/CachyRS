@@ -18,6 +18,7 @@ namespace crs
 #include "reversed_fwd_decl.h"
 #include "reversed_world_setting.h"
 #include "reversed_generated.h"
+#include "reversed_social.h"
 #include "reversed_render.h"
 #include "reversed_cache.h"
 #include "reversed_entity_update_cache.h"

@@ -107,7 +107,9 @@ struct Engine
 	const NpcUpdateCache* npc_update_cache;
 	PAD(0x18);
 	const PlayerUpdateCache* player_update_cache;
-	PAD(0x58);
+	PAD(0x18);
+	const SocialCache* social_cache;
+	PAD(0x38);
 	const void* world_a;
 	PAD(0x10);
 	const ItemCache* item_cache;
@@ -126,6 +128,7 @@ static_assert(off(Engine, cache) == 0x18cb8, INVALID_OFFSET);
 static_assert(off(Engine, widget_cache) == 0x19488, INVALID_OFFSET);
 static_assert(off(Engine, npc_update_cache) == 0x194b8, INVALID_OFFSET);
 static_assert(off(Engine, player_update_cache) == 0x194d8, INVALID_OFFSET);
+static_assert(off(Engine, social_cache) == 0x194f8, INVALID_OFFSET);
 static_assert(off(Engine, world_a) == 0x19538, INVALID_OFFSET);
 static_assert(off(Engine, item_cache) == 0x19550, INVALID_OFFSET);
 static_assert(off(Engine, scene_001) == 0x19558, INVALID_OFFSET);

@@ -37,6 +37,7 @@ class ContainerWidget;
 struct Model;
 struct Terrain;
 struct MovementQueue;
+struct SocialCache;
 
 // generated
 struct Entity;
