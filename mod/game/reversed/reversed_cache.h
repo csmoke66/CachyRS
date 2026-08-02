@@ -27,7 +27,7 @@ struct Cache002
 	// 0x0
 	PAD(0x40);
 	// 0x40
-	const Cache003* cache_003;
+	Cache003* cache_003;
 	// 0x48
 };
 
@@ -35,9 +35,9 @@ template<typename T, typename B>
 struct CacheBuffer
 {
 	// 0x0
-	const T* tag;
+	T* tag;
 	// 0x8
-	const B* body;
+	B* body;
 	// 0x10
 };
 
@@ -67,7 +67,7 @@ public:
 	// 0x8
 	PAD(0x38);
 	// 0x40
-	const uint32_t size;
+	uint32_t size;
 
 public:
 	template<typename T>
@@ -89,13 +89,13 @@ struct CacheIndex
 	// 0x0
 	PAD(0x28);
 	// 0x28
-	const uint32_t current_size;
+	uint32_t current_size;
 	// 0x2c
-	const uint32_t max_size;
+	uint32_t max_size;
 	// 0x30
 	PAD(0x8);
 	// 0x38
-	const CacheIndexInner* inner;
+	CacheIndexInner* inner;
 	// 0x40
 };
 static_assert(off(CacheIndex, inner) == 0x38, INVALID_OFFSET);
@@ -131,7 +131,7 @@ public:
 	// 0x0
 	PAD(0x78);
 	// 0x80
-	const CacheIndex** indices;
+	CacheIndex** indices;
 };
 
 #pragma pack(pop)

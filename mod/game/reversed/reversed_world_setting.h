@@ -13,7 +13,7 @@ struct WorldSettingMask
 struct WorldSetting
 {
 	// 0x0
-	const uint32_t value;
+	uint32_t value;
 	// 0x4
 	PAD(0x14);
 	// 0x18
@@ -21,7 +21,7 @@ struct WorldSetting
 	// 0x19
 	PAD(0x7);
 	// 0x20
-	const IdObject<uint32_t, 0x4, WorldSetting> *next;
+	IdObject<uint32_t, 0x4, WorldSetting> *next;
 };
 static_assert(off(WorldSetting, next) == 0x20, INVALID_OFFSET);
 
@@ -38,9 +38,9 @@ public:
 	// 0x8
 	PAD(0x20);
 	// 0x28
-	const IdObject<uint32_t, 0x4, WorldSetting> **vars;
+	IdObject<uint32_t, 0x4, WorldSetting> **vars;
 	// 0x30
-	const uint32_t count;
+	uint32_t count;
 };
 static_assert(sizeof(WorldSettingCache) == 0x34, INVALID_SIZE);
 #pragma pack(pop)

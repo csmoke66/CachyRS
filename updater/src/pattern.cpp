@@ -69,6 +69,12 @@ MenuActionHandlerExtractor::MenuActionHandlerExtractor(csh capstone_handle, uint
 
 uint64_t MenuActionHandlerExtractor::extract(const ElfInterface &elf, const uint8_t *data)
 {
+    struct Candidate
+    {
+        uint64_t lea_count;
+        uint64_t rip;
+    };
+
     uint64_t lea_count = 0;
 
     size_t count;
@@ -76,6 +82,7 @@ uint64_t MenuActionHandlerExtractor::extract(const ElfInterface &elf, const uint
 
     auto ret = false;
     auto rva = elf.ptr_to_va(elf.offset(data));
+    std::vector<Candidate> candidates;
 
     while (!ret)
     {
@@ -87,12 +94,12 @@ uint64_t MenuActionHandlerExtractor::extract(const ElfInterface &elf, const uint
             auto mem = x86->operands[1].mem;
 
             auto rip = rva + mem.disp + 7;
-            std::cout << "LEA: 0x" << std::hex << rip << "@" << std::dec << lea_count << std::endl;
             if (lea_count == lea_offset)
             {
                 return rip;
             }
 
+            candidates.push_back({lea_count, rip});
             lea_count += 1;
         }
         else if (insn->id == X86_INS_RET)
@@ -101,6 +108,54 @@ uint64_t MenuActionHandlerExtractor::extract(const ElfInterface &elf, const uint
         }
 
         data += insn->size;
+        rva += insn->size;
+    }
+
+    LOG(WARNING, "Failed to find LEA");
+    for (auto& c : candidates)
+    {
+        LOG(WARNING, " -> Candidate: " << c.lea_count << " " << std::hex << c.rip);
+    }
+    return 0;
+}
+
+CallExtractor::CallExtractor(csh capstone_handle, uint64_t call_offset)
+{
+    this->capstone_handle = capstone_handle;
+    this->call_offset = call_offset;
+}
+
+uint64_t CallExtractor::extract(const ElfInterface &elf, const uint8_t *data)
+{
+    uint64_t call_count = 0;
+
+    size_t count;
+    cs_insn *insn;
+
+    auto ret = false;
+
+    auto called_addr = data + *((int32_t *)(data + 1)) + 5;
+    auto rva = elf.ptr_to_va(elf.offset(called_addr));
+    while (!ret)
+    {
+        count = cs_disasm(capstone_handle, (const uint8_t *)called_addr, 0x15, (uint64_t)rva, 0, &insn);
+
+        if (insn->id == X86_INS_CALL)
+        {
+            if (call_count == call_offset)
+            {
+                auto x86 = &(insn->detail->x86);
+                return (uint64_t)x86->operands[0].imm;
+            }
+
+            call_count += 1;
+        }
+        else if (insn->id == X86_INS_RET)
+        {
+            ret = true;
+        }
+
+        called_addr += insn->size;
         rva += insn->size;
     }
 

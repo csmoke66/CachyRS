@@ -18,14 +18,15 @@ namespace crs
     {
         BaseHook::handler(cpu_state);
 
+        auto dpy = (EGLDisplay)CPU_FIRST_ARG(cpu_state);
+        auto surface = (EGLSurface)CPU_SECOND_ARG(cpu_state);
+
         auto tick_hook = RS.hook_manager->view_hook<BaseHook>("engine_tick");
         if (!tick_hook || !tick_hook->thread_id().has_value())
         {
+            cpu_state->rax = (uint64_t)trampoline(dpy, surface);
             return;
         }
-
-        auto dpy = (EGLDisplay)CPU_FIRST_ARG(cpu_state);
-        auto surface = (EGLSurface)CPU_SECOND_ARG(cpu_state);
 
         EGLint width, height;
         eglQuerySurface(dpy, surface, EGL_WIDTH, &width);
@@ -51,7 +52,7 @@ namespace crs
                 LOG(EglSwapBuffersHook, "Failed to initialize ImGui OpenGL backend");
             }
 
-            
+    
             RS.ui->init(std::string(FEATURE_VERSION) + CACHYRS_VERSION, RS.get_configuration_dir(), sdl_window, width, height);
 
             // flush OpenGL errors so they don't propagate to rmlui
@@ -63,59 +64,62 @@ namespace crs
             is_first_run = false;
         }
 
-        RS.ui_mutex.lock();
-        if (cached_width != width || cached_height != height)
-        {
-            cached_width = width;
-            cached_height = height;
-
-            auto &io = ImGui::GetIO();
-            io.DisplaySize = ImVec2(width, height);
-        }
-
         // clang-format off
-        RS.event_ring_buffer.process([](SDL_Event& event)
+        RS.ui_locked([this, width, height]()
         {
-            if (event.type == SDL_KEYDOWN &&
-                event.key.keysym.scancode == SDL_SCANCODE_INSERT)
+            if (cached_width != width || cached_height != height)
             {
-                RS.ui_visible = !RS.ui_visible;
-            }
-    
-            ImGui_ImplSDL2_ProcessEvent(&event);
+                cached_width = width;
+                cached_height = height;
 
-            if (RS.ui_visible)
-            {
-                RS.ui->process(&event);
+                auto &io = ImGui::GetIO();
+                io.DisplaySize = ImVec2(width, height);
             }
+
+            RS.event_ring_buffer.process([](SDL_Event& event)
+            {
+                if (event.type == SDL_KEYDOWN &&
+                    event.key.keysym.scancode == SDL_SCANCODE_INSERT)
+                {
+                    RS.ui_visible = !RS.ui_visible;
+                }
+        
+                ImGui_ImplSDL2_ProcessEvent(&event);
+
+                if (RS.ui_visible)
+                {
+                    RS.ui->process(&event);
+                }
+            });
+
+
+            { /* imgui */
+                if (auto draw_data = ImGui::GetDrawData())
+                {
+                    ImGui_ImplOpenGL3_RenderDrawData(draw_data);
+                }
+            }
+
+            // flush OpenGL errors so they don't propagate to rmlui
+            FLUSH_GL_ERRORS();
+
+            { /* ui */
+                RS.stats.push_ui_state_stopwatch.reset();
+                RS.push_ui_state();
+                RS.stats.push_ui_state_stopwatch.stop();
+
+                if (RS.ui_visible)
+                {
+                    RS.stats.render_ui_stopwatch.reset();
+                    RS.ui->render();
+                    RS.stats.render_ui_stopwatch.stop();
+                }
+            }
+
+            return false;
         });
-
         // clang-format on
 
-        { /* imgui */
-            if (auto draw_data = ImGui::GetDrawData())
-            {
-                ImGui_ImplOpenGL3_RenderDrawData(draw_data);
-            }
-        }
-
-        // flush OpenGL errors so they don't propagate to rmlui
-        FLUSH_GL_ERRORS();
-
-        { /* ui */
-            RS.stats.push_ui_state_stopwatch.reset();
-            RS.push_ui_state();
-            RS.stats.push_ui_state_stopwatch.stop();
-
-            if (RS.ui_visible)
-            {
-                RS.stats.render_ui_stopwatch.reset();
-                RS.ui->render();
-                RS.stats.render_ui_stopwatch.stop();
-            }
-        }
-
-        RS.ui_mutex.unlock();
         cpu_state->rax = (uint64_t)trampoline(dpy, surface);
     }
 }

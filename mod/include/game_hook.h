@@ -60,7 +60,7 @@ namespace crs
         void handler(CpuState *cpu_state) override;
     };
 
-    class SdlPollEventHook : public Hook<FnSDL_PollEvent>
+    class SdlPollEventHook : public Hook<FnSdlPollEvent>
     {
     public:
         Vec2<float> mouse_pos;
@@ -69,25 +69,25 @@ namespace crs
         void handler(CpuState *cpu_state) override;
     };
 
-    class SdlCreateWindowHook : public Hook<FnSDL_CreateWindow>
+    class SdlCreateWindowHook : public Hook<FnSdlCreateWindow>
     {
     public:
         void handler(CpuState *cpu_state) override;
     };
 
-    class SdlCreateContextHook : public Hook<FnSDL_CreateContext>
+    class SdlCreateContextHook : public Hook<FnSdlCreateContext>
     {
     public:
         void handler(CpuState *cpu_state) override;
     };
 
-    class SdlDestroyContextHook : public Hook<FnSDL_DeleteContext>
+    class SdlDestroyContextHook : public Hook<FnSdlDeleteContext>
     {
     public:
         void handler(CpuState *cpu_state) override;
     };
 
-    class DlOpenHook : public Hook<decltype(dlopen)*>
+    class DlOpenHook : public Hook<decltype(dlopen) *>
     {
     public:
         void handler(CpuState *cpu_state) override;
@@ -95,6 +95,9 @@ namespace crs
 
     class EngineTickHook : public Hook<FnEngineTick>
     {
+    private:
+        bool plugins_loaded = false;
+
     private:
         void tick_ui(Engine *engine);
         void tick_imgui(Engine *engine);
@@ -104,6 +107,18 @@ namespace crs
         void handler(CpuState *cpu_state) override;
     };
 
+    class AddMenuOptionHook : public Hook<FnAddMenuOption>
+    {
+    public:
+        void handler(CpuState *cpu_state) override;
+    };
+
+    class AddChatMessageHook : public Hook<FnAddChatMessage>
+    {
+    public:
+        void handler(CpuState *cpu_state) override;
+    };
+    
     struct RenderedWidget
     {
         const Widget *widget;

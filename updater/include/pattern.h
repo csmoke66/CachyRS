@@ -116,6 +116,19 @@ public:
     uint64_t extract(const ElfInterface& elf, const uint8_t *data) override;
 };
 
+class CallExtractor : public Extractor<uint64_t>
+{
+private:
+    csh capstone_handle;
+    uint64_t call_offset;
+
+public:
+    CallExtractor(csh capstone_handle, uint64_t call_offset);
+
+public:
+    uint64_t extract(const ElfInterface& elf, const uint8_t *data) override;
+};
+
 class ConstructorSizeExtractor : public Extractor<uint64_t>
 {
 private:

@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.22)
 project(mod LANGUAGES CXX)
 
 add_library(mod SHARED
-    src/log.cpp
     src/cachy.cpp
     src/not_cachy.cpp
     src/util.cpp
@@ -43,7 +42,8 @@ add_library(mod SHARED
     src/hook/render_widget.cpp
     src/hook/engine_tick.cpp
     src/hook/set_var_bit.cpp
-    src/hook/dl_open.cpp
+    src/hook/add_menu_option.cpp
+    src/hook/add_chat_message.cpp
 
     # keep this last, since we run our code in a static initializer
     # putting it last puts it last in the initialization list
@@ -78,6 +78,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 add_subdirectory(imgui)
 add_subdirectory(rmlui_backend)
 add_subdirectory(plugins/test)
+add_subdirectory(plugins/entity-hider)
 
 FetchContent_Declare(
         rmlui

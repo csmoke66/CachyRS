@@ -6,10 +6,10 @@ namespace crs
     {
     }
 
-    MenuActionEvent::MenuActionEvent(MenuActionType type, MenuActionArgs *args) : Event(MenuActionEvent::specific_id())
+    MenuActionEvent::MenuActionEvent(const std::string& id, MenuActionArgs *args, MenuActionTemplate** action_template) : Event(id)
     {
-        this->args.type = type;
         this->args.args = args;
+        this->args.action_template = action_template;
     }
 
     void* MenuActionEvent::get_args()

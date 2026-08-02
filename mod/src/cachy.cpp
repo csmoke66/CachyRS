@@ -20,11 +20,6 @@ namespace crs
 {
     CachyRS RS;
 
-    void CachyRS::init_logging()
-    {
-        logx.init("/tmp/cachy-rs.txt");
-    }
-
     void CachyRS::init_process_info()
     {
         pi.init();
@@ -177,6 +172,8 @@ namespace crs
         hook_manager->x86("render_widget", &get_globals()->render_widget, unique_hook<RenderWidgetHook>());
         hook_manager->x86("set_varbit", &get_globals()->set_varbit, unique_hook<SetVarBitHook>());
         hook_manager->x86("engine_tick", &get_globals()->engine_tick, unique_hook<EngineTickHook>());
+        hook_manager->x86("add_menu_option", &get_globals()->add_menu_option, unique_hook<AddMenuOptionHook>());
+        hook_manager->x86("add_chat_message", &get_globals()->add_chat_message, unique_hook<AddChatMessageHook>());
     }
 
     ::std::string CachyRS::get_configuration_dir() const
@@ -207,7 +204,7 @@ namespace crs
         return ThreadOwned<Globals *>((Globals *)pi.game_base());
     }
 
-    bool CachyRS::project_to_screen(const Vec3<float>& scene, Vec2<float> *out) const
+    bool CachyRS::project_to_screen(const Vec3<float> &scene, Vec2<float> *out) const
     {
         auto scene_003 = NRS.scene_003();
         if (!scene_003)
@@ -242,15 +239,12 @@ namespace crs
 
     void CachyRS::init()
     {
-        init_logging();
-
         LOG(DEBUG, "Initializing configuration directory at " << get_configuration_dir());
         std::filesystem::create_directories(std::filesystem::path(get_configuration_dir()));
 
         LOG(INFO, "Initializing process info...");
         init_process_info();
         LOG(INFO, "Game= " << pi.game_base());
-
 
         LOG(INFO, "Initializing ImGui...");
         init_imgui();
@@ -262,16 +256,38 @@ namespace crs
 
         rml_ui->pre_init();
 
+        LOG(INFO, "Binding plugin manager to UI...");
+
+        // clang-format off
+        plugin_manager.add_load_callback([this](Plugin *plugin)
+        {
+            ui_locked([this, plugin]()
+            {
+                plugin->ui_tab_container_id = ui->allocate_tab(plugin->name);
+                return false;
+            });
+        });
+
+        ui->add_reload_callback([this]() 
+        {
+            ui_locked([this]()
+            {
+                for (auto& plugin : plugin_manager.view_plugins())
+                {
+                    plugin->ui_tab_container_id = ui->allocate_tab(plugin->name);
+                    plugin->init(crs::InitType::refreshed, plugin.get());
+                }
+                return false;
+            });
+        });
+        // clang-format on
+
         LOG(INFO, "Initializing capstone...");
         asm_init();
 
         LOG(INFO, "Initializing DOM...");
         init_dom();
 
-        LOG(INFO, "Loading plugins...");
-        plugin_manager.init();
-        plugin_manager.load_all(resolve_configuration("plugins/"));
-        
         LOG(INFO, "Initializing hooks...");
         init_hooks();
 
