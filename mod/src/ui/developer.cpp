@@ -6,10 +6,10 @@
 
 namespace crs
 {
-    void DeveloperOverlay::render_player_overlay(ImDrawList *draw_list, const WorldNode *root)
+    void DeveloperOverlay::render_player_overlay(ImDrawList *draw_list, WorldNode *root)
     {
         // clang-format off
-        iterate_entities(root, [this, &draw_list](const NamedEntity *entity) 
+        iterate_entities(root, [this, &draw_list](NamedEntity *entity) 
         {
             if (entity->type == EntityType::player && (!player_overlay_target || player_overlay_target == entity))
             {
@@ -47,19 +47,19 @@ namespace crs
         // clang-format on
     }
 
-    void DeveloperOverlay::render_npc_overlay(ImDrawList *draw_list, const WorldNode *root)
+    void DeveloperOverlay::render_npc_overlay(ImDrawList *draw_list, WorldNode *root)
     {
     }
 
-    void DeveloperOverlay::render_object_overlay(ImDrawList *draw_list, const WorldNode *root)
+    void DeveloperOverlay::render_object_overlay(ImDrawList *draw_list, WorldNode *root)
     {
     }
 
-    void DeveloperOverlay::render_ground_item_overlay(ImDrawList *draw_list, const WorldNode *root)
+    void DeveloperOverlay::render_ground_item_overlay(ImDrawList *draw_list, WorldNode *root)
     {
     }
 
-    void DeveloperOverlay::render_widget_picker(ImDrawList *draw_list, const Engine *engine, const Widget *widget, int x, int y)
+    void DeveloperOverlay::render_widget_picker(ImDrawList *draw_list, Engine *engine, Widget *widget, int x, int y)
     {
         auto bg = ImGui::GetBackgroundDrawList();
         auto rendered = render_widget_hook->rendered.find(widget);
@@ -98,7 +98,7 @@ namespace crs
         }
     }
 
-    void DeveloperOverlay::render_widget_picker(ImDrawList *draw_list, const Engine *engine, const WidgetCache *widget_cache)
+    void DeveloperOverlay::render_widget_picker(ImDrawList *draw_list, Engine *engine, WidgetCache *widget_cache)
     {
         for (auto widget_001 = widget_cache->c.begin;
              widget_001 != widget_cache->c.end;

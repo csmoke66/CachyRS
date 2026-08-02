@@ -1,5 +1,10 @@
 #pragma once
 
+enum class WorldNodeFlag : uint16_t
+{
+	has_entity = 0x200,
+};
+
 enum class EntityType : uint8_t
 {
 	npc = 1,

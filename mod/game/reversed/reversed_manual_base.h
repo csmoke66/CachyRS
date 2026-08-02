@@ -4,9 +4,9 @@
 struct Item
 {
 	// 0x0
-	const int32_t id;
+	int32_t id;
 	// 0x4
-	const int32_t amount;
+	int32_t amount;
 	// 0xc
 
 	Item();
@@ -94,20 +94,20 @@ class JString
 public:
 	union
 	{
-		const char data[0x17];
+		char data[0x17];
 		struct
 		{
-			const char *data_ptr;
-			const uint8_t len1;
+			char *data_ptr;
+			uint8_t len1;
 			PAD(0x7);
-			const uint8_t len2;
+			uint8_t len2;
 			PAD(0x6);
 		};
 	};
 	union
 	{
-		const uint8_t remaining_bytes;
-		const uint8_t flag;
+		uint8_t remaining_bytes;
+		uint8_t flag;
 	};
 
 public:
@@ -137,9 +137,9 @@ template<typename T, typename B>
 struct TaggedObject
 {
 	// 0x0
-	const T* tag;
+	T* tag;
 	// 0x8
-	const B* body;
+	B* body;
 	// 0x10
 };
 

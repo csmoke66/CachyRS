@@ -99,31 +99,31 @@ static_assert(off(Globals, heap) == 0x16a2130, INVALID_OFFSET);
 struct Engine
 {
 	PAD(0x90);
-	const WindowState* window_state;
+	WindowState* window_state;
 	PAD(0x46c);
-	const uint32_t time;
+	uint32_t time;
 	PAD(0x187b0);
-	const Cache001* cache;
+	Cache001* cache;
 	PAD(0x7c8);
-	const WidgetCache* widget_cache;
+	WidgetCache* widget_cache;
 	PAD(0x28);
-	const NpcUpdateCache* npc_update_cache;
+	NpcUpdateCache* npc_update_cache;
 	PAD(0x18);
-	const PlayerUpdateCache* player_update_cache;
+	PlayerUpdateCache* player_update_cache;
 	PAD(0x18);
-	const SocialCache* social_cache;
+	SocialCache* social_cache;
 	PAD(0x38);
-	const void* world_a;
+	void* world_a;
 	PAD(0x10);
-	const ItemCache* item_cache;
+	ItemCache* item_cache;
 	PAD(0x0);
-	const Scene001* scene_001;
+	Scene001* scene_001;
 	PAD(0x5c8);
-	const GameState state;
+	GameState state;
 	PAD(0x4);
-	const LocalPlayer* local_player;
+	LocalPlayer* local_player;
 	PAD(0x8);
-	const char world_settings;
+	char world_settings;
 };
 static_assert(off(Engine, window_state) == 0x90, INVALID_OFFSET);
 static_assert(off(Engine, time) == 0x504, INVALID_OFFSET);
@@ -142,9 +142,9 @@ static_assert(off(Engine, world_settings) == 0x19b40, INVALID_OFFSET);
 struct Scene003
 {
 	PAD(0x10170);
-	const WorldNode* world_root;
+	WorldNode* world_root;
 	PAD(0x3088);
-	const Matrix4x4 projection_matrix;
+	Matrix4x4 projection_matrix;
 };
 static_assert(off(Scene003, world_root) == 0x10170, INVALID_OFFSET);
 static_assert(off(Scene003, projection_matrix) == 0x13200, INVALID_OFFSET);
@@ -152,11 +152,11 @@ static_assert(off(Scene003, projection_matrix) == 0x13200, INVALID_OFFSET);
 struct Entity
 {
 	PAD(0x8);
-	const WorldNode* parent;
+	WorldNode* parent;
 	PAD(0x0);
-	const EntityType type;
+	EntityType type;
 	PAD(0x3f);
-	const Terrain* terrain;
+	Terrain* terrain;
 };
 static_assert(sizeof(Entity) == 0x58, INVALID_SIZE);
 static_assert(off(Entity, parent) == 0x8, INVALID_OFFSET);
@@ -169,15 +169,15 @@ public:
 	PAD(0x30);
 	int32_t server_index;
 	PAD(0x4);
-	const JString name;
+	JString name;
 	PAD(0x1c0);
-	const MovementQueue* movement_queue;
+	MovementQueue* movement_queue;
 	PAD(0x0);
-	const Vec3<float> position;
+	Vec3<float> position;
 	PAD(0x4c);
-	const JVector<const uint32_t> animation_queue;
+	JVector<const uint32_t> animation_queue;
 	PAD(0xc18);
-	const EntityStatus* status;
+	EntityStatus* status;
 	PAD(0x154);
 };
 static_assert(sizeof(NamedEntity) == 0x1054, INVALID_SIZE);
@@ -192,11 +192,11 @@ class Player : public NamedEntity
 {
 public:
 	PAD(0x14);
-	const Model* model;
+	Model* model;
 	PAD(0x2c);
-	const int32_t combat_level;
+	int32_t combat_level;
 	PAD(0x8);
-	const int32_t skill_level;
+	int32_t skill_level;
 	PAD(0x244);
 };
 static_assert(sizeof(Player) == 0x12f0, INVALID_SIZE);
@@ -208,9 +208,9 @@ class Npc : public NamedEntity
 {
 public:
 	PAD(0xc);
-	const int32_t cache_id;
+	int32_t cache_id;
 	PAD(0xf4);
-	const uint32_t visible_level;
+	uint32_t visible_level;
 	PAD(0x26);
 };
 static_assert(sizeof(Npc) == 0x1182, INVALID_SIZE);
@@ -220,11 +220,11 @@ static_assert(off(Npc, visible_level) == 0x1158, INVALID_OFFSET);
 struct NpcUpdateCache
 {
 	PAD(0x10);
-	const NpcUpdate** npcs;
+	NpcUpdate** npcs;
 	PAD(0x0);
-	const uint64_t size;
+	uint64_t size;
 	PAD(0xb080);
-	const uint32_t valid_count;
+	uint32_t valid_count;
 };
 static_assert(off(NpcUpdateCache, npcs) == 0x10, INVALID_OFFSET);
 static_assert(off(NpcUpdateCache, size) == 0x18, INVALID_OFFSET);

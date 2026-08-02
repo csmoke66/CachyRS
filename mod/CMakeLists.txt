@@ -78,6 +78,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 add_subdirectory(imgui)
 add_subdirectory(rmlui_backend)
 add_subdirectory(plugins/test)
+add_subdirectory(plugins/entity-hider)
 
 FetchContent_Declare(
         rmlui

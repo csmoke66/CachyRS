@@ -6,24 +6,24 @@ namespace crs
     class NotCachyRS
     {
     public:
-        const Scene003 *scene_003() const;
-        const WorldNode *root_node() const;
-        const WidgetCache *widget_cache() const;
+        Scene003 *scene_003() const;
+        WorldNode *root_node() const;
+        WidgetCache *widget_cache() const;
         SDL_Window *sdl_window() const;
-        const ItemCache *item_cache() const;
-        const PlayerUpdateCache *player_update_cache() const;
-        const NpcUpdateCache *npc_update_cache() const;
-        const Cache001 *cache() const;
-        const CacheIndex *cache_index(CacheIndexOrdinal ordinal) const;
-        const CacheIndex *cache_index_world_settings() const;
-        const WorldSettingCache *world_setting_cache() const;
+        ItemCache *item_cache() const;
+        PlayerUpdateCache *player_update_cache() const;
+        NpcUpdateCache *npc_update_cache() const;
+        Cache001 *cache() const;
+        CacheIndex *cache_index(CacheIndexOrdinal ordinal) const;
+        CacheIndex *cache_index_world_settings() const;
+        WorldSettingCache *world_setting_cache() const;
         uint32_t mask_world_setting(const WorldSetting *setting, const WorldSettingMask *mask) const;
     };
 
     extern NotCachyRS NRS;
 
     template <typename FN>
-    static void iterate_entities(const WorldNode *node, FN fn)
+    static void iterate_entities(WorldNode *node, FN fn)
     {
         if (node)
         {

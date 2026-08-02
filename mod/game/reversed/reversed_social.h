@@ -11,9 +11,10 @@ struct Friend
     // 0x38
     JString world;
     // 0x50
-    PAD(0x20);
-    // 0x70
+    PAD(0x28);
+    // 0x78
 };
+static_assert(sizeof(Friend) == 0x78, INVALID_SIZE);
 
 struct Ignored
 {
@@ -28,8 +29,8 @@ struct SocialCache
 {
     PAD(0x18);
     // 0x18
-    JArray<Friend> friends;
+    JVector<Friend> friends;
     // 0x30
-    JArray<Ignored> ignored;
+    JVector<Ignored> ignored;
 };
 #pragma pack(pop)

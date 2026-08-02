@@ -5,7 +5,7 @@ namespace crs
 {
     NotCachyRS NRS;
 
-    const Scene003 *NotCachyRS::scene_003() const
+    Scene003 *NotCachyRS::scene_003() const
     {
         auto globals = RS.get_globals();
         auto engine = globals->engine;
@@ -29,14 +29,14 @@ namespace crs
         return scene_002->scene_003;
     }
 
-    const WorldNode *NotCachyRS::root_node() const
+    WorldNode *NotCachyRS::root_node() const
     {
-        return dref<const WorldNode *>(scene_003(), {off(Scene003, world_root)});
+        return dref<WorldNode *>(scene_003(), {off(Scene003, world_root)});
     }
 
-    const WidgetCache *NotCachyRS::widget_cache() const
+    WidgetCache *NotCachyRS::widget_cache() const
     {
-        return dref<const WidgetCache *>(
+        return dref<WidgetCache *>(
             RS.get_globals(),
             {off(Globals, engine),
              off(Engine, widget_cache)});
@@ -54,39 +54,39 @@ namespace crs
              off(Linux005, sdl_window)});
     }
 
-    const ItemCache *NotCachyRS::item_cache() const
+    ItemCache *NotCachyRS::item_cache() const
     {
-        return dref<const ItemCache *>(
+        return dref<ItemCache *>(
             RS.get_globals(),
             {off(Globals, engine),
              off(Engine, item_cache)});
     }
 
-    const PlayerUpdateCache *NotCachyRS::player_update_cache() const
+    PlayerUpdateCache *NotCachyRS::player_update_cache() const
     {
-        return dref<const PlayerUpdateCache *>(
+        return dref<PlayerUpdateCache *>(
             RS.get_globals(),
             {off(Globals, engine),
              off(Engine, player_update_cache)});
     }
 
-    const NpcUpdateCache *NotCachyRS::npc_update_cache() const
+    NpcUpdateCache *NotCachyRS::npc_update_cache() const
     {
-        return dref<const NpcUpdateCache *>(
+        return dref<NpcUpdateCache *>(
             RS.get_globals(),
             {off(Globals, engine),
              off(Engine, npc_update_cache)});
     }
 
-    const Cache001 *NotCachyRS::cache() const
+    Cache001 *NotCachyRS::cache() const
     {
-        return dref<const Cache001 *>(
+        return dref<Cache001 *>(
             RS.get_globals(),
             {off(Globals, engine),
              off(Engine, cache)});
     }
 
-    const CacheIndex *NotCachyRS::cache_index(CacheIndexOrdinal ordinal) const
+    CacheIndex *NotCachyRS::cache_index(CacheIndexOrdinal ordinal) const
     {
         if (auto cache = this->cache())
         {
@@ -96,7 +96,7 @@ namespace crs
         return nullptr;
     }
 
-    const CacheIndex *NotCachyRS::cache_index_world_settings() const
+    CacheIndex *NotCachyRS::cache_index_world_settings() const
     {
         if (auto cache = this->cache())
         {
@@ -106,7 +106,7 @@ namespace crs
         return nullptr;
     }
 
-    const WorldSettingCache *NotCachyRS::world_setting_cache() const
+    WorldSettingCache *NotCachyRS::world_setting_cache() const
     {
         auto engine = RS.get_globals()->engine;
         if (!engine)
@@ -114,7 +114,7 @@ namespace crs
             return nullptr;
         }
 
-        return (const WorldSettingCache *)&engine->world_settings;
+        return (WorldSettingCache *)&engine->world_settings;
     }
 
     uint32_t NotCachyRS::mask_world_setting(const WorldSetting *setting, const WorldSettingMask *mask) const
