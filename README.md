@@ -17,6 +17,7 @@ Currently only LLVM/Clang are supported.
 ## Usage
 1. Run the native RS3 Linux client with `LD_PRELOAD=/path/to/libmod.so`
 ![Client](media/main.png)
+![DOM](media/dom.png)
 ## Project Structure
 ### updater
 This is responsible for generating the headers that map to game structures in memory. To generate new headers simply run `bin/updater` with rs2client in the same directory.
