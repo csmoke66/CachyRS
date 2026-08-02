@@ -6,7 +6,7 @@ struct PlayerUpdate
 	// 0x0
 	PAD(0x38);
 	// 0x38
-	const NamedEntity* entity;
+	NamedEntity* entity;
 	// 0x40
 };
 
@@ -15,7 +15,7 @@ struct PlayerUpdateCache
 	// 0x0
 	PAD(0x10);
 	// 0x10
-	const JArray<const PlayerUpdate*> updates;
+	JVector<PlayerUpdate*> updates;
 	// 0x28
 };
 
@@ -25,7 +25,7 @@ struct NpcUpdate
 	// 0x4
 	PAD(0x4);
 	// 0x8
-	const ObjectHeader<NamedEntity>* entity_header;
+	ObjectHeader<NamedEntity>* entity_header;
 	// 0x10
 	NamedEntity* entity;
 	// 0x18

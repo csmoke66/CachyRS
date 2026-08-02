@@ -8,6 +8,7 @@
 #include "version.hpp"
 
 #include <RmlUi_Platform_SDL.h>
+#include <SDL2/SDL.h>
 
 namespace crs
 {
@@ -56,6 +57,24 @@ namespace crs
 
             *current_tab = tab;
             *current_content = content;
+        }
+    };
+
+    class RefreshEventHandler : public Rml::EventListener
+    {
+    private:
+        RmlUserInterface *rml_ui;
+
+    public:
+        RefreshEventHandler(RmlUserInterface *rml_ui)
+        {
+            this->rml_ui = rml_ui;
+        }
+
+    public:
+        void ProcessEvent(Rml::Event &event) override
+        {
+            rml_ui->reload();
         }
     };
 
@@ -138,6 +157,52 @@ namespace crs
         }
     };
 
+    class DragWindowEventListener : public Rml::EventListener
+    {
+    private:
+        Rml::Element *element;
+        Rml::Element *window;
+        int drag_offset_x = 0;
+        int drag_offset_y = 0;
+
+    public:
+        DragWindowEventListener(Rml::Element *element, Rml::Element *window)
+        {
+            this->element = element;
+            this->window = window;
+        }
+
+    public:
+        void ProcessEvent(Rml::Event &event) override
+        {
+            if (event.GetId() == Rml::EventId::Dragstart)
+            {
+                int mouse_x = event.GetParameter<int>("mouse_x", 0);
+                int mouse_y = event.GetParameter<int>("mouse_y", 0);
+
+                // Current element position.
+                int left = window->GetAbsoluteLeft();
+                int top = window->GetAbsoluteTop();
+
+                drag_offset_x = mouse_x - left;
+                drag_offset_y = mouse_y - top;
+            }
+            else if (event.GetId() == Rml::EventId::Drag)
+            {
+                int mouse_x = event.GetParameter<int>("mouse_x", 0);
+                int mouse_y = event.GetParameter<int>("mouse_y", 0);
+
+                window->SetProperty(
+                    Rml::PropertyId::Left,
+                    Rml::Property(mouse_x - drag_offset_x, Rml::Unit::PX));
+
+                window->SetProperty(
+                    Rml::PropertyId::Top,
+                    Rml::Property(mouse_y - drag_offset_y, Rml::Unit::PX));
+            }
+        }
+    };
+
     RmlUserInterface::RmlUserInterface()
     {
     }
@@ -195,6 +260,21 @@ namespace crs
         reload();
     }
 
+    Rml::ElementDocument *RmlUserInterface::load_document(const std::string &path)
+    {
+        auto document = context->LoadDocument(path);
+        if (!!document)
+        {
+            auto title = document->GetElementById("titlebar");
+
+            auto listener = new DragWindowEventListener(title, document);
+            title->AddEventListener(Rml::EventId::Dragstart, listener);
+            title->AddEventListener(Rml::EventId::Drag, listener);
+        }
+
+        return document;
+    }
+
     void RmlUserInterface::reload()
     {
         if (root_document)
@@ -202,11 +282,39 @@ namespace crs
             root_document->ReloadStyleSheet();
             root_document->Close();
             root_document = nullptr;
+
             selected_tab_button = nullptr;
             selected_content = nullptr;
+
+            selected_plugin_tab_button = nullptr;
+            selected_plugin_content = nullptr;
+
+            home_tab_button = nullptr;
+            home_content = nullptr;
+
+            plugins_tab_button = nullptr;
+            plugins_content = nullptr;
+            plugins_buttons = nullptr;
+
+            debug_tab_button = nullptr;
+            debug_content = nullptr;
+
+            dom_inspector_content = nullptr;
+
+            last_hovered = nullptr;
         }
 
-        root_document = context->LoadDocument(config_folder + "rmlui/main.html");
+        for (auto &[key, value] : dom_nodes)
+        {
+            key->is_built = false;
+            key->dirty = true;
+        }
+
+        dom_nodes.clear();
+        document_map.clear();
+        component_map.clear();
+
+        root_document = load_document(config_folder + "rmlui/main.html");
         if (root_document)
         {
             auto *title = root_document->GetElementById("title-version");
@@ -217,6 +325,7 @@ namespace crs
 
             plugins_tab_button = root_document->GetElementById("plugins_tab_button");
             plugins_content = root_document->GetElementById("plugins_content");
+            plugins_buttons = plugins_content->GetElementById("plugins_buttons");
 
             debug_tab_button = root_document->GetElementById("debug_tab_button");
             debug_content = root_document->GetElementById("debug_content");
@@ -236,13 +345,27 @@ namespace crs
 
             auto rmlui_dom_node = get_rmlui_dom_node(root_dom_node);
             rmlui_dom_node->element = debug_content->GetElementById("dom-tree");
+
+            auto refresh_button = root_document->GetElementById("refresh_button");
+            refresh_button->AddEventListener(Rml::EventId::Click, new RefreshEventHandler(this));
+
             root_document->Show();
         }
+
+        for (auto &f : this->reload_callbacks)
+        {
+            f();
+        }
+    }
+
+    void RmlUserInterface::add_reload_callback(std::function<void()> function)
+    {
+        this->reload_callbacks.push_back(function);
     }
 
     void RmlUserInterface::process(SDL_Event *event)
     {
-        wants_input_last = !RmlSDL::InputEventHandler(context, sdl_window, *event);
+        wants_input_last = !Backend::ProcessEvents(context, event);
     }
 
     bool RmlUserInterface::wants_input()
@@ -315,6 +438,7 @@ namespace crs
             rmlui_dom_node->element = anchor;
 
             auto dom_node_event_listener = new DomNodeEventListener(this, node);
+
             rmlui_dom_node->wrapper_element->AddEventListener(Rml::EventId::Click, dom_node_event_listener);
             rmlui_dom_node->wrapper_element->AddEventListener(Rml::EventId::Mouseover, dom_node_event_listener);
             rmlui_dom_node->wrapper_element->AddEventListener(Rml::EventId::Mouseout, dom_node_event_listener);
@@ -403,5 +527,129 @@ namespace crs
         Backend::BeginFrame();
         context->Render();
         Backend::PresentFrame();
+    }
+
+    uint64_t RmlUserInterface::allocate_tab(const std::string &name)
+    {
+        auto id = component_allocation++;
+
+        auto container_u = root_document->CreateElement("div");
+        container_u->SetClass("sidebar-content", true);
+        container_u->SetProperty("display", "none");
+        auto container = plugins_content->AppendChild(std::move(container_u));
+
+        auto button_u = root_document->CreateElement("button");
+        button_u->SetInnerRML(name);
+        button_u->SetClass("sidebar-tab-button", true);
+        auto button = plugins_buttons->AppendChild(std::move(button_u));
+
+        button->AddEventListener(Rml::EventId::Click, new SwitchTabEventHandler(
+                                                          &selected_plugin_tab_button, &selected_plugin_content,
+                                                          button, container));
+
+        component_map[id] = container;
+        return id;
+    }
+
+    uint64_t RmlUserInterface::allocate_component(ComponentType type, uint64_t parent_id)
+    {
+        auto id = component_allocation++;
+        auto parent = component_map.find(parent_id);
+        auto has_parent = parent != component_map.end();
+        auto parent_element = (has_parent ? parent->second : nullptr);
+
+        Rml::Element *element = nullptr;
+
+        if (type == ComponentType::container)
+        {
+            auto document = load_document(config_folder + "rmlui/plugin.html");
+            if (!!document)
+            {
+                Rml::ElementList list;
+                document->GetElementsByClassName(list, "window");
+                list[0]->SetProperty("top", "400px");
+
+                document->Show();
+
+                document_map[id] = document;
+                element = document->GetElementById("main_content");
+            }
+        }
+        else if (type == ComponentType::checkbox)
+        {
+            auto document = parent_element->GetOwnerDocument();
+
+            auto u_element = document->CreateElement("div");
+            u_element->SetInnerRML(std::format("<label class=\"checkbox-row\"><input type=\"checkbox\" id=\"input_{}\"/><span id=\"text_{}\">N/A</span></label>", id, id));
+            element = parent_element->AppendChild(std::move(u_element));
+        }
+        else if (type == ComponentType::label)
+        {
+            auto document = parent_element->GetOwnerDocument();
+
+            auto u_element = document->CreateElement("div");
+            u_element->SetInnerRML(std::format("<span id=\"text_{}\">N/A</span>", id));
+            element = parent_element->AppendChild(std::move(u_element));
+        }
+        else if (type == ComponentType::hr)
+        {
+            auto document = parent_element->GetOwnerDocument();
+
+            auto u_element = document->CreateElement("div");
+            u_element->SetClass("hr-custom", true);
+            element = parent_element->AppendChild(std::move(u_element));
+        }
+        else if (type == ComponentType::line)
+        {
+            auto document = parent_element->GetOwnerDocument();
+
+            auto u_element = document->CreateElement("div");
+            u_element->SetClass("hr-empty", true);
+            element = parent_element->AppendChild(std::move(u_element));
+        }
+
+        if (!!element)
+        {
+            component_map[id] = element;
+            return id;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+
+    void RmlUserInterface::update_component_text(uint64_t component_id, std::string text)
+    {
+        auto element = component_map.find(component_id);
+        LOG(INFO, "Update text " << component_id << " " << text << " " << element->second->GetInnerRML());
+        if (element != component_map.end())
+        {
+            auto child = element->second->GetElementById(std::format("text_{}", component_id));
+            if (!child)
+            {
+                child = element->second->GetElementById(std::format("title_{}", component_id));
+            }
+
+            if (!!child)
+            {
+                child->SetInnerRML(text);
+            }
+        }
+    }
+
+    bool RmlUserInterface::is_component_checked(uint64_t component_id)
+    {
+        auto element = component_map.find(component_id);
+        if (element != component_map.end())
+        {
+            auto child = element->second->GetElementById(std::format("input_{}", component_id));
+            if (!!child)
+            {
+                return child->HasAttribute("checked");
+            }
+        }
+
+        return false;
     }
 }

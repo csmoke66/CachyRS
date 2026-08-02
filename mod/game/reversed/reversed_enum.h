@@ -1,5 +1,10 @@
 #pragma once
 
+enum class WorldNodeFlag : uint16_t
+{
+	has_entity = 0x200,
+};
+
 enum class EntityType : uint8_t
 {
 	npc = 1,
@@ -27,4 +32,19 @@ enum class WidgetType : uint8_t
 enum class CacheIndexOrdinal : uint8_t
 {
 	varbit = 7,
+};
+
+enum class ModelItemOrdinal : uint8_t
+{
+	// TODO FIXME add more of these..
+	weapon_primary = 15,
+	weapon_offhand = 16,
+};
+
+enum class MenuActionType : uint32_t
+{
+	walk = 0,
+	widget = 1,
+	obj = 3,
+	npc = 4,
 };

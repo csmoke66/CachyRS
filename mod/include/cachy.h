@@ -60,7 +60,7 @@ namespace crs
         Timer stats_timer;
         
     public:
-        ::std::mutex ui_mutex;
+        ::std::recursive_mutex ui_mutex;
 
     public:
         ProcessInterface pi;
@@ -84,7 +84,6 @@ namespace crs
         EventBus event_bus;
 
     private:
-        void init_logging();
         void init_process_info();
         void init_imgui();
         void init_dom();
@@ -105,6 +104,16 @@ namespace crs
 
     public:
         void push_ui_state();
+
+    public:
+        template<typename T>
+        auto ui_locked(T t)
+        {
+            ui_mutex.lock();
+            auto x = t();
+            ui_mutex.unlock();
+            return x;
+        }
     };
 
     extern CachyRS RS;

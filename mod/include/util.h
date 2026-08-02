@@ -19,6 +19,11 @@ namespace crs
         const void *last = obj;
         for (auto a : args)
         {
+            if (!last)
+            {
+                break;
+            }
+            
             last = *((const void **)((const char *)last + a));
         }
 

@@ -4,9 +4,9 @@
 struct Item
 {
 	// 0x0
-	const int32_t id;
+	int32_t id;
 	// 0x4
-	const int32_t amount;
+	int32_t amount;
 	// 0xc
 
 	Item();
@@ -28,6 +28,29 @@ struct ObjectHeader
 
 template <typename T>
 struct JArray
+{
+	// 0x0
+	uint64_t size;
+	// 0x8
+	T* data;
+	// 0x10
+};
+static_assert(sizeof(JArray<void*>) == 0x10, INVALID_SIZE);
+
+// do we really need both variations of this..?
+template <typename T>
+struct JArray2
+{
+	// 0x0
+	T* data;
+	// 0x8
+	uint64_t size;
+	// 0x10
+};
+static_assert(sizeof(JArray2<void*>) == 0x10, INVALID_SIZE);
+
+template <typename T>
+struct JVector
 {
 	// 0x0
 	T *begin;
@@ -63,7 +86,7 @@ struct JArray
 		return &begin[idx];
 	}
 };
-static_assert(sizeof(JArray<void*>) == 0x18, INVALID_SIZE);
+static_assert(sizeof(JVector<void*>) == 0x18, INVALID_SIZE);
 
 // this is actually a typical C++ STL string
 class JString
@@ -71,20 +94,20 @@ class JString
 public:
 	union
 	{
-		const char data[0x17];
+		char data[0x17];
 		struct
 		{
 			char *data_ptr;
-			const uint8_t len1;
+			uint8_t len1;
 			PAD(0x7);
-			const uint8_t len2;
+			uint8_t len2;
 			PAD(0x6);
 		};
 	};
 	union
 	{
-		const uint8_t remaining_bytes;
-		const uint8_t flag;
+		uint8_t remaining_bytes;
+		uint8_t flag;
 	};
 
 public:
@@ -114,9 +137,9 @@ template<typename T, typename B>
 struct TaggedObject
 {
 	// 0x0
-	const T* tag;
+	T* tag;
 	// 0x8
-	const B* body;
+	B* body;
 	// 0x10
 };
 

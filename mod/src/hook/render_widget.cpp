@@ -8,7 +8,7 @@ namespace crs
         BaseHook::handler(cpu_state);
         
         auto widget = (Widget *)CPU_FIRST_ARG(cpu_state);
-        auto children = (JArray<WidgetChild> *)CPU_THIRD_ARG(cpu_state);
+        auto children = (JVector<WidgetChild> *)CPU_THIRD_ARG(cpu_state);
         auto x = (int)CPU_FOURTH_ARG(cpu_state);
         auto y = (int)CPU_FIFTH_ARG(cpu_state);
 

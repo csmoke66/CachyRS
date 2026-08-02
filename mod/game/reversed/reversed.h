@@ -1,7 +1,10 @@
 #pragma once
 #include <EGL/egl.h>
 #include <SDL2/SDL.h>
+
 #include <cstdint>
+#include <type_traits>
+
 #include "util.h"
 
 #pragma clang diagnostic push
@@ -18,6 +21,7 @@ namespace crs
 #include "reversed_fwd_decl.h"
 #include "reversed_world_setting.h"
 #include "reversed_generated.h"
+#include "reversed_social.h"
 #include "reversed_render.h"
 #include "reversed_cache.h"
 #include "reversed_entity_update_cache.h"
@@ -29,6 +33,7 @@ namespace crs
 #include "reversed_item_cache.h"
 #include "reversed_linux.h"
 #include "reversed_fn_decl.h"
+#include "reversed_traits.h"
 }
 
 #pragma GCC diagnostic pop
