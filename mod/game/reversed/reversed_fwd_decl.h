@@ -38,6 +38,7 @@ struct Model;
 struct Terrain;
 struct MovementQueue;
 struct SocialCache;
+struct Menu;
 
 // generated
 struct Entity;

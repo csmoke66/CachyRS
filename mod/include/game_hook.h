@@ -97,7 +97,7 @@ namespace crs
     {
     private:
         bool plugins_loaded = false;
-
+        
     private:
         void tick_ui(Engine *engine);
         void tick_imgui(Engine *engine);

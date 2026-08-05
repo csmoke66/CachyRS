@@ -22,7 +22,7 @@ struct StatusBarData
 	// 0x34
 	uint8_t value;
 };
-static_assert(off(StatusBarData, display_time) == 0x30, INVALID_SIZE);
+static_assert(off(StatusBarData, display_time) == 0x30, INVALID_OFFSET);
 
 struct StatusBar
 {

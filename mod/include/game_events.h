@@ -15,10 +15,33 @@ namespace crs
         EngineTickEvent();
     };
 
+    struct MenuOpenedEventArgs
+    {
+        bool opened;
+    };
+
+    class MenuOpenedEvent : public Event
+    {
+    public:
+        MenuOpenedEventArgs args;
+
+    public:
+        static constexpr ::std::string specific_id()
+        {
+            return "on_menu_opened";
+        }
+
+    public:
+        MenuOpenedEvent(bool opened);
+
+    public:
+        void *get_args() override;
+    };
+
     struct MenuActionEventArgs
     {
         MenuActionArgs *args;
-        MenuActionTemplate** action_template;
+        MenuActionTemplate **action_template;
         bool bypass_logic = false;
     };
 
@@ -39,7 +62,7 @@ namespace crs
         }
 
     public:
-        MenuActionEvent(const std::string& id, MenuActionArgs *args, MenuActionTemplate** action_template);
+        MenuActionEvent(const std::string &id, MenuActionArgs *args, MenuActionTemplate **action_template);
 
     public:
         void *get_args() override;

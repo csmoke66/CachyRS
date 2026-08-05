@@ -6,6 +6,16 @@ namespace crs
     {
     }
 
+    MenuOpenedEvent::MenuOpenedEvent(bool opened) : Event(MenuOpenedEvent::specific_id())
+    {
+        this->args.opened = opened;
+    }
+
+    void* MenuOpenedEvent::get_args()
+    {
+        return &args;
+    }
+
     MenuActionEvent::MenuActionEvent(const std::string& id, MenuActionArgs *args, MenuActionTemplate** action_template) : Event(id)
     {
         this->args.args = args;

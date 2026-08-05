@@ -52,7 +52,6 @@ namespace crs
                 LOG(EglSwapBuffersHook, "Failed to initialize ImGui OpenGL backend");
             }
 
-    
             RS.ui->init(std::string(FEATURE_VERSION) + CACHYRS_VERSION, RS.get_configuration_dir(), sdl_window, width, height);
 
             // flush OpenGL errors so they don't propagate to rmlui

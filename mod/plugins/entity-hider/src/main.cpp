@@ -13,6 +13,8 @@ public:
     uint64_t ui_players_show_self_checkbox;
     uint64_t ui_players_show_friends_checkbox;
 
+    uint64_t ui_npcs_hide_checkbox;
+
 public:
     bool players_hidden()
     {
@@ -27,6 +29,11 @@ public:
     bool players_show_friends()
     {
         return api->ui_is_component_checked(ui_players_show_friends_checkbox);
+    }
+
+    bool npcs_hidden()
+    {
+        return api->ui_is_component_checked(ui_npcs_hide_checkbox);
     }
 
 public:
@@ -189,6 +196,17 @@ static void event_handler_engine_tick(void *args, EntityHiderPlugin *plugin)
                 world_node->flags |= crs::WorldNodeFlag::has_entity;
             }
         }
+        else if (entity->type == crs::EntityType::npc)
+        {
+            if (plugin->npcs_hidden())
+            {
+                world_node->flags &= ~crs::WorldNodeFlag::has_entity;
+            }
+            else
+            {
+                world_node->flags |= crs::WorldNodeFlag::has_entity;
+            }
+        }
     });
     // clang-format on
 }
@@ -225,4 +243,11 @@ void plugin_init(crs::InitType type, crs::Plugin *plugin)
 
     entity_hider_plugin.ui_players_show_friends_checkbox = api.ui_allocate_component(crs::PluginComponentType::checkbox, plugin->ui_tab_container_id);
     api.ui_update_component_text(entity_hider_plugin.ui_players_show_friends_checkbox, "Show Friends");
+
+    auto label_npcs = api.ui_allocate_component(crs::PluginComponentType::label, plugin->ui_tab_container_id);
+    api.ui_update_component_text(label_npcs, "NPCs");
+    api.ui_allocate_component(crs::PluginComponentType::hr, plugin->ui_tab_container_id);
+
+    entity_hider_plugin.ui_npcs_hide_checkbox = api.ui_allocate_component(crs::PluginComponentType::checkbox, plugin->ui_tab_container_id);
+    api.ui_update_component_text(entity_hider_plugin.ui_npcs_hide_checkbox, "Hidden");
 }

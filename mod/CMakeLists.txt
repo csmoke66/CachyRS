@@ -79,6 +79,7 @@ add_subdirectory(imgui)
 add_subdirectory(rmlui_backend)
 add_subdirectory(plugins/test)
 add_subdirectory(plugins/entity-hider)
+add_subdirectory(plugins/menu-entry-swapper)
 
 FetchContent_Declare(
         rmlui

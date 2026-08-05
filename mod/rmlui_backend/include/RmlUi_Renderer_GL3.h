@@ -23,6 +23,9 @@ public:
 	// The viewport should be updated whenever the window size changes.
 	void SetViewport(int viewport_width, int viewport_height, int viewport_offset_x = 0, int viewport_offset_y = 0);
 
+	void BackupState();
+	void RestoreState();
+	
 	// Sets up OpenGL states for taking rendering commands from RmlUi.
 	void BeginFrame();
 	// Draws the result to the backbuffer and restores OpenGL state.

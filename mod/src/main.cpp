@@ -28,16 +28,17 @@ extern "C" int __libc_start_main(
     void (*rtld_fini)(void),
     void *stack_end)
 {
-    auto real_libc_start_main = (decltype(__libc_start_main)*)dlsym(RTLD_NEXT, "__libc_start_main");
-    redirect_output();
-    
-    if (is_nvidia_wayland())
-    {
-        setenv("MESA_LOADER_DRIVER_OVERRIDE", "zink", 1);
-    }
+    auto real_libc_start_main = (decltype(__libc_start_main) *)dlsym(RTLD_NEXT, "__libc_start_main");
 
     if (std::string(program_invocation_short_name) == "rs2client")
     {
+        redirect_output();
+ 
+        if (is_nvidia_wayland())
+        {
+            setenv("MESA_LOADER_DRIVER_OVERRIDE", "zink", 1);
+        }
+
         crs::RS.init();
     }
 

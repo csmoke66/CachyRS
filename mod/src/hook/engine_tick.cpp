@@ -84,7 +84,6 @@ namespace crs
         {
             tick_ui(engine);
             tick_imgui(engine);
-            RS.ui_mutex.unlock();
             return false;
         });
         // clang-format on

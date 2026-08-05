@@ -11,10 +11,10 @@
 #include <string.h>
 
 #if defined RMLUI_PLATFORM_WIN32_NATIVE
-	// function call missing argument list
-	#pragma warning(disable : 4551)
-	// unreferenced local function has been removed
-	#pragma warning(disable : 4505)
+// function call missing argument list
+#pragma warning(disable : 4551)
+// unreferenced local function has been removed
+#pragma warning(disable : 4505)
 #endif
 
 #define RMLUI_SHADER_HEADER_VERSION "#version 330\n"
@@ -24,7 +24,7 @@
 
 // Determines the anti-aliasing quality when creating layers. Enables better-looking visuals, especially when transforms are applied.
 #ifndef RMLUI_NUM_MSAA_SAMPLES
-	#define RMLUI_NUM_MSAA_SAMPLES 2
+#define RMLUI_NUM_MSAA_SAMPLES 2
 #endif
 
 #define MAX_NUM_STOPS 16
@@ -37,7 +37,7 @@
 #define RMLUI_SHADER_HEADER \
 	RMLUI_SHADER_HEADER_VERSION "#define MAX_NUM_STOPS " RMLUI_STRINGIFY(MAX_NUM_STOPS) "\n#line " RMLUI_STRINGIFY(__LINE__) "\n"
 
-static const char* shader_vert_main = RMLUI_SHADER_HEADER R"(
+static const char *shader_vert_main = RMLUI_SHADER_HEADER R"(
 uniform vec2 _translate;
 uniform mat4 _transform;
 
@@ -58,7 +58,7 @@ void main() {
     gl_Position = outPos;
 }
 )";
-static const char* shader_frag_texture = RMLUI_SHADER_HEADER R"(
+static const char *shader_frag_texture = RMLUI_SHADER_HEADER R"(
 uniform sampler2D _tex;
 in vec2 fragTexCoord;
 in vec4 fragColor;
@@ -70,7 +70,7 @@ void main() {
 	finalColor = fragColor * texColor;
 }
 )";
-static const char* shader_frag_color = RMLUI_SHADER_HEADER R"(
+static const char *shader_frag_color = RMLUI_SHADER_HEADER R"(
 in vec2 fragTexCoord;
 in vec4 fragColor;
 
@@ -81,9 +81,17 @@ void main() {
 }
 )";
 
-enum class ShaderGradientFunction { Linear, Radial, Conic, RepeatingLinear, RepeatingRadial, RepeatingConic }; // Must match shader definitions below.
+enum class ShaderGradientFunction
+{
+	Linear,
+	Radial,
+	Conic,
+	RepeatingLinear,
+	RepeatingRadial,
+	RepeatingConic
+}; // Must match shader definitions below.
 
-static const char* shader_frag_gradient = RMLUI_SHADER_HEADER R"(
+static const char *shader_frag_gradient = RMLUI_SHADER_HEADER R"(
 #define LINEAR 0
 #define RADIAL 1
 #define CONIC 2
@@ -145,7 +153,7 @@ void main() {
 )";
 
 // "Creation" by Danilo Guanabara, based on: https://www.shadertoy.com/view/XsXXDn
-static const char* shader_frag_creation = RMLUI_SHADER_HEADER R"(
+static const char *shader_frag_creation = RMLUI_SHADER_HEADER R"(
 uniform float _value;
 uniform vec2 _dimensions;
 
@@ -171,7 +179,7 @@ void main() {
 }
 )";
 
-static const char* shader_vert_passthrough = RMLUI_SHADER_HEADER R"(
+static const char *shader_vert_passthrough = RMLUI_SHADER_HEADER R"(
 in vec2 inPosition;
 in vec2 inTexCoord0;
 
@@ -182,7 +190,7 @@ void main() {
     gl_Position = vec4(inPosition, 0.0, 1.0);
 }
 )";
-static const char* shader_frag_passthrough = RMLUI_SHADER_HEADER R"(
+static const char *shader_frag_passthrough = RMLUI_SHADER_HEADER R"(
 uniform sampler2D _tex;
 in vec2 fragTexCoord;
 out vec4 finalColor;
@@ -191,7 +199,7 @@ void main() {
 	finalColor = texture(_tex, fragTexCoord);
 }
 )";
-static const char* shader_frag_color_matrix = RMLUI_SHADER_HEADER R"(
+static const char *shader_frag_color_matrix = RMLUI_SHADER_HEADER R"(
 uniform sampler2D _tex;
 uniform mat4 _color_matrix;
 
@@ -210,7 +218,7 @@ void main() {
 	finalColor = vec4(transformedColor, texColor.a);
 }
 )";
-static const char* shader_frag_blend_mask = RMLUI_SHADER_HEADER R"(
+static const char *shader_frag_blend_mask = RMLUI_SHADER_HEADER R"(
 uniform sampler2D _tex;
 uniform sampler2D _texMask;
 
@@ -227,7 +235,7 @@ void main() {
 #define RMLUI_SHADER_BLUR_HEADER \
 	RMLUI_SHADER_HEADER "\n#define BLUR_SIZE " RMLUI_STRINGIFY(BLUR_SIZE) "\n#define BLUR_NUM_WEIGHTS " RMLUI_STRINGIFY(BLUR_NUM_WEIGHTS)
 
-static const char* shader_vert_blur = RMLUI_SHADER_BLUR_HEADER R"(
+static const char *shader_vert_blur = RMLUI_SHADER_BLUR_HEADER R"(
 uniform vec2 _texelOffset;
 
 in vec3 inPosition;
@@ -241,7 +249,7 @@ void main() {
     gl_Position = vec4(inPosition, 1.0);
 }
 )";
-static const char* shader_frag_blur = RMLUI_SHADER_BLUR_HEADER R"(
+static const char *shader_frag_blur = RMLUI_SHADER_BLUR_HEADER R"(
 uniform sampler2D _tex;
 uniform float _weights[BLUR_NUM_WEIGHTS];
 uniform vec2 _texCoordMin;
@@ -260,7 +268,7 @@ void main() {
 	finalColor = color;
 }
 )";
-static const char* shader_frag_drop_shadow = RMLUI_SHADER_HEADER R"(
+static const char *shader_frag_drop_shadow = RMLUI_SHADER_HEADER R"(
 uniform sampler2D _tex;
 uniform vec2 _texCoordMin;
 uniform vec2 _texCoordMax;
@@ -275,7 +283,8 @@ void main() {
 }
 )";
 
-enum class ProgramId {
+enum class ProgramId
+{
 	None,
 	Color,
 	Texture,
@@ -288,13 +297,15 @@ enum class ProgramId {
 	DropShadow,
 	Count,
 };
-enum class VertShaderId {
+enum class VertShaderId
+{
 	Main,
 	Passthrough,
 	Blur,
 	Count,
 };
-enum class FragShaderId {
+enum class FragShaderId
+{
 	Color,
 	Texture,
 	Gradient,
@@ -306,7 +317,8 @@ enum class FragShaderId {
 	DropShadow,
 	Count,
 };
-enum class UniformId {
+enum class UniformId
+{
 	Translate,
 	Transform,
 	Tex,
@@ -328,33 +340,43 @@ enum class UniformId {
 	Count,
 };
 
-namespace Gfx {
+namespace Gfx
+{
 
-static const char* const program_uniform_names[(size_t)UniformId::Count] = {"_translate", "_transform", "_tex", "_color", "_color_matrix",
-	"_texelOffset", "_texCoordMin", "_texCoordMax", "_texMask", "_weights[0]", "_func", "_p", "_v", "_stop_colors[0]", "_stop_positions[0]",
-	"_num_stops", "_value", "_dimensions"};
+	static const char *const program_uniform_names[(size_t)UniformId::Count] = {"_translate", "_transform", "_tex", "_color", "_color_matrix",
+																				"_texelOffset", "_texCoordMin", "_texCoordMax", "_texMask", "_weights[0]", "_func", "_p", "_v", "_stop_colors[0]", "_stop_positions[0]",
+																				"_num_stops", "_value", "_dimensions"};
 
-enum class VertexAttribute { Position, Color0, TexCoord0, Count };
-static const char* const vertex_attribute_names[(size_t)VertexAttribute::Count] = {"inPosition", "inColor0", "inTexCoord0"};
+	enum class VertexAttribute
+	{
+		Position,
+		Color0,
+		TexCoord0,
+		Count
+	};
+	static const char *const vertex_attribute_names[(size_t)VertexAttribute::Count] = {"inPosition", "inColor0", "inTexCoord0"};
 
-struct VertShaderDefinition {
-	VertShaderId id;
-	const char* name_str;
-	const char* code_str;
-};
-struct FragShaderDefinition {
-	FragShaderId id;
-	const char* name_str;
-	const char* code_str;
-};
-struct ProgramDefinition {
-	ProgramId id;
-	const char* name_str;
-	VertShaderId vert_shader;
-	FragShaderId frag_shader;
-};
+	struct VertShaderDefinition
+	{
+		VertShaderId id;
+		const char *name_str;
+		const char *code_str;
+	};
+	struct FragShaderDefinition
+	{
+		FragShaderId id;
+		const char *name_str;
+		const char *code_str;
+	};
+	struct ProgramDefinition
+	{
+		ProgramId id;
+		const char *name_str;
+		VertShaderId vert_shader;
+		FragShaderId frag_shader;
+	};
 
-// clang-format off
+	// clang-format off
 static const VertShaderDefinition vert_shader_definitions[] = {
 	{VertShaderId::Main,        "main",         shader_vert_main},
 	{VertShaderId::Passthrough, "passthrough",  shader_vert_passthrough},
@@ -382,390 +404,403 @@ static const ProgramDefinition program_definitions[] = {
 	{ProgramId::Blur,        "blur",         VertShaderId::Blur,        FragShaderId::Blur},
 	{ProgramId::DropShadow,  "drop_shadow",  VertShaderId::Passthrough, FragShaderId::DropShadow},
 };
-// clang-format on
+	// clang-format on
 
-template <typename T, typename Enum>
-class EnumArray {
-public:
-	const T& operator[](Enum id) const
+	template <typename T, typename Enum>
+	class EnumArray
 	{
-		RMLUI_ASSERT((size_t)id < (size_t)Enum::Count);
-		return ids[size_t(id)];
-	}
-	T& operator[](Enum id)
-	{
-		RMLUI_ASSERT((size_t)id < (size_t)Enum::Count);
-		return ids[size_t(id)];
-	}
-	auto begin() const { return ids.begin(); }
-	auto end() const { return ids.end(); }
-
-private:
-	Rml::Array<T, (size_t)Enum::Count> ids = {};
-};
-
-using Programs = EnumArray<GLuint, ProgramId>;
-using VertShaders = EnumArray<GLuint, VertShaderId>;
-using FragShaders = EnumArray<GLuint, FragShaderId>;
-
-class Uniforms {
-public:
-	GLint Get(ProgramId id, UniformId uniform) const
-	{
-		auto it = map.find(ToKey(id, uniform));
-		if (it != map.end())
-			return it->second;
-		return -1;
-	}
-	void Insert(ProgramId id, UniformId uniform, GLint location) { map[ToKey(id, uniform)] = location; }
-
-private:
-	using Key = uint64_t;
-	Key ToKey(ProgramId id, UniformId uniform) const { return (static_cast<Key>(id) << 32) | static_cast<Key>(uniform); }
-	Rml::UnorderedMap<Key, GLint> map;
-};
-
-struct ProgramData {
-	Programs programs;
-	VertShaders vert_shaders;
-	FragShaders frag_shaders;
-	Uniforms uniforms;
-};
-
-struct CompiledGeometryData {
-	GLuint vao;
-	GLuint vbo;
-	GLuint ibo;
-	GLsizei draw_count;
-};
-
-struct FramebufferData {
-	int width, height;
-	GLuint framebuffer;
-	GLuint color_tex_buffer;
-	GLuint color_render_buffer;
-	GLuint depth_stencil_buffer;
-	bool owns_depth_stencil_buffer;
-};
-
-enum class FramebufferAttachment { None, DepthStencil };
-
-static void CheckGLError(const char* operation_name)
-{
-#ifdef RMLUI_DEBUG
-	GLenum error_code = glGetError();
-	if (error_code != GL_NO_ERROR)
-	{
-		static const Rml::Pair<GLenum, const char*> error_names[] = {{GL_INVALID_ENUM, "GL_INVALID_ENUM"}, {GL_INVALID_VALUE, "GL_INVALID_VALUE"},
-			{GL_INVALID_OPERATION, "GL_INVALID_OPERATION"}, {GL_OUT_OF_MEMORY, "GL_OUT_OF_MEMORY"}};
-		const char* error_str = "''";
-		for (auto& err : error_names)
+	public:
+		const T &operator[](Enum id) const
 		{
-			if (err.first == error_code)
-			{
-				error_str = err.second;
-				break;
-			}
+			RMLUI_ASSERT((size_t)id < (size_t)Enum::Count);
+			return ids[size_t(id)];
 		}
-		Rml::Log::Message(Rml::Log::LT_ERROR, "OpenGL error during %s. Error code 0x%x (%s).", operation_name, error_code, error_str);
-	}
-#endif
-	(void)operation_name;
-}
-
-// Create the shader, 'shader_type' is either GL_VERTEX_SHADER or GL_FRAGMENT_SHADER.
-static bool CreateShader(GLuint& out_shader_id, GLenum shader_type, const char* code_string)
-{
-	RMLUI_ASSERT(shader_type == GL_VERTEX_SHADER || shader_type == GL_FRAGMENT_SHADER);
-
-	GLuint id = glCreateShader(shader_type);
-	glShaderSource(id, 1, (const GLchar**)&code_string, NULL);
-	glCompileShader(id);
-
-	GLint status = 0;
-	glGetShaderiv(id, GL_COMPILE_STATUS, &status);
-	if (status == GL_FALSE)
-	{
-		GLint info_log_length = 0;
-		glGetShaderiv(id, GL_INFO_LOG_LENGTH, &info_log_length);
-		char* info_log_string = new char[info_log_length + 1];
-		glGetShaderInfoLog(id, info_log_length, NULL, info_log_string);
-
-		Rml::Log::Message(Rml::Log::LT_ERROR, "Compile failure in OpenGL shader: %s", info_log_string);
-		delete[] info_log_string;
-		glDeleteShader(id);
-		return false;
-	}
-
-	CheckGLError("CreateShader");
-
-	out_shader_id = id;
-	return true;
-}
-
-static bool CreateProgram(GLuint& out_program, Uniforms& inout_uniform_map, ProgramId program_id, GLuint vertex_shader, GLuint fragment_shader)
-{
-	GLuint id = glCreateProgram();
-	RMLUI_ASSERT(id);
-
-	for (GLuint i = 0; i < (GLuint)VertexAttribute::Count; i++)
-		glBindAttribLocation(id, i, vertex_attribute_names[i]);
-
-	CheckGLError("BindAttribLocations");
-
-	glAttachShader(id, vertex_shader);
-	glAttachShader(id, fragment_shader);
-
-	glLinkProgram(id);
-
-	glDetachShader(id, vertex_shader);
-	glDetachShader(id, fragment_shader);
-
-	GLint status = 0;
-	glGetProgramiv(id, GL_LINK_STATUS, &status);
-	if (status == GL_FALSE)
-	{
-		GLint info_log_length = 0;
-		glGetProgramiv(id, GL_INFO_LOG_LENGTH, &info_log_length);
-		char* info_log_string = new char[info_log_length + 1];
-		glGetProgramInfoLog(id, info_log_length, NULL, info_log_string);
-
-		Rml::Log::Message(Rml::Log::LT_ERROR, "OpenGL program linking failure: %s", info_log_string);
-		delete[] info_log_string;
-		glDeleteProgram(id);
-		return false;
-	}
-
-	out_program = id;
-
-	// Make a lookup table for the uniform locations.
-	GLint num_active_uniforms = 0;
-	glGetProgramiv(id, GL_ACTIVE_UNIFORMS, &num_active_uniforms);
-
-	constexpr size_t name_size = 64;
-	GLchar name_buf[name_size] = "";
-	for (int unif = 0; unif < num_active_uniforms; ++unif)
-	{
-		GLint array_size = 0;
-		GLenum type = 0;
-		GLsizei actual_length = 0;
-		glGetActiveUniform(id, unif, name_size, &actual_length, &array_size, &type, name_buf);
-		GLint location = glGetUniformLocation(id, name_buf);
-
-		// See if we have the name in our pre-defined name list.
-		UniformId program_uniform = UniformId::Count;
-		for (int i = 0; i < (int)UniformId::Count; i++)
+		T &operator[](Enum id)
 		{
-			const char* uniform_name = program_uniform_names[i];
-			if (strcmp(name_buf, uniform_name) == 0)
-			{
-				program_uniform = (UniformId)i;
-				break;
-			}
+			RMLUI_ASSERT((size_t)id < (size_t)Enum::Count);
+			return ids[size_t(id)];
 		}
+		auto begin() const { return ids.begin(); }
+		auto end() const { return ids.end(); }
 
-		if ((size_t)program_uniform < (size_t)UniformId::Count)
-		{
-			inout_uniform_map.Insert(program_id, program_uniform, location);
-		}
-		else
-		{
-			Rml::Log::Message(Rml::Log::LT_ERROR, "OpenGL program uses unknown uniform '%s'.", name_buf);
-			return false;
-		}
-	}
-
-	CheckGLError("CreateProgram");
-
-	return true;
-}
-
-static bool CreateFramebuffer(FramebufferData& out_fb, int width, int height, int samples, FramebufferAttachment attachment,
-	GLuint shared_depth_stencil_buffer)
-{
-#if defined(RMLUI_PLATFORM_EMSCRIPTEN) || defined(__ANDROID__)
-	constexpr GLint wrap_mode = GL_CLAMP_TO_EDGE;
-#else
-	constexpr GLint wrap_mode = GL_CLAMP_TO_BORDER; // GL_REPEAT GL_MIRRORED_REPEAT GL_CLAMP_TO_EDGE
-#endif
-
-	constexpr GLenum color_format = GL_RGBA8;   // GL_RGBA8 GL_SRGB8_ALPHA8 GL_RGBA16F
-	constexpr GLint min_mag_filter = GL_LINEAR; // GL_NEAREST
-	const Rml::Colourf border_color(0.f, 0.f);
-
-	GLuint framebuffer = 0;
-	glGenFramebuffers(1, &framebuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-
-	GLuint color_tex_buffer = 0;
-	GLuint color_render_buffer = 0;
-	if (samples > 0)
-	{
-		glGenRenderbuffers(1, &color_render_buffer);
-		glBindRenderbuffer(GL_RENDERBUFFER, color_render_buffer);
-		glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, color_format, width, height);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, color_render_buffer);
-	}
-	else
-	{
-		glGenTextures(1, &color_tex_buffer);
-		glBindTexture(GL_TEXTURE_2D, color_tex_buffer);
-		glTexImage2D(GL_TEXTURE_2D, 0, color_format, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min_mag_filter);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, min_mag_filter);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap_mode);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap_mode);
-#if !defined(RMLUI_PLATFORM_EMSCRIPTEN) && !defined(__ANDROID__)
-		glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, &border_color[0]);
-#endif
-
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, color_tex_buffer, 0);
-	}
-
-	// Create depth/stencil buffer storage attachment.
-	GLuint depth_stencil_buffer = 0;
-	if (attachment != FramebufferAttachment::None)
-	{
-		if (shared_depth_stencil_buffer)
-		{
-			// Share depth/stencil buffer
-			depth_stencil_buffer = shared_depth_stencil_buffer;
-		}
-		else
-		{
-			// Create new depth/stencil buffer
-			glGenRenderbuffers(1, &depth_stencil_buffer);
-			glBindRenderbuffer(GL_RENDERBUFFER, depth_stencil_buffer);
-
-			glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, GL_DEPTH24_STENCIL8, width, height);
-		}
-
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depth_stencil_buffer);
-	}
-
-	const GLuint framebuffer_status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-	if (framebuffer_status != GL_FRAMEBUFFER_COMPLETE)
-	{
-		Rml::Log::Message(Rml::Log::LT_ERROR, "OpenGL framebuffer could not be generated. Error code %x.", framebuffer_status);
-		return false;
-	}
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
-	CheckGLError("CreateFramebuffer");
-
-	out_fb = {};
-	out_fb.width = width;
-	out_fb.height = height;
-	out_fb.framebuffer = framebuffer;
-	out_fb.color_tex_buffer = color_tex_buffer;
-	out_fb.color_render_buffer = color_render_buffer;
-	out_fb.depth_stencil_buffer = depth_stencil_buffer;
-	out_fb.owns_depth_stencil_buffer = !shared_depth_stencil_buffer;
-
-	return true;
-}
-
-static void DestroyFramebuffer(FramebufferData& fb)
-{
-	if (fb.framebuffer)
-		glDeleteFramebuffers(1, &fb.framebuffer);
-	if (fb.color_tex_buffer)
-		glDeleteTextures(1, &fb.color_tex_buffer);
-	if (fb.color_render_buffer)
-		glDeleteRenderbuffers(1, &fb.color_render_buffer);
-	if (fb.owns_depth_stencil_buffer && fb.depth_stencil_buffer)
-		glDeleteRenderbuffers(1, &fb.depth_stencil_buffer);
-	fb = {};
-}
-
-static GLuint CreateTexture(Rml::Span<const Rml::byte> source_data, Rml::Vector2i source_dimensions)
-{
-	GLuint texture_id = 0;
-	glGenTextures(1, &texture_id);
-	if (texture_id == 0)
-		return 0;
-
-	glBindTexture(GL_TEXTURE_2D, texture_id);
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, source_dimensions.x, source_dimensions.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, source_data.data());
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	return texture_id;
-}
-
-static void BindTexture(const FramebufferData& fb)
-{
-	if (!fb.color_tex_buffer)
-	{
-		RMLUI_ERRORMSG("Only framebuffers with color textures can be bound as textures. This framebuffer probably uses multisampling which needs a "
-					   "blit step first.");
-	}
-
-	glBindTexture(GL_TEXTURE_2D, fb.color_tex_buffer);
-}
-
-static bool CreateShaders(ProgramData& data)
-{
-	RMLUI_ASSERT(std::all_of(data.vert_shaders.begin(), data.vert_shaders.end(), [](auto&& value) { return value == 0; }));
-	RMLUI_ASSERT(std::all_of(data.frag_shaders.begin(), data.frag_shaders.end(), [](auto&& value) { return value == 0; }));
-	RMLUI_ASSERT(std::all_of(data.programs.begin(), data.programs.end(), [](auto&& value) { return value == 0; }));
-	auto ReportError = [](const char* type, const char* name) {
-		Rml::Log::Message(Rml::Log::LT_ERROR, "Could not create OpenGL %s: '%s'.", type, name);
-		return false;
+	private:
+		Rml::Array<T, (size_t)Enum::Count> ids = {};
 	};
 
-	for (const VertShaderDefinition& def : vert_shader_definitions)
+	using Programs = EnumArray<GLuint, ProgramId>;
+	using VertShaders = EnumArray<GLuint, VertShaderId>;
+	using FragShaders = EnumArray<GLuint, FragShaderId>;
+
+	class Uniforms
 	{
-		if (!CreateShader(data.vert_shaders[def.id], GL_VERTEX_SHADER, def.code_str))
-			return ReportError("vertex shader", def.name_str);
+	public:
+		GLint Get(ProgramId id, UniformId uniform) const
+		{
+			auto it = map.find(ToKey(id, uniform));
+			if (it != map.end())
+				return it->second;
+			return -1;
+		}
+		void Insert(ProgramId id, UniformId uniform, GLint location) { map[ToKey(id, uniform)] = location; }
+
+	private:
+		using Key = uint64_t;
+		Key ToKey(ProgramId id, UniformId uniform) const { return (static_cast<Key>(id) << 32) | static_cast<Key>(uniform); }
+		Rml::UnorderedMap<Key, GLint> map;
+	};
+
+	struct ProgramData
+	{
+		Programs programs;
+		VertShaders vert_shaders;
+		FragShaders frag_shaders;
+		Uniforms uniforms;
+	};
+
+	struct CompiledGeometryData
+	{
+		GLuint vao;
+		GLuint vbo;
+		GLuint ibo;
+		GLsizei draw_count;
+	};
+
+	struct FramebufferData
+	{
+		int width, height;
+		GLuint framebuffer;
+		GLuint color_tex_buffer;
+		GLuint color_render_buffer;
+		GLuint depth_stencil_buffer;
+		bool owns_depth_stencil_buffer;
+	};
+
+	enum class FramebufferAttachment
+	{
+		None,
+		DepthStencil
+	};
+
+	static void CheckGLError(const char *operation_name)
+	{
+#ifdef RMLUI_DEBUG
+		GLenum error_code = glGetError();
+		if (error_code != GL_NO_ERROR)
+		{
+			static const Rml::Pair<GLenum, const char *> error_names[] = {{GL_INVALID_ENUM, "GL_INVALID_ENUM"}, {GL_INVALID_VALUE, "GL_INVALID_VALUE"}, {GL_INVALID_OPERATION, "GL_INVALID_OPERATION"}, {GL_OUT_OF_MEMORY, "GL_OUT_OF_MEMORY"}};
+			const char *error_str = "''";
+			for (auto &err : error_names)
+			{
+				if (err.first == error_code)
+				{
+					error_str = err.second;
+					break;
+				}
+			}
+			Rml::Log::Message(Rml::Log::LT_ERROR, "OpenGL error during %s. Error code 0x%x (%s).", operation_name, error_code, error_str);
+		}
+#endif
+		(void)operation_name;
 	}
 
-	for (const FragShaderDefinition& def : frag_shader_definitions)
+	// Create the shader, 'shader_type' is either GL_VERTEX_SHADER or GL_FRAGMENT_SHADER.
+	static bool CreateShader(GLuint &out_shader_id, GLenum shader_type, const char *code_string)
 	{
-		if (!CreateShader(data.frag_shaders[def.id], GL_FRAGMENT_SHADER, def.code_str))
-			return ReportError("fragment shader", def.name_str);
+		RMLUI_ASSERT(shader_type == GL_VERTEX_SHADER || shader_type == GL_FRAGMENT_SHADER);
+
+		GLuint id = glCreateShader(shader_type);
+		glShaderSource(id, 1, (const GLchar **)&code_string, NULL);
+		glCompileShader(id);
+
+		GLint status = 0;
+		glGetShaderiv(id, GL_COMPILE_STATUS, &status);
+		if (status == GL_FALSE)
+		{
+			GLint info_log_length = 0;
+			glGetShaderiv(id, GL_INFO_LOG_LENGTH, &info_log_length);
+			char *info_log_string = new char[info_log_length + 1];
+			glGetShaderInfoLog(id, info_log_length, NULL, info_log_string);
+
+			Rml::Log::Message(Rml::Log::LT_ERROR, "Compile failure in OpenGL shader: %s", info_log_string);
+			delete[] info_log_string;
+			glDeleteShader(id);
+			return false;
+		}
+
+		CheckGLError("CreateShader");
+
+		out_shader_id = id;
+		return true;
 	}
 
-	for (const ProgramDefinition& def : program_definitions)
+	static bool CreateProgram(GLuint &out_program, Uniforms &inout_uniform_map, ProgramId program_id, GLuint vertex_shader, GLuint fragment_shader)
 	{
-		if (!CreateProgram(data.programs[def.id], data.uniforms, def.id, data.vert_shaders[def.vert_shader], data.frag_shaders[def.frag_shader]))
-			return ReportError("program", def.name_str);
+		GLuint id = glCreateProgram();
+		RMLUI_ASSERT(id);
+
+		for (GLuint i = 0; i < (GLuint)VertexAttribute::Count; i++)
+			glBindAttribLocation(id, i, vertex_attribute_names[i]);
+
+		CheckGLError("BindAttribLocations");
+
+		glAttachShader(id, vertex_shader);
+		glAttachShader(id, fragment_shader);
+
+		glLinkProgram(id);
+
+		glDetachShader(id, vertex_shader);
+		glDetachShader(id, fragment_shader);
+
+		GLint status = 0;
+		glGetProgramiv(id, GL_LINK_STATUS, &status);
+		if (status == GL_FALSE)
+		{
+			GLint info_log_length = 0;
+			glGetProgramiv(id, GL_INFO_LOG_LENGTH, &info_log_length);
+			char *info_log_string = new char[info_log_length + 1];
+			glGetProgramInfoLog(id, info_log_length, NULL, info_log_string);
+
+			Rml::Log::Message(Rml::Log::LT_ERROR, "OpenGL program linking failure: %s", info_log_string);
+			delete[] info_log_string;
+			glDeleteProgram(id);
+			return false;
+		}
+
+		out_program = id;
+
+		// Make a lookup table for the uniform locations.
+		GLint num_active_uniforms = 0;
+		glGetProgramiv(id, GL_ACTIVE_UNIFORMS, &num_active_uniforms);
+
+		constexpr size_t name_size = 64;
+		GLchar name_buf[name_size] = "";
+		for (int unif = 0; unif < num_active_uniforms; ++unif)
+		{
+			GLint array_size = 0;
+			GLenum type = 0;
+			GLsizei actual_length = 0;
+			glGetActiveUniform(id, unif, name_size, &actual_length, &array_size, &type, name_buf);
+			GLint location = glGetUniformLocation(id, name_buf);
+
+			// See if we have the name in our pre-defined name list.
+			UniformId program_uniform = UniformId::Count;
+			for (int i = 0; i < (int)UniformId::Count; i++)
+			{
+				const char *uniform_name = program_uniform_names[i];
+				if (strcmp(name_buf, uniform_name) == 0)
+				{
+					program_uniform = (UniformId)i;
+					break;
+				}
+			}
+
+			if ((size_t)program_uniform < (size_t)UniformId::Count)
+			{
+				inout_uniform_map.Insert(program_id, program_uniform, location);
+			}
+			else
+			{
+				Rml::Log::Message(Rml::Log::LT_ERROR, "OpenGL program uses unknown uniform '%s'.", name_buf);
+				return false;
+			}
+		}
+
+		CheckGLError("CreateProgram");
+
+		return true;
 	}
 
-	glUseProgram(data.programs[ProgramId::BlendMask]);
-	glUniform1i(data.uniforms.Get(ProgramId::BlendMask, UniformId::TexMask), 1);
+	static bool CreateFramebuffer(FramebufferData &out_fb, int width, int height, int samples, FramebufferAttachment attachment,
+								  GLuint shared_depth_stencil_buffer)
+	{
+#if defined(RMLUI_PLATFORM_EMSCRIPTEN) || defined(__ANDROID__)
+		constexpr GLint wrap_mode = GL_CLAMP_TO_EDGE;
+#else
+		constexpr GLint wrap_mode = GL_CLAMP_TO_BORDER; // GL_REPEAT GL_MIRRORED_REPEAT GL_CLAMP_TO_EDGE
+#endif
 
-	glUseProgram(0);
+		constexpr GLenum color_format = GL_RGBA8;	// GL_RGBA8 GL_SRGB8_ALPHA8 GL_RGBA16F
+		constexpr GLint min_mag_filter = GL_LINEAR; // GL_NEAREST
+		const Rml::Colourf border_color(0.f, 0.f);
 
-	return true;
-}
+		GLuint framebuffer = 0;
+		glGenFramebuffers(1, &framebuffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 
-static void DestroyShaders(const ProgramData& data)
-{
-	for (GLuint id : data.programs)
-		glDeleteProgram(id);
+		GLuint color_tex_buffer = 0;
+		GLuint color_render_buffer = 0;
+		if (samples > 0)
+		{
+			glGenRenderbuffers(1, &color_render_buffer);
+			glBindRenderbuffer(GL_RENDERBUFFER, color_render_buffer);
+			glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, color_format, width, height);
+			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, color_render_buffer);
+		}
+		else
+		{
+			glGenTextures(1, &color_tex_buffer);
+			glBindTexture(GL_TEXTURE_2D, color_tex_buffer);
+			glTexImage2D(GL_TEXTURE_2D, 0, color_format, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
-	for (GLuint id : data.vert_shaders)
-		glDeleteShader(id);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min_mag_filter);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, min_mag_filter);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap_mode);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap_mode);
+#if !defined(RMLUI_PLATFORM_EMSCRIPTEN) && !defined(__ANDROID__)
+			glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, &border_color[0]);
+#endif
 
-	for (GLuint id : data.frag_shaders)
-		glDeleteShader(id);
-}
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, color_tex_buffer, 0);
+		}
+
+		// Create depth/stencil buffer storage attachment.
+		GLuint depth_stencil_buffer = 0;
+		if (attachment != FramebufferAttachment::None)
+		{
+			if (shared_depth_stencil_buffer)
+			{
+				// Share depth/stencil buffer
+				depth_stencil_buffer = shared_depth_stencil_buffer;
+			}
+			else
+			{
+				// Create new depth/stencil buffer
+				glGenRenderbuffers(1, &depth_stencil_buffer);
+				glBindRenderbuffer(GL_RENDERBUFFER, depth_stencil_buffer);
+
+				glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, GL_DEPTH24_STENCIL8, width, height);
+			}
+
+			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depth_stencil_buffer);
+		}
+
+		const GLuint framebuffer_status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+		if (framebuffer_status != GL_FRAMEBUFFER_COMPLETE)
+		{
+			Rml::Log::Message(Rml::Log::LT_ERROR, "OpenGL framebuffer could not be generated. Error code %x.", framebuffer_status);
+			return false;
+		}
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+		CheckGLError("CreateFramebuffer");
+
+		out_fb = {};
+		out_fb.width = width;
+		out_fb.height = height;
+		out_fb.framebuffer = framebuffer;
+		out_fb.color_tex_buffer = color_tex_buffer;
+		out_fb.color_render_buffer = color_render_buffer;
+		out_fb.depth_stencil_buffer = depth_stencil_buffer;
+		out_fb.owns_depth_stencil_buffer = !shared_depth_stencil_buffer;
+
+		return true;
+	}
+
+	static void DestroyFramebuffer(FramebufferData &fb)
+	{
+		if (fb.framebuffer)
+			glDeleteFramebuffers(1, &fb.framebuffer);
+		if (fb.color_tex_buffer)
+			glDeleteTextures(1, &fb.color_tex_buffer);
+		if (fb.color_render_buffer)
+			glDeleteRenderbuffers(1, &fb.color_render_buffer);
+		if (fb.owns_depth_stencil_buffer && fb.depth_stencil_buffer)
+			glDeleteRenderbuffers(1, &fb.depth_stencil_buffer);
+		fb = {};
+	}
+
+	static GLuint CreateTexture(Rml::Span<const Rml::byte> source_data, Rml::Vector2i source_dimensions)
+	{
+		GLuint texture_id = 0;
+		glGenTextures(1, &texture_id);
+		if (texture_id == 0)
+			return 0;
+
+		glBindTexture(GL_TEXTURE_2D, texture_id);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, source_dimensions.x, source_dimensions.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, source_data.data());
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		return texture_id;
+	}
+
+	static void BindTexture(const FramebufferData &fb)
+	{
+		if (!fb.color_tex_buffer)
+		{
+			RMLUI_ERRORMSG("Only framebuffers with color textures can be bound as textures. This framebuffer probably uses multisampling which needs a "
+						   "blit step first.");
+		}
+
+		glBindTexture(GL_TEXTURE_2D, fb.color_tex_buffer);
+	}
+
+	static bool CreateShaders(ProgramData &data)
+	{
+		RMLUI_ASSERT(std::all_of(data.vert_shaders.begin(), data.vert_shaders.end(), [](auto &&value)
+								 { return value == 0; }));
+		RMLUI_ASSERT(std::all_of(data.frag_shaders.begin(), data.frag_shaders.end(), [](auto &&value)
+								 { return value == 0; }));
+		RMLUI_ASSERT(std::all_of(data.programs.begin(), data.programs.end(), [](auto &&value)
+								 { return value == 0; }));
+		auto ReportError = [](const char *type, const char *name)
+		{
+			Rml::Log::Message(Rml::Log::LT_ERROR, "Could not create OpenGL %s: '%s'.", type, name);
+			return false;
+		};
+
+		for (const VertShaderDefinition &def : vert_shader_definitions)
+		{
+			if (!CreateShader(data.vert_shaders[def.id], GL_VERTEX_SHADER, def.code_str))
+				return ReportError("vertex shader", def.name_str);
+		}
+
+		for (const FragShaderDefinition &def : frag_shader_definitions)
+		{
+			if (!CreateShader(data.frag_shaders[def.id], GL_FRAGMENT_SHADER, def.code_str))
+				return ReportError("fragment shader", def.name_str);
+		}
+
+		for (const ProgramDefinition &def : program_definitions)
+		{
+			if (!CreateProgram(data.programs[def.id], data.uniforms, def.id, data.vert_shaders[def.vert_shader], data.frag_shaders[def.frag_shader]))
+				return ReportError("program", def.name_str);
+		}
+
+		glUseProgram(data.programs[ProgramId::BlendMask]);
+		glUniform1i(data.uniforms.Get(ProgramId::BlendMask, UniformId::TexMask), 1);
+
+		glUseProgram(0);
+
+		return true;
+	}
+
+	static void DestroyShaders(const ProgramData &data)
+	{
+		for (GLuint id : data.programs)
+			glDeleteProgram(id);
+
+		for (GLuint id : data.vert_shaders)
+			glDeleteShader(id);
+
+		for (GLuint id : data.frag_shaders)
+			glDeleteShader(id);
+	}
 
 } // namespace Gfx
 
 RenderInterface_GL3::RenderInterface_GL3()
 {
+	BackupState();
 	auto mut_program_data = Rml::MakeUnique<Gfx::ProgramData>();
 	if (Gfx::CreateShaders(*mut_program_data))
 	{
@@ -774,6 +809,7 @@ RenderInterface_GL3::RenderInterface_GL3()
 		Rml::MeshUtilities::GenerateQuad(mesh, Rml::Vector2f(-1), Rml::Vector2f(2), {});
 		fullscreen_quad_geometry = RenderInterface_GL3::CompileGeometry(mesh.vertices, mesh.indices);
 	}
+	RestoreState();
 }
 
 RenderInterface_GL3::~RenderInterface_GL3()
@@ -800,10 +836,8 @@ void RenderInterface_GL3::SetViewport(int width, int height, int offset_x, int o
 	projection = Rml::Matrix4f::ProjectOrtho(0, (float)viewport_width, (float)viewport_height, 0, -10000, 10000);
 }
 
-void RenderInterface_GL3::BeginFrame()
+void RenderInterface_GL3::BackupState()
 {
-	RMLUI_ASSERT(viewport_width >= 1 && viewport_height >= 1);
-
 	// Backup GL state.
 	glstate_backup.enable_cull_face = glIsEnabled(GL_CULL_FACE);
 	glstate_backup.enable_blend = glIsEnabled(GL_BLEND);
@@ -813,13 +847,13 @@ void RenderInterface_GL3::BeginFrame()
 
 	glGetIntegerv(GL_VIEWPORT, glstate_backup.viewport);
 	glGetIntegerv(GL_SCISSOR_BOX, glstate_backup.scissor);
-	
+
 	glGetIntegerv(GL_ACTIVE_TEXTURE, &glstate_backup.active_texture);
 
 	glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &glstate_backup.old_vao);
 
 	glActiveTexture(GL_TEXTURE0);
-    glGetIntegerv(GL_CURRENT_PROGRAM, &glstate_backup.old_program);
+	glGetIntegerv(GL_CURRENT_PROGRAM, &glstate_backup.old_program);
 	glGetIntegerv(GL_TEXTURE_BINDING_2D, &glstate_backup.old_tex);
 
 	glGetIntegerv(GL_STENCIL_CLEAR_VALUE, &glstate_backup.stencil_clear_value);
@@ -848,8 +882,73 @@ void RenderInterface_GL3::BeginFrame()
 	glGetIntegerv(GL_STENCIL_BACK_FAIL, &glstate_backup.stencil_back.fail);
 	glGetIntegerv(GL_STENCIL_BACK_PASS_DEPTH_FAIL, &glstate_backup.stencil_back.pass_depth_fail);
 	glGetIntegerv(GL_STENCIL_BACK_PASS_DEPTH_PASS, &glstate_backup.stencil_back.pass_depth_pass);
+}
 
-// 	// Setup expected GL state.
+void RenderInterface_GL3::RestoreState()
+{
+	if (glstate_backup.enable_cull_face)
+		glEnable(GL_CULL_FACE);
+	else
+		glDisable(GL_CULL_FACE);
+
+	if (glstate_backup.enable_blend)
+		glEnable(GL_BLEND);
+	else
+		glDisable(GL_BLEND);
+
+	if (glstate_backup.enable_stencil_test)
+		glEnable(GL_STENCIL_TEST);
+	else
+		glDisable(GL_STENCIL_TEST);
+
+	if (glstate_backup.enable_scissor_test)
+		glEnable(GL_SCISSOR_TEST);
+	else
+		glDisable(GL_SCISSOR_TEST);
+
+	if (glstate_backup.enable_depth_test)
+		glEnable(GL_DEPTH_TEST);
+	else
+		glDisable(GL_DEPTH_TEST);
+
+	glViewport(glstate_backup.viewport[0], glstate_backup.viewport[1], glstate_backup.viewport[2], glstate_backup.viewport[3]);
+	glScissor(glstate_backup.scissor[0], glstate_backup.scissor[1], glstate_backup.scissor[2], glstate_backup.scissor[3]);
+
+	glBindVertexArray(glstate_backup.old_vao);
+	glActiveTexture(GL_TEXTURE0);
+	if (glstate_backup.old_program == 0 || glIsProgram(glstate_backup.old_program))
+		glUseProgram(glstate_backup.old_program);
+	glBindTexture(GL_TEXTURE_2D, glstate_backup.old_tex);
+
+	glActiveTexture(glstate_backup.active_texture);
+
+	glClearStencil(glstate_backup.stencil_clear_value);
+	glClearColor(glstate_backup.color_clear_value[0], glstate_backup.color_clear_value[1], glstate_backup.color_clear_value[2],
+				 glstate_backup.color_clear_value[3]);
+	glColorMask(glstate_backup.color_writemask[0], glstate_backup.color_writemask[1], glstate_backup.color_writemask[2],
+				glstate_backup.color_writemask[3]);
+
+	glBlendEquationSeparate(glstate_backup.blend_equation_rgb, glstate_backup.blend_equation_alpha);
+	glBlendFuncSeparate(glstate_backup.blend_src_rgb, glstate_backup.blend_dst_rgb, glstate_backup.blend_src_alpha, glstate_backup.blend_dst_alpha);
+
+	glStencilFuncSeparate(GL_FRONT, glstate_backup.stencil_front.func, glstate_backup.stencil_front.ref, glstate_backup.stencil_front.value_mask);
+	glStencilMaskSeparate(GL_FRONT, glstate_backup.stencil_front.writemask);
+	glStencilOpSeparate(GL_FRONT, glstate_backup.stencil_front.fail, glstate_backup.stencil_front.pass_depth_fail,
+						glstate_backup.stencil_front.pass_depth_pass);
+
+	glStencilFuncSeparate(GL_BACK, glstate_backup.stencil_back.func, glstate_backup.stencil_back.ref, glstate_backup.stencil_back.value_mask);
+	glStencilMaskSeparate(GL_BACK, glstate_backup.stencil_back.writemask);
+	glStencilOpSeparate(GL_BACK, glstate_backup.stencil_back.fail, glstate_backup.stencil_back.pass_depth_fail,
+						glstate_backup.stencil_back.pass_depth_pass);
+}
+
+void RenderInterface_GL3::BeginFrame()
+{
+	RMLUI_ASSERT(viewport_width >= 1 && viewport_height >= 1);
+
+	BackupState();
+
+	// 	// Setup expected GL state.
 	glViewport(0, 0, viewport_width, viewport_height);
 
 	glClearStencil(0);
@@ -892,8 +991,8 @@ void RenderInterface_GL3::BeginFrame()
 
 void RenderInterface_GL3::EndFrame()
 {
-	const Gfx::FramebufferData& fb_active = render_layers.GetTopLayer();
-	const Gfx::FramebufferData& fb_postprocess = render_layers.GetPostprocessPrimary();
+	const Gfx::FramebufferData &fb_active = render_layers.GetTopLayer();
+	const Gfx::FramebufferData &fb_postprocess = render_layers.GetPostprocessPrimary();
 
 	// Resolve MSAA to postprocess framebuffer.
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, fb_active.framebuffer);
@@ -915,59 +1014,7 @@ void RenderInterface_GL3::EndFrame()
 	render_layers.EndFrame();
 
 	// Restore GL state.
-	if (glstate_backup.enable_cull_face)
-		glEnable(GL_CULL_FACE);
-	else
-		glDisable(GL_CULL_FACE);
-
-	if (glstate_backup.enable_blend)
-		glEnable(GL_BLEND);
-	else
-		glDisable(GL_BLEND);
-
-	if (glstate_backup.enable_stencil_test)
-		glEnable(GL_STENCIL_TEST);
-	else
-		glDisable(GL_STENCIL_TEST);
-
-	if (glstate_backup.enable_scissor_test)
-		glEnable(GL_SCISSOR_TEST);
-	else
-		glDisable(GL_SCISSOR_TEST);
-
-	if (glstate_backup.enable_depth_test)
-		glEnable(GL_DEPTH_TEST);
-	else
-		glDisable(GL_DEPTH_TEST);
-
-	glViewport(glstate_backup.viewport[0], glstate_backup.viewport[1], glstate_backup.viewport[2], glstate_backup.viewport[3]);
-	glScissor(glstate_backup.scissor[0], glstate_backup.scissor[1], glstate_backup.scissor[2], glstate_backup.scissor[3]);
-
-	glBindVertexArray(glstate_backup.old_vao);
-	glActiveTexture(GL_TEXTURE0);
-	if (glstate_backup.old_program == 0 || glIsProgram(glstate_backup.old_program)) glUseProgram(glstate_backup.old_program);
-	glBindTexture(GL_TEXTURE_2D, glstate_backup.old_tex);
-
-	glActiveTexture(glstate_backup.active_texture);
-
-	glClearStencil(glstate_backup.stencil_clear_value);
-	glClearColor(glstate_backup.color_clear_value[0], glstate_backup.color_clear_value[1], glstate_backup.color_clear_value[2],
-		glstate_backup.color_clear_value[3]);
-	glColorMask(glstate_backup.color_writemask[0], glstate_backup.color_writemask[1], glstate_backup.color_writemask[2],
-		glstate_backup.color_writemask[3]);
-
-	glBlendEquationSeparate(glstate_backup.blend_equation_rgb, glstate_backup.blend_equation_alpha);
-	glBlendFuncSeparate(glstate_backup.blend_src_rgb, glstate_backup.blend_dst_rgb, glstate_backup.blend_src_alpha, glstate_backup.blend_dst_alpha);
-
-	glStencilFuncSeparate(GL_FRONT, glstate_backup.stencil_front.func, glstate_backup.stencil_front.ref, glstate_backup.stencil_front.value_mask);
-	glStencilMaskSeparate(GL_FRONT, glstate_backup.stencil_front.writemask);
-	glStencilOpSeparate(GL_FRONT, glstate_backup.stencil_front.fail, glstate_backup.stencil_front.pass_depth_fail,
-		glstate_backup.stencil_front.pass_depth_pass);
-
-	glStencilFuncSeparate(GL_BACK, glstate_backup.stencil_back.func, glstate_backup.stencil_back.ref, glstate_backup.stencil_back.value_mask);
-	glStencilMaskSeparate(GL_BACK, glstate_backup.stencil_back.writemask);
-	glStencilOpSeparate(GL_BACK, glstate_backup.stencil_back.fail, glstate_backup.stencil_back.pass_depth_fail,
-		glstate_backup.stencil_back.pass_depth_pass);
+	RestoreState();
 
 	Gfx::CheckGLError("EndFrame");
 }
@@ -975,7 +1022,7 @@ void RenderInterface_GL3::EndFrame()
 void RenderInterface_GL3::Clear()
 {
 	glClearColor(0, 0, 0, 1);
-	//glClear(GL_COLOR_BUFFER_BIT);
+	// glClear(GL_COLOR_BUFFER_BIT);
 }
 
 Rml::CompiledGeometryHandle RenderInterface_GL3::CompileGeometry(Rml::Span<const Rml::Vertex> vertices, Rml::Span<const int> indices)
@@ -992,29 +1039,29 @@ Rml::CompiledGeometryHandle RenderInterface_GL3::CompileGeometry(Rml::Span<const
 	glBindVertexArray(vao);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Rml::Vertex) * vertices.size(), (const void*)vertices.data(), draw_usage);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Rml::Vertex) * vertices.size(), (const void *)vertices.data(), draw_usage);
 
 	glEnableVertexAttribArray((GLuint)Gfx::VertexAttribute::Position);
 	glVertexAttribPointer((GLuint)Gfx::VertexAttribute::Position, 2, GL_FLOAT, GL_FALSE, sizeof(Rml::Vertex),
-		(const GLvoid*)(offsetof(Rml::Vertex, position)));
+						  (const GLvoid *)(offsetof(Rml::Vertex, position)));
 
 	glEnableVertexAttribArray((GLuint)Gfx::VertexAttribute::Color0);
 	glVertexAttribPointer((GLuint)Gfx::VertexAttribute::Color0, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(Rml::Vertex),
-		(const GLvoid*)(offsetof(Rml::Vertex, colour)));
+						  (const GLvoid *)(offsetof(Rml::Vertex, colour)));
 
 	glEnableVertexAttribArray((GLuint)Gfx::VertexAttribute::TexCoord0);
 	glVertexAttribPointer((GLuint)Gfx::VertexAttribute::TexCoord0, 2, GL_FLOAT, GL_FALSE, sizeof(Rml::Vertex),
-		(const GLvoid*)(offsetof(Rml::Vertex, tex_coord)));
+						  (const GLvoid *)(offsetof(Rml::Vertex, tex_coord)));
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * indices.size(), (const void*)indices.data(), draw_usage);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * indices.size(), (const void *)indices.data(), draw_usage);
 
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	Gfx::CheckGLError("CompileGeometry");
 
-	Gfx::CompiledGeometryData* geometry = new Gfx::CompiledGeometryData;
+	Gfx::CompiledGeometryData *geometry = new Gfx::CompiledGeometryData;
 	geometry->vao = vao;
 	geometry->vbo = vbo;
 	geometry->ibo = ibo;
@@ -1025,7 +1072,7 @@ Rml::CompiledGeometryHandle RenderInterface_GL3::CompileGeometry(Rml::Span<const
 
 void RenderInterface_GL3::RenderGeometry(Rml::CompiledGeometryHandle handle, Rml::Vector2f translation, Rml::TextureHandle texture)
 {
-	Gfx::CompiledGeometryData* geometry = (Gfx::CompiledGeometryData*)handle;
+	Gfx::CompiledGeometryData *geometry = (Gfx::CompiledGeometryData *)handle;
 
 	if (texture == TexturePostprocess)
 	{
@@ -1046,7 +1093,7 @@ void RenderInterface_GL3::RenderGeometry(Rml::CompiledGeometryHandle handle, Rml
 	}
 
 	glBindVertexArray(geometry->vao);
-	glDrawElements(GL_TRIANGLES, geometry->draw_count, GL_UNSIGNED_INT, (const GLvoid*)0);
+	glDrawElements(GL_TRIANGLES, geometry->draw_count, GL_UNSIGNED_INT, (const GLvoid *)0);
 
 	glBindVertexArray(0);
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -1056,7 +1103,7 @@ void RenderInterface_GL3::RenderGeometry(Rml::CompiledGeometryHandle handle, Rml
 
 void RenderInterface_GL3::ReleaseGeometry(Rml::CompiledGeometryHandle handle)
 {
-	Gfx::CompiledGeometryData* geometry = (Gfx::CompiledGeometryData*)handle;
+	Gfx::CompiledGeometryData *geometry = (Gfx::CompiledGeometryData *)handle;
 
 	glDeleteVertexArrays(1, &geometry->vao);
 	glDeleteBuffers(1, &geometry->vbo);
@@ -1171,7 +1218,8 @@ void RenderInterface_GL3::RenderToClipMask(Rml::ClipMaskOperation operation, Rml
 
 // Set to byte packing, or the compiler will expand our struct, which means it won't read correctly from file
 #pragma pack(1)
-struct TGAHeader {
+struct TGAHeader
+{
 	char idLength;
 	char colourMapType;
 	char dataType;
@@ -1188,9 +1236,9 @@ struct TGAHeader {
 // Restore packing
 #pragma pack()
 
-Rml::TextureHandle RenderInterface_GL3::LoadTexture(Rml::Vector2i& texture_dimensions, const Rml::String& source)
+Rml::TextureHandle RenderInterface_GL3::LoadTexture(Rml::Vector2i &texture_dimensions, const Rml::String &source)
 {
-	Rml::FileInterface* file_interface = Rml::GetFileInterface();
+	Rml::FileInterface *file_interface = Rml::GetFileInterface();
 	Rml::FileHandle file_handle = file_interface->Open(source);
 	if (!file_handle)
 	{
@@ -1232,9 +1280,9 @@ Rml::TextureHandle RenderInterface_GL3::LoadTexture(Rml::Vector2i& texture_dimen
 		return false;
 	}
 
-	const byte* image_src = buffer.get() + sizeof(TGAHeader);
+	const byte *image_src = buffer.get() + sizeof(TGAHeader);
 	Rml::UniquePtr<byte[]> image_dest_buffer(new byte[image_size]);
-	byte* image_dest = image_dest_buffer.get();
+	byte *image_dest = image_dest_buffer.get();
 	const bool top_to_bottom_order = ((header.imageDescriptor & 32) != 0);
 
 	// Targa is BGR, swap to RGB, flip Y axis as necessary, and convert to premultiplied alpha.
@@ -1292,7 +1340,7 @@ void RenderInterface_GL3::DrawFullscreenQuad(Rml::Vector2f uv_offset, Rml::Vecto
 	Rml::MeshUtilities::GenerateQuad(mesh, Rml::Vector2f(-1), Rml::Vector2f(2), {});
 	if (uv_offset != Rml::Vector2f() || uv_scaling != Rml::Vector2f(1.f))
 	{
-		for (Rml::Vertex& vertex : mesh.vertices)
+		for (Rml::Vertex &vertex : mesh.vertices)
 			vertex.tex_coord = (vertex.tex_coord * uv_scaling) + uv_offset;
 	}
 	const Rml::CompiledGeometryHandle geometry = CompileGeometry(mesh.vertices, mesh.indices);
@@ -1308,7 +1356,7 @@ static Rml::Colourf ConvertToColorf(Rml::ColourbPremultiplied c0)
 	return result;
 }
 
-static void SigmaToParameters(const float desired_sigma, int& out_pass_level, float& out_sigma)
+static void SigmaToParameters(const float desired_sigma, int &out_pass_level, float &out_sigma)
 {
 	constexpr int max_num_passes = 10;
 	static_assert(max_num_passes < 31, "");
@@ -1318,7 +1366,7 @@ static void SigmaToParameters(const float desired_sigma, int& out_pass_level, fl
 }
 
 static void SetTexCoordLimits(GLint tex_coord_min_location, GLint tex_coord_max_location, Rml::Rectanglei rectangle_flipped,
-	Rml::Vector2i framebuffer_size)
+							  Rml::Vector2i framebuffer_size)
 {
 	// Offset by half-texel values so that texture lookups are clamped to fragment centers, thereby avoiding color
 	// bleeding from neighboring texels due to bilinear interpolation.
@@ -1349,8 +1397,8 @@ static void SetBlurWeights(GLint weights_location, float sigma)
 	glUniform1fv(weights_location, (GLsizei)num_weights, &weights[0]);
 }
 
-void RenderInterface_GL3::RenderBlur(float sigma, const Gfx::FramebufferData& source_destination, const Gfx::FramebufferData& temp,
-	const Rml::Rectanglei window_flipped)
+void RenderInterface_GL3::RenderBlur(float sigma, const Gfx::FramebufferData &source_destination, const Gfx::FramebufferData &temp,
+									 const Rml::Rectanglei window_flipped)
 {
 	RMLUI_ASSERT(&source_destination != &temp && source_destination.width == temp.width && source_destination.height == temp.height);
 	RMLUI_ASSERT(window_flipped.Valid());
@@ -1372,7 +1420,7 @@ void RenderInterface_GL3::RenderBlur(float sigma, const Gfx::FramebufferData& so
 	// Scale UVs if we have even dimensions, such that texture fetches align perfectly between texels, thereby producing a 50% blend of
 	// neighboring texels.
 	const Rml::Vector2f uv_scaling = {(source_destination.width % 2 == 1) ? (1.f - 1.f / float(source_destination.width)) : 1.f,
-		(source_destination.height % 2 == 1) ? (1.f - 1.f / float(source_destination.height)) : 1.f};
+									  (source_destination.height % 2 == 1) ? (1.f - 1.f / float(source_destination.height)) : 1.f};
 
 	for (int i = 0; i < pass_level; i++)
 	{
@@ -1401,10 +1449,11 @@ void RenderInterface_GL3::RenderBlur(float sigma, const Gfx::FramebufferData& so
 	UseProgram(ProgramId::Blur);
 	SetBlurWeights(GetUniformLocation(UniformId::Weights), sigma);
 	SetTexCoordLimits(GetUniformLocation(UniformId::TexCoordMin), GetUniformLocation(UniformId::TexCoordMax), scissor,
-		{source_destination.width, source_destination.height});
+					  {source_destination.width, source_destination.height});
 
 	const GLint texel_offset_location = GetUniformLocation(UniformId::TexelOffset);
-	auto SetTexelOffset = [texel_offset_location](Rml::Vector2f blur_direction, int texture_dimension) {
+	auto SetTexelOffset = [texel_offset_location](Rml::Vector2f blur_direction, int texture_dimension)
+	{
 		const Rml::Vector2f texel_offset = blur_direction * (1.0f / float(texture_dimension));
 		glUniform2f(texel_offset_location, texel_offset.x, texel_offset.y);
 	};
@@ -1453,7 +1502,7 @@ void RenderInterface_GL3::RenderBlur(float sigma, const Gfx::FramebufferData& so
 	if (target_min != dst_min || target_max != dst_max)
 	{
 		glBlitFramebuffer(src_min.x, src_min.y, src_max.x, src_max.y, target_min.x, target_min.y, target_max.x, target_max.y, GL_COLOR_BUFFER_BIT,
-			GL_LINEAR);
+						  GL_LINEAR);
 	}
 
 	// Restore render state.
@@ -1464,17 +1513,26 @@ void RenderInterface_GL3::RenderBlur(float sigma, const Gfx::FramebufferData& so
 
 void RenderInterface_GL3::ReleaseTexture(Rml::TextureHandle texture_handle)
 {
-	glDeleteTextures(1, (GLuint*)&texture_handle);
+	glDeleteTextures(1, (GLuint *)&texture_handle);
 }
 
-void RenderInterface_GL3::SetTransform(const Rml::Matrix4f* new_transform)
+void RenderInterface_GL3::SetTransform(const Rml::Matrix4f *new_transform)
 {
 	transform = (new_transform ? (projection * (*new_transform)) : projection);
 	program_transform_dirty.set();
 }
 
-enum class FilterType { Invalid = 0, Passthrough, Blur, DropShadow, ColorMatrix, MaskImage };
-struct CompiledFilter {
+enum class FilterType
+{
+	Invalid = 0,
+	Passthrough,
+	Blur,
+	DropShadow,
+	ColorMatrix,
+	MaskImage
+};
+struct CompiledFilter
+{
 	FilterType type;
 
 	// Passthrough
@@ -1491,7 +1549,7 @@ struct CompiledFilter {
 	Rml::Matrix4f color_matrix;
 };
 
-Rml::CompiledFilterHandle RenderInterface_GL3::CompileFilter(const Rml::String& name, const Rml::Dictionary& parameters)
+Rml::CompiledFilterHandle RenderInterface_GL3::CompileFilter(const Rml::String &name, const Rml::Dictionary &parameters)
 {
 	CompiledFilter filter = {};
 
@@ -1605,11 +1663,17 @@ Rml::CompiledFilterHandle RenderInterface_GL3::CompileFilter(const Rml::String& 
 
 void RenderInterface_GL3::ReleaseFilter(Rml::CompiledFilterHandle filter)
 {
-	delete reinterpret_cast<CompiledFilter*>(filter);
+	delete reinterpret_cast<CompiledFilter *>(filter);
 }
 
-enum class CompiledShaderType { Invalid = 0, Gradient, Creation };
-struct CompiledShader {
+enum class CompiledShaderType
+{
+	Invalid = 0,
+	Gradient,
+	Creation
+};
+struct CompiledShader
+{
 	CompiledShaderType type;
 
 	// Gradient
@@ -1623,19 +1687,20 @@ struct CompiledShader {
 	Rml::Vector2f dimensions;
 };
 
-Rml::CompiledShaderHandle RenderInterface_GL3::CompileShader(const Rml::String& name, const Rml::Dictionary& parameters)
+Rml::CompiledShaderHandle RenderInterface_GL3::CompileShader(const Rml::String &name, const Rml::Dictionary &parameters)
 {
-	auto ApplyColorStopList = [](CompiledShader& shader, const Rml::Dictionary& shader_parameters) {
+	auto ApplyColorStopList = [](CompiledShader &shader, const Rml::Dictionary &shader_parameters)
+	{
 		auto it = shader_parameters.find("color_stop_list");
 		RMLUI_ASSERT(it != shader_parameters.end() && it->second.GetType() == Rml::Variant::COLORSTOPLIST);
-		const Rml::ColorStopList& color_stop_list = it->second.GetReference<Rml::ColorStopList>();
+		const Rml::ColorStopList &color_stop_list = it->second.GetReference<Rml::ColorStopList>();
 		const int num_stops = Rml::Math::Min((int)color_stop_list.size(), MAX_NUM_STOPS);
 
 		shader.stop_positions.resize(num_stops);
 		shader.stop_colors.resize(num_stops);
 		for (int i = 0; i < num_stops; i++)
 		{
-			const Rml::ColorStop& stop = color_stop_list[i];
+			const Rml::ColorStop &stop = color_stop_list[i];
 			RMLUI_ASSERT(stop.position.unit == Rml::Unit::NUMBER);
 			shader.stop_positions[i] = stop.position.number;
 			shader.stop_colors[i] = ConvertToColorf(stop.color);
@@ -1690,12 +1755,12 @@ Rml::CompiledShaderHandle RenderInterface_GL3::CompileShader(const Rml::String& 
 }
 
 void RenderInterface_GL3::RenderShader(Rml::CompiledShaderHandle shader_handle, Rml::CompiledGeometryHandle geometry_handle,
-	Rml::Vector2f translation, Rml::TextureHandle /*texture*/)
+									   Rml::Vector2f translation, Rml::TextureHandle /*texture*/)
 {
 	RMLUI_ASSERT(shader_handle && geometry_handle);
-	const CompiledShader& shader = *reinterpret_cast<CompiledShader*>(shader_handle);
+	const CompiledShader &shader = *reinterpret_cast<CompiledShader *>(shader_handle);
 	const CompiledShaderType type = shader.type;
-	const Gfx::CompiledGeometryData& geometry = *reinterpret_cast<Gfx::CompiledGeometryData*>(geometry_handle);
+	const Gfx::CompiledGeometryData &geometry = *reinterpret_cast<Gfx::CompiledGeometryData *>(geometry_handle);
 
 	switch (type)
 	{
@@ -1714,7 +1779,7 @@ void RenderInterface_GL3::RenderShader(Rml::CompiledShaderHandle shader_handle, 
 
 		SubmitTransformUniform(translation);
 		glBindVertexArray(geometry.vao);
-		glDrawElements(GL_TRIANGLES, geometry.draw_count, GL_UNSIGNED_INT, (const GLvoid*)0);
+		glDrawElements(GL_TRIANGLES, geometry.draw_count, GL_UNSIGNED_INT, (const GLvoid *)0);
 		glBindVertexArray(0);
 	}
 	break;
@@ -1728,7 +1793,7 @@ void RenderInterface_GL3::RenderShader(Rml::CompiledShaderHandle shader_handle, 
 
 		SubmitTransformUniform(translation);
 		glBindVertexArray(geometry.vao);
-		glDrawElements(GL_TRIANGLES, geometry.draw_count, GL_UNSIGNED_INT, (const GLvoid*)0);
+		glDrawElements(GL_TRIANGLES, geometry.draw_count, GL_UNSIGNED_INT, (const GLvoid *)0);
 		glBindVertexArray(0);
 	}
 	break;
@@ -1744,13 +1809,13 @@ void RenderInterface_GL3::RenderShader(Rml::CompiledShaderHandle shader_handle, 
 
 void RenderInterface_GL3::ReleaseShader(Rml::CompiledShaderHandle shader_handle)
 {
-	delete reinterpret_cast<CompiledShader*>(shader_handle);
+	delete reinterpret_cast<CompiledShader *>(shader_handle);
 }
 
 void RenderInterface_GL3::BlitLayerToPostprocessPrimary(Rml::LayerHandle layer_handle)
 {
-	const Gfx::FramebufferData& source = render_layers.GetLayer(layer_handle);
-	const Gfx::FramebufferData& destination = render_layers.GetPostprocessPrimary();
+	const Gfx::FramebufferData &source = render_layers.GetLayer(layer_handle);
+	const Gfx::FramebufferData &destination = render_layers.GetPostprocessPrimary();
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, source.framebuffer);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, destination.framebuffer);
 
@@ -1762,7 +1827,7 @@ void RenderInterface_GL3::RenderFilters(Rml::Span<const Rml::CompiledFilterHandl
 {
 	for (const Rml::CompiledFilterHandle filter_handle : filter_handles)
 	{
-		const CompiledFilter& filter = *reinterpret_cast<const CompiledFilter*>(filter_handle);
+		const CompiledFilter &filter = *reinterpret_cast<const CompiledFilter *>(filter_handle);
 		const FilterType type = filter.type;
 
 		switch (type)
@@ -1773,8 +1838,8 @@ void RenderInterface_GL3::RenderFilters(Rml::Span<const Rml::CompiledFilterHandl
 			glBlendFunc(GL_CONSTANT_COLOR, GL_ZERO);
 			glBlendColor(filter.blend_factor, filter.blend_factor, filter.blend_factor, filter.blend_factor);
 
-			const Gfx::FramebufferData& source = render_layers.GetPostprocessPrimary();
-			const Gfx::FramebufferData& destination = render_layers.GetPostprocessSecondary();
+			const Gfx::FramebufferData &source = render_layers.GetPostprocessPrimary();
+			const Gfx::FramebufferData &destination = render_layers.GetPostprocessSecondary();
 			Gfx::BindTexture(source);
 			glBindFramebuffer(GL_FRAMEBUFFER, destination.framebuffer);
 
@@ -1788,8 +1853,8 @@ void RenderInterface_GL3::RenderFilters(Rml::Span<const Rml::CompiledFilterHandl
 		{
 			glDisable(GL_BLEND);
 
-			const Gfx::FramebufferData& source_destination = render_layers.GetPostprocessPrimary();
-			const Gfx::FramebufferData& temp = render_layers.GetPostprocessSecondary();
+			const Gfx::FramebufferData &source_destination = render_layers.GetPostprocessPrimary();
+			const Gfx::FramebufferData &temp = render_layers.GetPostprocessSecondary();
 
 			const Rml::Rectanglei window_flipped = VerticallyFlipped(scissor_state, viewport_height);
 			RenderBlur(filter.sigma, source_destination, temp, window_flipped);
@@ -1805,21 +1870,21 @@ void RenderInterface_GL3::RenderFilters(Rml::Span<const Rml::CompiledFilterHandl
 			Rml::Colourf color = ConvertToColorf(filter.color);
 			glUniform4fv(GetUniformLocation(UniformId::Color), 1, &color[0]);
 
-			const Gfx::FramebufferData& primary = render_layers.GetPostprocessPrimary();
-			const Gfx::FramebufferData& secondary = render_layers.GetPostprocessSecondary();
+			const Gfx::FramebufferData &primary = render_layers.GetPostprocessPrimary();
+			const Gfx::FramebufferData &secondary = render_layers.GetPostprocessSecondary();
 			Gfx::BindTexture(primary);
 			glBindFramebuffer(GL_FRAMEBUFFER, secondary.framebuffer);
 
 			const Rml::Rectanglei window_flipped = VerticallyFlipped(scissor_state, viewport_height);
 			SetTexCoordLimits(GetUniformLocation(UniformId::TexCoordMin), GetUniformLocation(UniformId::TexCoordMax), window_flipped,
-				{primary.width, primary.height});
+							  {primary.width, primary.height});
 
 			const Rml::Vector2f uv_offset = filter.offset / Rml::Vector2f(-(float)viewport_width, (float)viewport_height);
 			DrawFullscreenQuad(uv_offset);
 
 			if (filter.sigma >= 0.5f)
 			{
-				const Gfx::FramebufferData& tertiary = render_layers.GetPostprocessTertiary();
+				const Gfx::FramebufferData &tertiary = render_layers.GetPostprocessTertiary();
 				RenderBlur(filter.sigma, secondary, tertiary, window_flipped);
 			}
 
@@ -1840,8 +1905,8 @@ void RenderInterface_GL3::RenderFilters(Rml::Span<const Rml::CompiledFilterHandl
 			constexpr bool transpose = std::is_same_v<decltype(filter.color_matrix), Rml::RowMajorMatrix4f>;
 			glUniformMatrix4fv(uniform_location, 1, transpose, filter.color_matrix.data());
 
-			const Gfx::FramebufferData& source = render_layers.GetPostprocessPrimary();
-			const Gfx::FramebufferData& destination = render_layers.GetPostprocessSecondary();
+			const Gfx::FramebufferData &source = render_layers.GetPostprocessPrimary();
+			const Gfx::FramebufferData &destination = render_layers.GetPostprocessSecondary();
 			Gfx::BindTexture(source);
 			glBindFramebuffer(GL_FRAMEBUFFER, destination.framebuffer);
 
@@ -1856,9 +1921,9 @@ void RenderInterface_GL3::RenderFilters(Rml::Span<const Rml::CompiledFilterHandl
 			UseProgram(ProgramId::BlendMask);
 			glDisable(GL_BLEND);
 
-			const Gfx::FramebufferData& source = render_layers.GetPostprocessPrimary();
-			const Gfx::FramebufferData& blend_mask = render_layers.GetBlendMask();
-			const Gfx::FramebufferData& destination = render_layers.GetPostprocessSecondary();
+			const Gfx::FramebufferData &source = render_layers.GetPostprocessPrimary();
+			const Gfx::FramebufferData &blend_mask = render_layers.GetBlendMask();
+			const Gfx::FramebufferData &destination = render_layers.GetPostprocessSecondary();
 
 			Gfx::BindTexture(source);
 			glActiveTexture(GL_TEXTURE1);
@@ -1895,7 +1960,7 @@ Rml::LayerHandle RenderInterface_GL3::PushLayer()
 }
 
 void RenderInterface_GL3::CompositeLayers(Rml::LayerHandle source_handle, Rml::LayerHandle destination_handle, Rml::BlendMode blend_mode,
-	Rml::Span<const Rml::CompiledFilterHandle> filters)
+										  Rml::Span<const Rml::CompiledFilterHandle> filters)
 {
 	using Rml::BlendMode;
 
@@ -1949,23 +2014,23 @@ Rml::TextureHandle RenderInterface_GL3::SaveLayerAsTexture()
 
 	EnableScissorRegion(false);
 
-	const Gfx::FramebufferData& source = render_layers.GetPostprocessPrimary();
-	const Gfx::FramebufferData& destination = render_layers.GetPostprocessSecondary();
+	const Gfx::FramebufferData &source = render_layers.GetPostprocessPrimary();
+	const Gfx::FramebufferData &destination = render_layers.GetPostprocessSecondary();
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, source.framebuffer);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, destination.framebuffer);
 
 	// Flip the image vertically, as that convention is used for textures, and move to origin.
-	glBlitFramebuffer(                                  //
+	glBlitFramebuffer(									//
 		bounds.Left(), source.height - bounds.Bottom(), // src0
-		bounds.Right(), source.height - bounds.Top(),   // src1
-		0, bounds.Height(),                             // dst0
-		bounds.Width(), 0,                              // dst1
-		GL_COLOR_BUFFER_BIT, GL_NEAREST                 //
+		bounds.Right(), source.height - bounds.Top(),	// src1
+		0, bounds.Height(),								// dst0
+		bounds.Width(), 0,								// dst1
+		GL_COLOR_BUFFER_BIT, GL_NEAREST					//
 	);
 
 	glBindTexture(GL_TEXTURE_2D, render_texture);
 
-	const Gfx::FramebufferData& texture_source = destination;
+	const Gfx::FramebufferData &texture_source = destination;
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, texture_source.framebuffer);
 	glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, bounds.Width(), bounds.Height());
 
@@ -1980,8 +2045,8 @@ Rml::CompiledFilterHandle RenderInterface_GL3::SaveLayerAsMaskImage()
 {
 	BlitLayerToPostprocessPrimary(render_layers.GetTopLayerHandle());
 
-	const Gfx::FramebufferData& source = render_layers.GetPostprocessPrimary();
-	const Gfx::FramebufferData& destination = render_layers.GetBlendMask();
+	const Gfx::FramebufferData &source = render_layers.GetPostprocessPrimary();
+	const Gfx::FramebufferData &destination = render_layers.GetBlendMask();
 
 	glBindFramebuffer(GL_FRAMEBUFFER, destination.framebuffer);
 	BindTexture(source);
@@ -2052,7 +2117,7 @@ Rml::LayerHandle RenderInterface_GL3::RenderLayerStack::PushLayer()
 
 		fb_layers.push_back(Gfx::FramebufferData{});
 		Gfx::CreateFramebuffer(fb_layers.back(), width, height, RMLUI_NUM_MSAA_SAMPLES, Gfx::FramebufferAttachment::DepthStencil,
-			shared_depth_stencil);
+							   shared_depth_stencil);
 	}
 
 	layers_size += 1;
@@ -2065,13 +2130,13 @@ void RenderInterface_GL3::RenderLayerStack::PopLayer()
 	layers_size -= 1;
 }
 
-const Gfx::FramebufferData& RenderInterface_GL3::RenderLayerStack::GetLayer(Rml::LayerHandle layer) const
+const Gfx::FramebufferData &RenderInterface_GL3::RenderLayerStack::GetLayer(Rml::LayerHandle layer) const
 {
 	RMLUI_ASSERT((size_t)layer < (size_t)layers_size);
 	return fb_layers[layer];
 }
 
-const Gfx::FramebufferData& RenderInterface_GL3::RenderLayerStack::GetTopLayer() const
+const Gfx::FramebufferData &RenderInterface_GL3::RenderLayerStack::GetTopLayer() const
 {
 	return GetLayer(GetTopLayerHandle());
 }
@@ -2112,25 +2177,25 @@ void RenderInterface_GL3::RenderLayerStack::DestroyFramebuffers()
 {
 	RMLUI_ASSERTMSG(layers_size == 0, "Do not call this during frame rendering, that is, between BeginFrame() and EndFrame().");
 
-	for (Gfx::FramebufferData& fb : fb_layers)
+	for (Gfx::FramebufferData &fb : fb_layers)
 		Gfx::DestroyFramebuffer(fb);
 
 	fb_layers.clear();
 
-	for (Gfx::FramebufferData& fb : fb_postprocess)
+	for (Gfx::FramebufferData &fb : fb_postprocess)
 		Gfx::DestroyFramebuffer(fb);
 }
 
-const Gfx::FramebufferData& RenderInterface_GL3::RenderLayerStack::EnsureFramebufferPostprocess(int index)
+const Gfx::FramebufferData &RenderInterface_GL3::RenderLayerStack::EnsureFramebufferPostprocess(int index)
 {
 	RMLUI_ASSERT(index < (int)fb_postprocess.size())
-	Gfx::FramebufferData& fb = fb_postprocess[index];
+	Gfx::FramebufferData &fb = fb_postprocess[index];
 	if (!fb.framebuffer)
 		Gfx::CreateFramebuffer(fb, width, height, 0, Gfx::FramebufferAttachment::None, 0);
 	return fb;
 }
 
-const Rml::Matrix4f& RenderInterface_GL3::GetTransform() const
+const Rml::Matrix4f &RenderInterface_GL3::GetTransform() const
 {
 	return transform;
 }
@@ -2140,7 +2205,7 @@ void RenderInterface_GL3::ResetProgram()
 	UseProgram(ProgramId::None);
 }
 
-bool RmlGL3::Initialize(Rml::String* out_message)
+bool RmlGL3::Initialize(Rml::String *out_message)
 {
 #if defined(RMLUI_PLATFORM_EMSCRIPTEN)
 	if (out_message)
@@ -2158,6 +2223,6 @@ bool RmlGL3::Initialize(Rml::String* out_message)
 void RmlGL3::Shutdown()
 {
 #if !defined(RMLUI_PLATFORM_EMSCRIPTEN) && !defined(__ANDROID__) && !defined(RMLUI_GL3_CUSTOM_LOADER)
-	//gladLoaderUnloadGL();
+	// gladLoaderUnloadGL();
 #endif
 }

@@ -75,30 +75,36 @@ struct ActionMenuContext
 	// 0x10
 };
 
-struct MenuOption002
+struct MenuOption
 {
 	// 0x0
-	PAD(0x58);
-	// 0x58
+	PAD(0x18);
+	// 0x18
+	JString option_text;
+	// 0x30
+	PAD(0x8);
+	// 0x38
 	MenuActionTemplate* action_template;
-	// 0x60
-	PAD(0xf0);
-	// 0x150
+	// 0x40
+	PAD(0x28);
+	// 0x68
+	JString entity_text;
+	// 0x80
+	PAD(0xb0);
+	// 0x130
 };
-static_assert(sizeof(MenuOption002) == 0x150, INVALID_SIZE);
-
-struct MenuOption001
-{
-	PAD(0x70);
-	// 0x70
-	MenuOption002* menu_option_002;
-};
+static_assert(sizeof(MenuOption) == 0x130, INVALID_SIZE);
 
 struct Menu
 {
-	PAD(0x13a0);
-	// 0x13a0
-	JVector<MenuOption001*> menu_options;
-	// 0x13b8
+	// 0x0
+	PAD(0x68);
+	// 0x68
+	uint8_t is_open;
+	// 0x69
+	PAD(0xcc7);
+	// 0xd30
+	JVector<TaggedObject<void, MenuOption>> menu_options;
 };
+static_assert(off(Menu, menu_options) == 0xd30, INVALID_SIZE);
 #pragma pack(pop)
