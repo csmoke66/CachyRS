@@ -6,10 +6,17 @@
 
     <body>
         <div class="window">
-            <div class="titlebar">
+            <div class="titlebar" id="titlebar">
                 <img class="title-icon" src="assets/logo.svg" />
                 <span class="title">CachyRS</span>
+
                 <span class="title-version" id="title-version"></span>
+
+                <span class="titlebuttons">
+                    <button class="titlebutton" id="refresh_button">
+                        <img class="titlebuttonimg" src="assets/refresh-action.png" />
+                    </button>
+                </span>
             </div>
             <div class="tabbar">
                 <button class="tabbutton left" id="home_tab_button">
@@ -25,8 +32,9 @@
             <div class="content" style="display:none;" id="home_content">
                 <p>Welcome to CachyRS :) WIP.</p>
             </div>
-            <div class="content" style="display:none;" id="plugins_content">
-
+            <div class="plugins-wrapper" style="display:none;" id="plugins_content">
+                <div class="sidebar" id="plugins_buttons">
+                </div>
             </div>
             <div class="content" style="display:none;" id="debug_content">
                 <div class="dom-viewer">
@@ -34,7 +42,7 @@
 
                     </span>
                     <span class="dom-inspector" id="dom-inspector">
-                        
+
                     </span>
                 </div>
             </div>

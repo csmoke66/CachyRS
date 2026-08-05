@@ -170,12 +170,37 @@ input[type="checkbox"]:checked {
     align-items: center;
     padding: 6px;
 
+    drag: drag;
+
     background-color: var(--bg-color-secondary);
 
     border: 1px #292929;
     border-radius: 4px;
-
 }
+
+.titlebuttons {
+    padding-left: 6px;
+    display: inline-block;
+    font-size: 12dp;
+    margin-left: auto;
+}
+
+.titlebutton {
+    width: 24dp;
+    height: 24dp;
+    padding: 4px;
+    margin: 0;
+    align-items: center;
+}
+
+.titlebuttonimg {
+    width: 24dp;
+    height: 24dp;
+    padding: 0;
+    margin: 0;
+    align-items: center;
+}
+
 
 .title-icon {
     width: 32dp;
@@ -194,7 +219,6 @@ input[type="checkbox"]:checked {
     display: inline-block;
     font-size: 12dp;
     padding-left: 12dp;
-    margin-left: auto;
 }
 
 .content {
@@ -202,9 +226,51 @@ input[type="checkbox"]:checked {
     font-size: 12px;
 }
 
+.plugins-wrapper {
+    display: flex;
+    flex-direction: row;
+    height: 300px;
+}
+
+.sidebar-content {
+    flex: 1;
+    background: #1b1b1b;
+    padding: 12px;
+}
+
+.sidebar {
+    width: 180px;
+    display: flex;
+    flex-direction: column;
+
+    background: #252525;
+}
+
+.sidebar-tab-button {
+    display: inline-block;
+    padding: 4px;
+
+    justify-content: center;
+    align-items: center;
+
+    text-align: center;
+    vertical-align: middle;
+
+    color: white;
+
+    border-radius: 1px;
+
+    box-shadow: none;
+}
+
 .hr-custom {
     display: block;
     border-top: 2px #292929;
+}
+
+.hr-empty {
+    display: block;
+    height: 10px;
 }
 
 .tabbar {
