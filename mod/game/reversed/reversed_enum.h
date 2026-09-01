@@ -32,6 +32,7 @@ enum class WidgetType : uint8_t
 enum class CacheIndexOrdinal : uint8_t
 {
 	varbit = 7,
+	items = 10
 };
 
 enum class ModelItemOrdinal : uint8_t

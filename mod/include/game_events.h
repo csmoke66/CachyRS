@@ -91,4 +91,35 @@ namespace crs
     public:
         void *get_args() override;
     };
+
+    struct ItemChangedArgs
+    {
+        uint32_t id;
+        uint32_t slot;
+        int32_t old_id;
+        int32_t old_amount;
+        int32_t new_id;
+        int32_t new_amount;
+        int32_t stack_delta;
+    };
+
+    class ItemChangedEvent : public Event
+    {
+    public:
+        ItemChangedArgs args;
+
+    public:
+        static constexpr ::std::string specific_id()
+        {
+            return "on_set_item_container";
+        }
+
+    public:
+        ItemChangedEvent(uint32_t id, uint32_t slot, int32_t old_id, int32_t old_amount, int32_t new_id, int32_t new_amount, int32_t stack_delta);
+
+    public:
+        void *get_args() override;
+    };
+
+    
 }

@@ -14,6 +14,7 @@ namespace crs
     {
     public:
         ::std::string name;
+        ::std::string id;
 
     public:
         bool dirty = true;
@@ -141,7 +142,7 @@ namespace crs
         virtual void set_listener(std::unique_ptr<DomTreeListener> listener) = 0;
 
     public:
-        virtual void build_dom_node(std::shared_ptr<DomNode> node, int depth = 0) = 0;
+        virtual bool build_dom_node(std::shared_ptr<DomNode> node, int depth = 0) = 0;
         virtual void add_dom_node(std::shared_ptr<DomNode> node) = 0;
         virtual void remove_dom_node(std::shared_ptr<DomNode> node) = 0;
     };
@@ -175,6 +176,21 @@ namespace crs
 
     public:
         DomNode *find_dom_node(const std::string &id);
+
+    public:
+        void add_value(std::unique_ptr<DomValue> value);
+        template <std::derived_from<DomValue> T>
+        T* find_value(const std::string& name)
+        {
+            for (auto& v : values)
+            {
+                if (v.get()->name == name)
+                {
+                    return (T*)v.get();
+                }
+            }
+            return nullptr;
+        }
 
     public:
         void prune();

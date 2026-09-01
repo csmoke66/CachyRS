@@ -35,12 +35,12 @@ namespace crs
                     if (!child)
                     {
                         auto new_dom_node = std::make_shared<WorldSettingDomNode>(tree, id, "world_setting");
-                        new_dom_node->values.push_back(std::make_unique<UInt32DomValue>("id", i));
+                        new_dom_node->add_value(std::make_unique<UInt32DomValue>("id", i));
 
                         auto value_node = std::make_unique<UInt32DomValue>("value", c->body.value);
                         {
                             value_node->mark_hidden();
-                            new_dom_node->values.push_back(std::move(value_node));
+                            new_dom_node->add_value(std::move(value_node));
                         }
 
                         new_dom_node->parent = shared_from_this();

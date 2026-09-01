@@ -34,7 +34,40 @@ namespace crs
                 {
                     auto id = std::format("player_{}", (void*)entity);
                     auto child = find_typed_child(id);
-                    if (!child)
+                    if (child)
+                    {
+                        auto name_value = child->find_value<StringDomValue>("name");
+                        if (entity->name.str() != name_value->val)
+                        {
+                            name_value->val = entity->name.str();
+                            name_value->mark_dirty();
+
+                            child->mark_dirty();
+                        }
+
+                        auto x_value = child->find_value<FloatDomValue>("x");
+                        auto y_value = child->find_value<FloatDomValue>("y");
+                        auto z_value = child->find_value<FloatDomValue>("z");
+
+                        if (x_value->val != entity->position.x ||
+                            y_value->val != entity->position.y ||
+                            z_value->val != entity->position.z)
+                        {
+                            x_value->val = entity->position.x;
+                            x_value->mark_dirty();
+
+                            y_value->val = entity->position.y;
+                            y_value->mark_dirty();
+
+                            z_value->val = entity->position.z;
+                            z_value->mark_dirty();
+
+                            child->mark_dirty();
+                        }
+
+                        child->seen = true;
+                    }
+                    else
                     {
                         auto new_dom_node = std::make_shared<PlayerDomNode>(tree, id, "player");
                         new_dom_node->value = entity;
@@ -42,33 +75,33 @@ namespace crs
                         auto address_node = std::make_unique<PointerDomValue>("address", entity);
                         {
                             address_node->mark_hidden();
-                            new_dom_node->values.push_back(std::move(address_node));
+                            new_dom_node->add_value(std::move(address_node));
                         }
 
                         auto vt_address_node = std::make_unique<PointerDomValue>("VT address", *((void**)entity));
                         {
                             vt_address_node->mark_hidden();
-                            new_dom_node->values.push_back(std::move(vt_address_node));
+                            new_dom_node->add_value(std::move(vt_address_node));
                         }
                         
-                        new_dom_node->values.push_back(std::make_unique<StringDomValue>("name", entity->name.c_str()));
+                        new_dom_node->add_value(std::make_unique<StringDomValue>("name", entity->name.c_str()));
                         
                         auto x_node = std::make_unique<FloatDomValue>("x", entity->position.x);
                         {
                             x_node->mark_hidden();
-                            new_dom_node->values.push_back(std::move(x_node));
+                            new_dom_node->add_value(std::move(x_node));
                         }
 
                         auto y_node = std::make_unique<FloatDomValue>("y", entity->position.y);
                         {
                             y_node->mark_hidden();
-                            new_dom_node->values.push_back(std::move(y_node));
+                            new_dom_node->add_value(std::move(y_node));
                         }
 
                         auto z_node = std::make_unique<FloatDomValue>("z", entity->position.z);
                         {
                             z_node->mark_hidden();
-                            new_dom_node->values.push_back(std::move(z_node));
+                            new_dom_node->add_value(std::move(z_node));
                         }
 
                         for (auto i = entity->animation_queue.begin; i != entity->animation_queue.end; i++)
@@ -78,7 +111,7 @@ namespace crs
                             auto animation_id_node = std::make_unique<FloatDomValue>(name, entity->position.z);
                             animation_id_node->mark_hidden();
 
-                            new_dom_node->values.push_back(std::move(animation_id_node));
+                            new_dom_node->add_value(std::move(animation_id_node));
                         }
 
                         new_dom_node->parent = shared_from_this();
@@ -86,10 +119,6 @@ namespace crs
                         children[id] = new_dom_node;
                         RS.stats.player_dom_nodes_created += 1;
                         RS.stats.player_dom_nodes_created_recent += 1;
-                    }
-                    else
-                    {
-                        child->seen = true;
                     }
                 } 
             });

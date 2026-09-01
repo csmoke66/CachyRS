@@ -2,7 +2,7 @@
 
 namespace crs
 {
-    Item::Item() : id(0), amount(0)
+    Item::Item() : id(-1), amount(0)
     {
 
     }

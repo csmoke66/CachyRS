@@ -21,6 +21,8 @@ add_library(mod SHARED
     
     src/ui/ui.cpp
     src/ui/rml.cpp
+    src/ui/rml_event.cpp
+    src/ui/rml_decorator.cpp
     src/ui/developer.cpp
     
     src/reversed.cpp
@@ -80,6 +82,7 @@ add_subdirectory(rmlui_backend)
 add_subdirectory(plugins/test)
 add_subdirectory(plugins/entity-hider)
 add_subdirectory(plugins/menu-entry-swapper)
+add_subdirectory(plugins/profit-tracker)
 
 FetchContent_Declare(
         rmlui

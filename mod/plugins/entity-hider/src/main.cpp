@@ -2,7 +2,7 @@
 #include "event_bus.h"
 #include <format>
 
-class EntityHiderPlugin
+class ProfitTrackerPlugin
 {
 public:
     crs::Plugin *plugin;
@@ -155,9 +155,9 @@ public:
     }
 };
 
-static EntityHiderPlugin entity_hider_plugin;
+static ProfitTrackerPlugin entity_hider_plugin;
 
-static void event_handler_engine_tick(void *args, EntityHiderPlugin *plugin)
+static void event_handler_engine_tick(void *args, ProfitTrackerPlugin *plugin)
 {
     auto api = plugin->api;
     auto lp = plugin->local_player_entity();

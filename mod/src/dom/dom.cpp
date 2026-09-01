@@ -6,7 +6,7 @@ namespace crs
     DomTreeListener::~DomTreeListener()
     {
     }
-    
+
     DomTree::~DomTree()
     {
     }
@@ -131,6 +131,12 @@ namespace crs
         return find_dom_node(this, id);
     }
 
+    void DomNode::add_value(std::unique_ptr<DomValue> value)
+    {
+        value->id = std::format("{}_val_{}", id, value->name);
+        values.push_back(std::move(value));
+    }
+
     void DomNode::prune()
     {
         for (auto it = children.begin(); it != children.end();)
@@ -146,7 +152,7 @@ namespace crs
             }
         }
     }
-    
+
     void DomNode::mark_dirty()
     {
         dirty = true;

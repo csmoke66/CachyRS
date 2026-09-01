@@ -64,6 +64,56 @@ namespace crs
         }
     }
 
+    void EngineTickHook::watch_item_changes(Engine *engine)
+    {
+        // clang-format off
+        auto get_cached_container = [this](uint32_t idx) -> ItemContainerCache&
+        {
+            auto it = this->cached_containers.find(idx);
+            if (it == this->cached_containers.end())
+            {
+                this->cached_containers[idx] = ItemContainerCache();
+                return this->cached_containers[idx];
+            }
+            return it->second;
+        };
+        // clang-format on
+
+        if (auto cache = engine->item_cache)
+        {
+            for (auto it = cache->containers.begin; it != cache->containers.end; it++)
+            {
+                auto& container = get_cached_container(it->id);
+                if (it->items.size() > container.items.size())
+                {
+                    auto new_slots = it->items.size() - container.items.size();
+                    auto start = container.items.size();
+                    container.items.resize(it->items.size());
+                }
+
+                auto slot = 0;
+                for (auto item_it = it->items.begin; item_it != it->items.end; item_it++)
+                {
+                    auto& container_item = container.items[slot++];
+                    if (container_item.id != item_it->id || 
+                        container_item.amount != item_it->amount)
+                    {
+                        auto delta = 0;
+                        if (container_item.id == item_it->id || container_item.id == -1)
+                        {
+                            delta = item_it->amount - container_item.amount;
+                        }
+
+                        auto event = ItemChangedEvent(it->id, slot, container_item.id, container_item.amount, item_it->id, item_it->amount, delta);
+                        RS.event_bus.dispatch(ItemChangedEvent::specific_id(), &event);
+
+                        container_item = *item_it;
+                    }
+                }
+            }
+        }
+    }
+
     void EngineTickHook::handler(CpuState *cpu_state)
     {
         BaseHook::handler(cpu_state);
@@ -92,6 +142,8 @@ namespace crs
 
         auto event = EngineTickEvent();
         RS.event_bus.dispatch(EngineTickEvent::specific_id(), &event);
+
+        watch_item_changes(engine);
 
         cpu_state->rax = (uint64_t)trampoline(
             engine,

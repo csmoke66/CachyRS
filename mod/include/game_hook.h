@@ -96,12 +96,22 @@ namespace crs
     class EngineTickHook : public Hook<FnEngineTick>
     {
     private:
+        struct ItemContainerCache
+        {
+            std::vector<Item> items;
+        };
+
+    private:
         bool plugins_loaded = false;
-        
+        std::map<uint32_t, ItemContainerCache> cached_containers;
+
     private:
         void tick_ui(Engine *engine);
         void tick_imgui(Engine *engine);
         void tick_stats();
+
+    private:
+        void watch_item_changes(Engine *engine);
 
     public:
         void handler(CpuState *cpu_state) override;
@@ -118,7 +128,7 @@ namespace crs
     public:
         void handler(CpuState *cpu_state) override;
     };
-    
+
     struct RenderedWidget
     {
         const Widget *widget;

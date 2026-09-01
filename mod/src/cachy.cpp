@@ -297,14 +297,17 @@ namespace crs
 
     void CachyRS::push_ui_state()
     {
-        dom_node_item_containers->prune();
-        dom_node_players->prune();
-        dom_node_npcs->prune();
-        dom_node_world_settings->prune();
+        if (ui_visible)
+        {
+            dom_node_item_containers->prune();
+            dom_node_players->prune();
+            dom_node_npcs->prune();
+            dom_node_world_settings->prune();
 
-        dom_tree->build_dom_node(dom_node_item_containers);
-        dom_tree->build_dom_node(dom_node_players);
-        dom_tree->build_dom_node(dom_node_npcs);
-        dom_tree->build_dom_node(dom_node_world_settings);
+            dom_tree->build_dom_node(dom_node_item_containers);
+            dom_tree->build_dom_node(dom_node_players);
+            dom_tree->build_dom_node(dom_node_npcs);
+            dom_tree->build_dom_node(dom_node_world_settings);
+        }
     }
 }

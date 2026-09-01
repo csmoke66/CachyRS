@@ -33,13 +33,27 @@ namespace crs
             auto child = find_typed_child(id);
             if (child)
             {
+                auto id_value = child->find_value<Int32DomValue>("id");
+                auto amount_value = child->find_value<Int32DomValue>("amount");
+
+                if (id_value->val != i->id || amount_value->val != i->amount)
+                {
+                    id_value->val = i->id;
+                    id_value->mark_dirty();
+
+                    amount_value->val = i->amount;
+                    amount_value->mark_dirty();
+                    
+                    child->mark_dirty();
+                }
+
                 child->seen = true;
             }
             else
             {
                 auto new_dom_node = std::make_shared<ItemDomNode>(tree, id, "item");
-                new_dom_node->values.push_back(std::make_unique<Int32DomValue>("id", i->id));
-                new_dom_node->values.push_back(std::make_unique<Int32DomValue>("amount", i->amount));
+                new_dom_node->add_value(std::make_unique<Int32DomValue>("id", i->id));
+                new_dom_node->add_value(std::make_unique<Int32DomValue>("amount", i->amount));
                 new_dom_node->parent = shared_from_this();
 
                 children[id] = new_dom_node;
@@ -95,10 +109,10 @@ namespace crs
                 auto address_node = std::make_unique<PointerDomValue>("address", i);
                 {
                     address_node->mark_hidden();
-                    new_dom_node->values.push_back(std::move(address_node));
+                    new_dom_node->add_value(std::move(address_node));
                 }
 
-                new_dom_node->values.push_back(std::make_unique<UInt32DomValue>("id", i->id));
+                new_dom_node->add_value(std::make_unique<UInt32DomValue>("id", i->id));
                 new_dom_node->parent = shared_from_this();
 
                 children[id] = new_dom_node;

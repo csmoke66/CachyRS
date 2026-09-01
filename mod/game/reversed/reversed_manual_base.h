@@ -122,6 +122,11 @@ public:
 			return data;
 		}
 	}
+
+	FINLINE std::string str() const
+	{
+		return std::string(c_str());
+	}
 };
 static_assert(sizeof(JString) == 0x18, INVALID_SIZE);
 
