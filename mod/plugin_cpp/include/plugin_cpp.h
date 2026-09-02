@@ -1,5 +1,6 @@
 #include <reversed/reversed.h>
 #include <plugin.h>
+#include <game_events.h>
 
 #include <vector>
 #include <map>
@@ -82,34 +83,36 @@ namespace crs
         }
     };
 
-    class ApiLabel
+    class ApiComponent
     {
-    private:
+    protected:
         PluginApi api;
         uint64_t id;
 
+    public:
+        ApiComponent(PluginApi api, uint64_t id);
+        ApiComponent(const ApiComponent &o);
+
+    public:
+        void set_visible(bool visible);
+    };
+    
+    class ApiLabel : public ApiComponent
+    {
     public:
         ApiLabel(PluginApi api, uint64_t id);
         ApiLabel(const ApiLabel &o);
     };
 
-    class ApiHr
+    class ApiHr : public ApiComponent
     {
-    private:
-        PluginApi api;
-        uint64_t id;
-
     public:
         ApiHr(PluginApi api, uint64_t id);
         ApiHr(const ApiHr &o);
     };
 
-    class ApiCheckBox
+    class ApiCheckBox : public ApiComponent
     {
-    private:
-        PluginApi api;
-        uint64_t id;
-
     public:
         ApiCheckBox();
         ApiCheckBox(PluginApi api, uint64_t id);
@@ -119,6 +122,47 @@ namespace crs
         bool is_checked();
     };
 
+    class ApiDropDown
+    {
+    private:
+        PluginApi api;
+        uint64_t id;
+
+    private:
+        int32_t selected = 0;
+        std::vector<std::function<void(int)>> change_handlers;
+
+    public:
+        ApiDropDown();
+        ApiDropDown(PluginApi api, uint64_t id);
+        ApiDropDown(const ApiDropDown &o);
+
+    public:
+        void fire_changed(int32_t idx);
+
+    public:
+        void on_changed(std::function<void(int32_t)> f);
+
+    public:
+        int get_selected();
+        bool is_selected(int32_t index);
+    };
+
+    class ApiContainer : public ApiComponent
+    {
+    public:
+        ApiContainer();
+        ApiContainer(PluginApi api, uint64_t id);
+        ApiContainer(const ApiContainer &o);
+
+    public:
+        ApiContainer add_container();
+        ApiLabel add_label(const std::string &text);
+        ApiHr add_hr();
+        ApiCheckBox add_checkbox(const std::string &text);
+        std::shared_ptr<ApiDropDown> add_dropdown(std::initializer_list<std::string> options);
+    };
+    
     class Boot
     {
     public:
@@ -129,43 +173,53 @@ namespace crs
 
     class Api
     {
-    private:
-        static Plugin *plugin;
-        static PluginApi api;
-
-    public:
-        static ApiEventList<std::function<void()>> tick_events;
-
     public:
         static void init(crs::InitType type, Plugin *plugin, std::function<void()> first_initializer, std::function<void()> initializer);
-        
-    public:
+
+    public: // UI
+        static ApiContainer add_container(uint64_t parent_id);
+        static ApiContainer add_container();
+
+        static ApiLabel add_label(uint64_t parent_id, const std::string &text);
         static ApiLabel add_label(const std::string &text);
+
+        static ApiHr add_hr(uint64_t parent_id);
         static ApiHr add_hr();
+
+        static ApiCheckBox add_checkbox(uint64_t parent_id, const std::string &text);
         static ApiCheckBox add_checkbox(const std::string &text);
 
-    public:
+        static std::shared_ptr<ApiDropDown> add_dropdown(uint64_t parent_id, std::initializer_list<std::string> options);
+        static std::shared_ptr<ApiDropDown> add_dropdown(std::initializer_list<std::string> options);
+
+    public: // Raw game data
+        static Globals *raw_globals();
         static Engine *raw_engine();
         static PlayerUpdateCache *raw_player_update_cache();
         static NpcUpdateCache *raw_npc_update_cache();
         static Player *raw_self();
         static std::vector<Player *> raw_players();
-        static std::vector<Npc*> raw_npcs();
+        static std::vector<Npc *> raw_npcs();
         static crs::SocialCache *raw_social_cache();
         static bool raw_is_friend(const crs::Player *player);
 
-    public:
+    public: // API game data
+        // players
         static ApiPlayer self();
         // clang-format off
         static std::vector<ApiPlayer> players(std::function<bool(ApiPlayer&)> conditional = [](ApiPlayer&) { return true; });
         // clang-format on
 
-    public:
+        // npcs
         // clang-format off
         static std::vector<ApiNpc> npcs(std::function<bool(ApiNpc&)> conditional = [](ApiNpc&) { return true; });
         // clang-format on
 
-    public:
+    public: // C++ event handling
         static uint64_t on_tick(std::function<void()> f);
+        static uint64_t on_menu_action(std::function<void(MenuActionEventArgs*)> f);
+
+    public: // Utils
+        static void log(const std::string &s);
     };
 }

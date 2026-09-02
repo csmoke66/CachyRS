@@ -15,10 +15,11 @@ namespace crs
     {
         container,
         label,
-        checkbox,
-        button,
         hr,
         line,
+        button,
+        checkbox,
+        dropdown,
     };
 
     struct Component
@@ -71,7 +72,10 @@ namespace crs
         virtual uint64_t allocate_tab(const std::string& name) = 0;
         virtual uint64_t allocate_component(ComponentType type, uint64_t parent_id) = 0;
         virtual void update_component_text(uint64_t component_id, std::string text) = 0;
+        virtual void update_component_items(uint64_t component_id, const std::vector<std::string>& items) = 0;
         virtual bool is_component_checked(uint64_t component_id) = 0;
+        virtual void register_dropdown_change_handler(uint64_t component_id, std::function<void (int32_t)> handler) = 0;
+        virtual void set_component_visible(uint64_t component_id, bool visible) = 0;
 
     public:
         virtual void render() = 0;

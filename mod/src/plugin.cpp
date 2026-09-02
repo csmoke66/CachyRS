@@ -58,6 +58,24 @@ namespace crs
         // clang-format on
     }
 
+    static void plugin_api_user_interface_update_component_items(uint64_t component_id, const char **items, size_t item_count)
+    {
+        std::vector<std::string> converted;
+        converted.reserve(item_count);
+        for (auto i = 0; i < item_count; i++)
+        {
+            converted.push_back(items[i]);
+        }
+
+        // clang-format off
+        RS.ui_locked([component_id, &converted]()
+        { 
+            RS.ui->update_component_items(component_id, converted);
+            return false;
+        });
+        // clang-format on
+    }
+
     static bool plugin_api_user_interface_is_component_checked(uint64_t component_id)
     {
         // clang-format off
@@ -68,11 +86,34 @@ namespace crs
         // clang-format on
     }
 
+    static void plugin_api_user_interface_register_dropdown_change_handler(uint64_t component_id, FnPluginUserInterfaceDropDownChangeHandler handler, void *user_data)
+    {
+        // clang-format off
+        RS.ui_locked_nr([component_id, handler, user_data]()
+        { 
+            RS.ui->register_dropdown_change_handler(component_id, [component_id, handler, user_data](int index)
+            {
+                handler(component_id, index, user_data);
+            });
+        });
+        // clang-format on
+    }
+
+    static void plugin_api_user_interface_set_visible(uint64_t component_id, bool visible)
+    {
+        // clang-format off
+        RS.ui_locked_nr([component_id, visible]()
+        { 
+            RS.ui->set_component_visible(component_id, visible);
+        });
+        // clang-format on
+    }
+
     static void plugin_api_event_bus_register(const char *id, FnPluginEventBusReceiver receiver, void *context)
     {
         RS.event_bus.add_receiver(std::string(id), new CEventBusReceiver(receiver, context));
     }
-
+    
     void PluginManager::init()
     {
         api.log = plugin_api_log;
@@ -80,8 +121,11 @@ namespace crs
 
         api.ui_allocate_component = plugin_api_user_interface_allocate_component;
         api.ui_update_component_text = plugin_api_user_interface_update_component_text;
+        api.ui_update_component_items = plugin_api_user_interface_update_component_items;
         api.ui_is_component_checked = plugin_api_user_interface_is_component_checked;
-
+        api.ui_register_dropdown_change_handler = plugin_api_user_interface_register_dropdown_change_handler;
+        api.ui_set_visible = plugin_api_user_interface_set_visible;
+        
         api.event_bus_register = (FnPluginEventBusRegister)plugin_api_event_bus_register;
     }
 
@@ -159,7 +203,7 @@ namespace crs
             LOG(ERROR, "Plugin directory '" << path << "' is invalid");
         }
     }
-    
+
     const std::vector<std::unique_ptr<Plugin>> &PluginManager::view_plugins() const
     {
         return this->plugins;

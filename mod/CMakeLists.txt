@@ -81,6 +81,7 @@ add_subdirectory(imgui)
 add_subdirectory(rmlui_backend)
 add_subdirectory(plugin_cpp)
 add_subdirectory(plugins/entity-hider)
+add_subdirectory(plugins/relax-mode)
 
 FetchContent_Declare(
         rmlui

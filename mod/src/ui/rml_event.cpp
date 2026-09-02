@@ -130,4 +130,15 @@ namespace crs
         }
     }
 
-}
+    DropDownChangedEventListener::DropDownChangedEventListener(RmlUserInterface *parent, uint64_t component_id)
+    {
+        this->parent = parent;
+        this->component_id = component_id;
+    }
+
+    void DropDownChangedEventListener::ProcessEvent(Rml::Event &event)
+    {
+        auto select_element = dynamic_cast<Rml::ElementFormControlSelect*>(event.GetTargetElement());
+        parent->on_dropdown_component_changed(component_id, select_element->GetSelection());
+    }
+} 

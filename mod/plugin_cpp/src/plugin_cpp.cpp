@@ -1,55 +1,136 @@
 #include "plugin_cpp.h"
-#include <game_events.h>
 
 namespace crs
 {
-    PluginApi Api::api;
-    Plugin *Api::plugin = nullptr;
-    ApiEventList<std::function<void()>> Api::tick_events;
+    static PluginApi api;
+    static Plugin *plugin = nullptr;
+    static ApiEventList<std::function<void()>> tick_events;
+    static ApiEventList<std::function<void(MenuActionEventArgs*)>> menu_action_events;
+    static std::map<uint64_t, std::shared_ptr<ApiDropDown>> ui_dropdowns;
 
     static void event_handler_engine_tick(EngineTickArgs *args, void *plugin)
     {
         // clang-format off
-        Api::tick_events.iterate([args](auto& f) 
+        tick_events.iterate([args](auto& f) 
         {
             f();
         });
         // clang-format on
     }
 
+    static void event_handler_menu_action(MenuActionEventArgs *args, void *plugin)
+    {
+        // clang-format off
+        menu_action_events.iterate([args](auto& f) 
+        {
+            f(args);
+        });
+        // clang-format on
+    }
+
+    void ApiComponent::set_visible(bool visible)
+    {
+        crs::api.ui_set_visible(this->id, visible);
+    }
+
     void Api::init(crs::InitType type, Plugin *plugin, std::function<void()> first_initializer, std::function<void()> initializer)
     {
-        Api::plugin = plugin;
-        Api::api = plugin->api;
+        crs::plugin = plugin;
+        crs::api = plugin->api;
         if (type == crs::InitType::loaded)
         {
             api.event_bus_register(EngineTickEvent::specific_id().c_str(), (void *)event_handler_engine_tick, nullptr);
+            api.event_bus_register(MenuActionEvent::pre_id().c_str(), (void *)event_handler_menu_action, nullptr);
             first_initializer();
         }
 
         initializer();
     }
 
-    ApiLabel Api::add_label(const std::string &text)
+    ApiContainer Api::add_container(uint64_t parent_id)
     {
-        auto id = api.ui_allocate_component(crs::PluginComponentType::label, plugin->ui_tab_container_id);
+        auto id = api.ui_allocate_component(crs::PluginComponentType::container, parent_id);
+        return ApiContainer(api, id);
+    }
+
+    ApiContainer Api::add_container()
+    {
+        return add_container(plugin->ui_tab_container_id);
+    }
+
+    ApiLabel Api::add_label(uint64_t parent_id, const std::string &text)
+    {
+        auto id = api.ui_allocate_component(crs::PluginComponentType::label, parent_id);
         api.ui_update_component_text(id, text.c_str());
         return ApiLabel(api, id);
     }
 
-    ApiHr Api::add_hr()
+    ApiLabel Api::add_label(const std::string &text)
     {
-        auto id = api.ui_allocate_component(crs::PluginComponentType::hr, plugin->ui_tab_container_id);
+        return add_label(plugin->ui_tab_container_id, text);
+    }
+
+    ApiHr Api::add_hr(uint64_t parent_id)
+    {
+        auto id = api.ui_allocate_component(crs::PluginComponentType::hr, parent_id);
         return ApiHr(api, id);
     }
 
-    ApiCheckBox Api::add_checkbox(const std::string &text)
+    ApiHr Api::add_hr()
     {
-        auto id = api.ui_allocate_component(crs::PluginComponentType::checkbox, plugin->ui_tab_container_id);
+        return add_hr(plugin->ui_tab_container_id);
+    }
+
+    ApiCheckBox Api::add_checkbox(uint64_t parent_id, const std::string &text)
+    {
+        auto id = api.ui_allocate_component(crs::PluginComponentType::checkbox, parent_id);
         api.ui_update_component_text(id, text.c_str());
         return ApiCheckBox(api, id);
     }
 
+    ApiCheckBox Api::add_checkbox(const std::string& text)
+    {
+        return add_checkbox(plugin->ui_tab_container_id, text);
+    }
+
+    static void dropdown_change_handler(uint64_t id, int32_t selected, uint64_t component_id)
+    {
+        auto component = crs::ui_dropdowns.find(id);
+        if (component != crs::ui_dropdowns.end())
+        {
+            component->second->fire_changed(selected);
+        }
+    }
+
+    std::shared_ptr<ApiDropDown> Api::add_dropdown(uint64_t parent_id, std::initializer_list<std::string> options)
+    {
+        std::vector<const char*> converted;
+        converted.reserve(options.size());
+        for (auto &s : options)
+        {
+            converted.push_back(s.c_str());
+        }
+
+        auto id = api.ui_allocate_component(crs::PluginComponentType::dropdown, parent_id);
+        api.ui_update_component_items(id, converted.data(), converted.size());
+        api.ui_register_dropdown_change_handler(id, (FnPluginUserInterfaceDropDownChangeHandler)dropdown_change_handler, (void*)id);
+
+        auto dropdown = std::make_shared<ApiDropDown>(api, id);
+        crs::ui_dropdowns[id] = dropdown;
+
+        return dropdown;
+    }
+
+    std::shared_ptr<ApiDropDown> Api::add_dropdown(std::initializer_list<std::string> options)
+    {
+        return add_dropdown(plugin->ui_tab_container_id, options);
+    }
+    
+    Globals *Api::raw_globals()
+    {
+        return api.get_globals().unwrap();
+    }
+    
     Engine *Api::raw_engine()
     {
         return api.get_globals()->engine;
@@ -219,7 +300,17 @@ namespace crs
 
     uint64_t Api::on_tick(std::function<void()> f)
     {
-        return Api::tick_events.reg(f);
+        return crs::tick_events.reg(f);
+    }
+
+    uint64_t Api::on_menu_action(std::function<void(MenuActionEventArgs*)> f)
+    {
+        return crs::menu_action_events.reg(f);
+    }
+
+    void Api::log(const std::string& s)
+    {
+        crs::api.log(s.c_str());
     }
 }
 

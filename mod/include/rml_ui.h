@@ -154,6 +154,19 @@ namespace crs
         void ProcessEvent(Rml::Event &event) override;
     };
 
+    class DropDownChangedEventListener : public OwnedEventListener
+    {
+    private:
+        RmlUserInterface *parent;
+        uint64_t component_id;
+
+    public:
+        DropDownChangedEventListener(RmlUserInterface *parent, uint64_t component_id);
+
+    public:
+        void ProcessEvent(Rml::Event &event) override;
+    };
+
     //
     // Our decorator which handles visibility exposure using the 'render_frame' attribute.
     //
@@ -184,6 +197,19 @@ namespace crs
             const Rml::String &name,
             const Rml::PropertyDictionary &properties,
             const Rml::DecoratorInstancerInterface &instancer_interface) override;
+    };
+
+    struct RmlComponent
+    {
+    public:
+        ComponentType type;
+        Rml::Element *element;
+
+    public:
+        struct
+        {
+            std::vector<std::function<void(int)>> change_handlers;
+        } dropdown;
     };
 
     class RmlUserInterface : public UserInterface,
@@ -232,7 +258,7 @@ namespace crs
     private:
         std::atomic<uint64_t> component_allocation = 1;
         std::map<uint64_t, Rml::ElementDocument *> document_map;
-        std::map<uint64_t, Rml::Element *> component_map;
+        std::map<uint64_t, RmlComponent> component_map;
 
     private:
         std::vector<std::function<void()>> reload_callbacks;
@@ -279,6 +305,10 @@ namespace crs
         uint64_t allocate_tab(const std::string &name) override;
         uint64_t allocate_component(ComponentType type, uint64_t parent_id) override;
         void update_component_text(uint64_t component_id, std::string text) override;
+        void update_component_items(uint64_t component_id, const std::vector<std::string> &items) override;
         bool is_component_checked(uint64_t component_id) override;
+        void register_dropdown_change_handler(uint64_t component_id, std::function<void(int32_t)> handler) override;
+        void on_dropdown_component_changed(uint64_t component_id, int32_t idx);
+        void set_component_visible(uint64_t component_id, bool visible) override;
     };
 }

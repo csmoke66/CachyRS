@@ -114,6 +114,14 @@ namespace crs
             ui_mutex.unlock();
             return x;
         }
+
+        template<typename T>
+        auto ui_locked_nr(T t)
+        {
+            ui_mutex.lock();
+            t();
+            ui_mutex.unlock();
+        }
     };
 
     extern CachyRS RS;

@@ -48,4 +48,5 @@ enum class MenuActionType : uint32_t
 	widget = 1,
 	obj = 3,
 	npc = 4,
+	player = 7,
 };

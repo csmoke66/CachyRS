@@ -228,7 +228,7 @@ namespace crs
         auto dom_node_ext = get_rml_dom_node(node);
         auto rendered = !dom_node_ext->wrapper_element || is_rendered(dom_node_ext->wrapper_element);
         node->visible = rendered;
-        
+
         if (rendered)
         {
             if (!node->is_built)
@@ -401,7 +401,7 @@ namespace crs
         }
         return rendered;
     }
-    
+
     void RmlUserInterface::render()
     {
         this->render_frame += 1;
@@ -452,7 +452,7 @@ namespace crs
                                                           &selected_plugin_tab_button, &selected_plugin_content,
                                                           button, container));
 
-        component_map[id] = container;
+        component_map[id] = RmlComponent{ComponentType::container, container};
         return id;
     }
 
@@ -461,32 +461,20 @@ namespace crs
         auto id = component_allocation++;
         auto parent = component_map.find(parent_id);
         auto has_parent = parent != component_map.end();
-        auto parent_element = (has_parent ? parent->second : nullptr);
-
-        Rml::Element *element = nullptr;
-
-        if (type == ComponentType::container)
+        auto parent_element = (has_parent ? parent->second.element : nullptr);
+        if (!parent_element)
         {
-            auto document = load_document(config_folder + "rmlui/plugin.html");
-            if (!!document)
-            {
-                Rml::ElementList list;
-                document->GetElementsByClassName(list, "window");
-                list[0]->SetProperty("top", "400px");
-
-                document->Show();
-
-                document_map[id] = document;
-                element = document->GetElementById("main_content");
-            }
+            LOG(ERROR, "Cannot allocate component with no parent");
+            return 0;
         }
-        else if (type == ComponentType::checkbox)
+
+        RmlComponent component;
+        if (type == ComponentType::container)
         {
             auto document = parent_element->GetOwnerDocument();
 
             auto u_element = document->CreateElement("div");
-            u_element->SetInnerRML(std::format("<label class=\"checkbox-row\"><input type=\"checkbox\" id=\"input_{}\"/><span id=\"text_{}\">N/A</span></label>", id, id));
-            element = parent_element->AppendChild(std::move(u_element));
+            component.element = parent_element->AppendChild(std::move(u_element));
         }
         else if (type == ComponentType::label)
         {
@@ -494,7 +482,7 @@ namespace crs
 
             auto u_element = document->CreateElement("div");
             u_element->SetInnerRML(std::format("<span id=\"text_{}\">N/A</span>", id));
-            element = parent_element->AppendChild(std::move(u_element));
+            component.element = parent_element->AppendChild(std::move(u_element));
         }
         else if (type == ComponentType::hr)
         {
@@ -502,7 +490,7 @@ namespace crs
 
             auto u_element = document->CreateElement("div");
             u_element->SetClass("hr-custom", true);
-            element = parent_element->AppendChild(std::move(u_element));
+            component.element = parent_element->AppendChild(std::move(u_element));
         }
         else if (type == ComponentType::line)
         {
@@ -510,12 +498,40 @@ namespace crs
 
             auto u_element = document->CreateElement("div");
             u_element->SetClass("hr-empty", true);
-            element = parent_element->AppendChild(std::move(u_element));
+            component.element = parent_element->AppendChild(std::move(u_element));
+        }
+        else if (type == ComponentType::button)
+        {
+            auto document = parent_element->GetOwnerDocument();
+
+            auto u_element = document->CreateElement("button");
+            u_element->SetId(std::format("{}", id));
+            u_element->SetInnerRML("N/A");
+            component.element = parent_element->AppendChild(std::move(u_element));
+        }
+        else if (type == ComponentType::checkbox)
+        {
+            auto document = parent_element->GetOwnerDocument();
+
+            auto u_element = document->CreateElement("div");
+            u_element->SetInnerRML(std::format("<label class=\"checkbox-row\"><input type=\"checkbox\" id=\"input_{}\"/><span id=\"text_{}\">N/A</span></label>", id, id));
+            component.element = parent_element->AppendChild(std::move(u_element));
+        }
+        else if (type == ComponentType::dropdown)
+        {
+            auto document = parent_element->GetOwnerDocument();
+
+            auto u_element = document->CreateElement("select");
+            u_element->SetId(std::format("{}", id));
+            u_element->AddEventListener(Rml::EventId::Change, new DropDownChangedEventListener(this, id));
+
+            component.element = parent_element->AppendChild(std::move(u_element));
+            component.dropdown.change_handlers = std::vector<std::function<void(int)>>();
         }
 
-        if (!!element)
+        if (!!component.element)
         {
-            component_map[id] = element;
+            component_map[id] = component;
             return id;
         }
         else
@@ -526,14 +542,16 @@ namespace crs
 
     void RmlUserInterface::update_component_text(uint64_t component_id, std::string text)
     {
-        auto element = component_map.find(component_id);
-        LOG(INFO, "Update text " << component_id << " " << text << " " << element->second->GetInnerRML());
-        if (element != component_map.end())
+        auto kv = component_map.find(component_id);
+        if (kv != component_map.end())
         {
-            auto child = element->second->GetElementById(std::format("text_{}", component_id));
+            auto element = kv->second.element;
+            LOG(INFO, "Update text " << component_id << " " << text << " " << element->GetInnerRML());
+
+            auto child = element->GetElementById(std::format("text_{}", component_id));
             if (!child)
             {
-                child = element->second->GetElementById(std::format("title_{}", component_id));
+                child = element->GetElementById(std::format("title_{}", component_id));
             }
 
             if (!!child)
@@ -543,12 +561,39 @@ namespace crs
         }
     }
 
+    void RmlUserInterface::update_component_items(uint64_t component_id, const std::vector<std::string> &items)
+    {
+        auto kv = component_map.find(component_id);
+        if (kv != component_map.end())
+        {
+            auto element = kv->second.element;
+            auto select_element = dynamic_cast<Rml::ElementFormControlSelect *>(element);
+            if (!select_element)
+            {
+                LOG(ERROR, "Invalid element: " << element);
+                return;
+            }
+
+            LOG(DEBUG, "Removing children");
+            select_element->RemoveAll();
+
+            LOG(DEBUG, "Adding options");
+            auto idx = 0;
+            for (auto &item : items)
+            {
+                LOG(DEBUG, item);
+                select_element->Add(item, std::format("{}", idx++));
+            }
+        }
+    }
+
     bool RmlUserInterface::is_component_checked(uint64_t component_id)
     {
-        auto element = component_map.find(component_id);
-        if (element != component_map.end())
+        auto kv = component_map.find(component_id);
+        if (kv != component_map.end())
         {
-            auto child = element->second->GetElementById(std::format("input_{}", component_id));
+            auto element = kv->second.element;
+            auto child = element->GetElementById(std::format("input_{}", component_id));
             if (!!child)
             {
                 return child->HasAttribute("checked");
@@ -556,5 +601,42 @@ namespace crs
         }
 
         return false;
+    }
+
+    void RmlUserInterface::register_dropdown_change_handler(uint64_t component_id, std::function<void(int32_t)> handler)
+    {
+        auto kv = component_map.find(component_id);
+        if (kv != component_map.end())
+        {
+            kv->second.dropdown.change_handlers.push_back(handler);
+        }
+    }
+
+    void RmlUserInterface::on_dropdown_component_changed(uint64_t component_id, int32_t idx)
+    {
+        auto kv = component_map.find(component_id);
+        if (kv != component_map.end())
+        {
+            for (auto &f : kv->second.dropdown.change_handlers)
+            {
+                f(idx);
+            }
+        }
+    }
+
+    void RmlUserInterface::set_component_visible(uint64_t component_id, bool visible)
+    {
+        auto kv = component_map.find(component_id);
+        if (kv != component_map.end())
+        {
+            if (visible)
+            {
+                kv->second.element->RemoveProperty("display");
+            }
+            else
+            {
+                kv->second.element->SetProperty("display", "none");
+            }
+        }
     }
 }
