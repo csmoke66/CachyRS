@@ -6,7 +6,7 @@ struct PlayerUpdate
 	// 0x0
 	PAD(0x38);
 	// 0x38
-	NamedEntity* entity;
+	Player* player;
 	// 0x40
 };
 
@@ -25,9 +25,9 @@ struct NpcUpdate
 	// 0x4
 	PAD(0x4);
 	// 0x8
-	ObjectHeader<NamedEntity>* entity_header;
+	ObjectHeader<Npc>* entity_header;
 	// 0x10
-	NamedEntity* entity;
+	Npc* npc;
 	// 0x18
 	PAD(0x8);
 	// 0x20

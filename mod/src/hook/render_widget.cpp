@@ -12,14 +12,13 @@ namespace crs
         auto x = (int)CPU_FOURTH_ARG(cpu_state);
         auto y = (int)CPU_FIFTH_ARG(cpu_state);
 
+        auto engine = RS.get_globals()->engine;
         for (auto c = children->begin; c != children->end; c++)
         {
             if (auto w = c->widget)
             {
-                if (auto engine = RS.get_globals()->engine)
-                {
-                    rendered[w] = {w, engine->time, x + w->x, y + w->y};
-                }
+                // TODO FIXME bad performance
+                // *tag = {w, engine->time, x + w->x, y + w->y};
             }
         }
 

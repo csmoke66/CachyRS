@@ -2,8 +2,14 @@
 
 namespace crs
 {
-    EngineTickEvent::EngineTickEvent() : Event(EngineTickEvent::specific_id())
+    EngineTickEvent::EngineTickEvent(Engine* engine) : Event(EngineTickEvent::specific_id())
     {
+        this->args.engine = engine;
+    }
+
+    void* EngineTickEvent::get_args()
+    {
+        return &args;
     }
 
     MenuOpenedEvent::MenuOpenedEvent(bool opened) : Event(MenuOpenedEvent::specific_id())

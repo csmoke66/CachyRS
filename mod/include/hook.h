@@ -119,6 +119,7 @@ namespace crs
 
     public:
         void iat(const ::std::string &name, const ::std::string &symbol, ::std::unique_ptr<GenericHook> hook);
+        void ptr(const ::std::string &name, void* address, ::std::unique_ptr<GenericHook> hook);
         void x86(const ::std::string &name, void *target, ::std::unique_ptr<GenericHook> hook);
     };
 

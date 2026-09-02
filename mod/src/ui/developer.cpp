@@ -62,40 +62,41 @@ namespace crs
     void DeveloperOverlay::render_widget_picker(ImDrawList *draw_list, Engine *engine, Widget *widget, int x, int y)
     {
         auto bg = ImGui::GetBackgroundDrawList();
-        auto rendered = render_widget_hook->rendered.find(widget);
-        if (rendered != render_widget_hook->rendered.end() &&
-            engine->time - rendered->second.time < 10)
-        {
-            if (widget->get_type() == WidgetType::container)
-            {
-                auto container = (ContainerWidget *)widget;
-                for (auto c = container->children.begin; c != container->children.end; c++)
-                {
-                    if (auto cw = c->widget)
-                    {
-                        render_widget_picker(draw_list, engine, cw, container->x + x, container->y + y);
-                    }
-                }
-            }
-            else
-            {
-                auto a_x = rendered->second.absolute_x;
-                auto a_y = rendered->second.absolute_y;
 
-                auto min = ImVec2(a_x, a_y);
-                auto max = ImVec2(min.x + widget->width, min.y + widget->height);
+        // TODO FIXME bad performance
+        // auto tag = get_memory_tag<RenderedWidget>(widget);
+        // if ((engine->time - tag->time) < 10)
+        // {
+        //     if (widget->get_type() == WidgetType::container)
+        //     {
+        //         auto container = (ContainerWidget *)widget;
+        //         for (auto c = container->children.begin; c != container->children.end; c++)
+        //         {
+        //             if (auto cw = c->widget)
+        //             {
+        //                 render_widget_picker(draw_list, engine, cw, container->x + x, container->y + y);
+        //             }
+        //         }
+        //     }
+        //     else
+        //     {
+        //         auto a_x = tag->absolute_x;
+        //         auto a_y = tag->absolute_y;
 
-                auto &mp = poll_event_hook->mouse_pos;
-                if (mp.x >= min.x && mp.x < max.x && mp.y >= min.y && mp.y < max.y)
-                {
-                    bg->AddRectFilled(min, max, IM_COL32(0, 255, 0, 20));
-                }
-                else
-                {
-                    bg->AddRectFilled(min, max, IM_COL32(255, 0, 0, 10));
-                }
-            }
-        }
+        //         auto min = ImVec2(a_x, a_y);
+        //         auto max = ImVec2(min.x + widget->width, min.y + widget->height);
+
+        //         auto &mp = poll_event_hook->mouse_pos;
+        //         if (mp.x >= min.x && mp.x < max.x && mp.y >= min.y && mp.y < max.y)
+        //         {
+        //             bg->AddRectFilled(min, max, IM_COL32(0, 255, 0, 20));
+        //         }
+        //         else
+        //         {
+        //             bg->AddRectFilled(min, max, IM_COL32(255, 0, 0, 10));
+        //         }
+        //     }
+        // }
     }
 
     void DeveloperOverlay::render_widget_picker(ImDrawList *draw_list, Engine *engine, WidgetCache *widget_cache)

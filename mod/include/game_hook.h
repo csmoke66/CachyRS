@@ -129,19 +129,8 @@ namespace crs
         void handler(CpuState *cpu_state) override;
     };
 
-    struct RenderedWidget
-    {
-        const Widget *widget;
-        uint32_t time;
-        uint32_t absolute_x;
-        uint32_t absolute_y;
-    };
-
     class RenderWidgetHook : public Hook<FnRenderWidget>
     {
-    public:
-        std::map<const Widget *, RenderedWidget> rendered;
-
     public:
         void handler(CpuState *cpu_state) override;
     };

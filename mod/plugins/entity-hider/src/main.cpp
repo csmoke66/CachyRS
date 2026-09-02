@@ -1,253 +1,73 @@
 #include "plugin.h"
 #include "event_bus.h"
 #include <format>
+#include <plugin_cpp.h>
 
-class ProfitTrackerPlugin
+using namespace crs;
+
+static ApiCheckBox ui_players_hide_checkbox;
+static ApiCheckBox ui_players_show_self_checkbox;
+static ApiCheckBox ui_players_show_friends_checkbox;
+static ApiCheckBox ui_npcs_hide_checkbox;
+
+std::string Boot::name()
 {
-public:
-    crs::Plugin *plugin;
-    crs::PluginApi *api;
+    return "Entity Hider";
+}
 
-public:
-    uint64_t ui_players_hide_checkbox;
-    uint64_t ui_players_show_self_checkbox;
-    uint64_t ui_players_show_friends_checkbox;
-
-    uint64_t ui_npcs_hide_checkbox;
-
-public:
-    bool players_hidden()
-    {
-        return api->ui_is_component_checked(ui_players_hide_checkbox);
-    }
-
-    bool players_show_self()
-    {
-        return api->ui_is_component_checked(ui_players_show_self_checkbox);
-    }
-
-    bool players_show_friends()
-    {
-        return api->ui_is_component_checked(ui_players_show_friends_checkbox);
-    }
-
-    bool npcs_hidden()
-    {
-        return api->ui_is_component_checked(ui_npcs_hide_checkbox);
-    }
-
-public:
-    const crs::SocialCache *social_cache() const
-    {
-        auto globals = api->get_globals();
-        auto engine = globals->engine;
-        if (!engine)
-        {
-            return nullptr;
-        }
-
-        return engine->social_cache;
-    }
-
-    bool is_friend(const crs::Player *player) const
-    {
-        auto cache = social_cache();
-        if (!cache)
-        {
-            return false;
-        }
-
-        for (auto i = cache->friends.begin; i != cache->friends.end; i++)
-        {
-            if (!strcmp(player->name.c_str(), i->name.c_str()))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    crs::Player *local_player_entity() const
-    {
-        auto globals = api->get_globals();
-        auto engine = globals->engine;
-        if (!engine)
-        {
-            return nullptr;
-        }
-
-        auto lp = engine->local_player;
-        if (!lp)
-        {
-            return nullptr;
-        }
-
-        auto player_update_cache = engine->player_update_cache;
-        if (!player_update_cache)
-        {
-            return nullptr;
-        }
-
-        auto idx = lp->entity_list_index;
-        if (idx < 0 || idx >= player_update_cache->updates.size())
-        {
-            return nullptr;
-        }
-
-        auto update = *player_update_cache->updates.reference(idx);
-        if (!update)
-        {
-            return nullptr;
-        }
-
-        return (crs::Player *)update->entity;
-    }
-
-    template <typename FN>
-    void iterate_entities(crs::WorldNode *node, FN func)
-    {
-        if (!node)
-        {
-            return;
-        }
-
-        if (node->entity)
-        {
-            func(node, node->entity);
-        }
-
-        for (auto c = node->children.begin; c != node->children.end; c++)
-        {
-            iterate_entities(*c, func);
-        }
-    }
-
-    template <typename FN>
-    void iterate_entities(FN func)
-    {
-        auto globals = api->get_globals();
-        auto engine = globals->engine;
-        if (!engine)
-        {
-            return;
-        }
-
-        auto scene = engine->scene_001;
-        if (!scene)
-        {
-            return;
-        }
-
-        auto scene_002 = scene->scene_002.reference(scene->scene_index);
-        if (!scene_002)
-        {
-            return;
-        }
-
-        auto scene_003 = scene_002->scene_003;
-        if (!scene_003)
-        {
-            return;
-        }
-
-        iterate_entities(scene_003->world_root, func);
-    }
-};
-
-static ProfitTrackerPlugin entity_hider_plugin;
-
-static void event_handler_engine_tick(void *args, ProfitTrackerPlugin *plugin)
+void Boot::init()
 {
-    auto api = plugin->api;
-    auto lp = plugin->local_player_entity();
-
     // clang-format off
-    plugin->iterate_entities([plugin, lp](crs::WorldNode* world_node, const crs::Entity *entity) 
+    Api::on_tick([]()
     {
-        if (entity->type == crs::EntityType::player)
+        auto self = Api::raw_self();
+        for (auto player : Api::raw_players())
         {
-            auto hidden = plugin->players_hidden();
-            if (hidden)
+            if (auto node = player->parent)
             {
-                if (plugin->players_show_self())
+                auto hidden = ui_players_hide_checkbox.is_checked();
+                if (hidden)
                 {
-                    if (entity == lp)
+                    if (ui_players_show_self_checkbox.is_checked())
                     {
-                        hidden = false;
+                        if (player == self)
+                        {
+                            hidden = false;
+                        }
                     }
-                }
-                
-                if (plugin->players_show_friends())
-                {
-                    if (plugin->is_friend((crs::Player*)entity))
-                    {
-                        hidden = false;
-                    }
-                }
-            }
 
-            if (hidden)
-            {
-                world_node->flags &= ~crs::WorldNodeFlag::has_entity;
-            }
-            else
-            {
-                world_node->flags |= crs::WorldNodeFlag::has_entity;
-            }
-        }
-        else if (entity->type == crs::EntityType::npc)
-        {
-            if (plugin->npcs_hidden())
-            {
-                world_node->flags &= ~crs::WorldNodeFlag::has_entity;
-            }
-            else
-            {
-                world_node->flags |= crs::WorldNodeFlag::has_entity;
+                    if (ui_players_show_friends_checkbox.is_checked())
+                    {
+                        if (Api::raw_is_friend(player))
+                        {
+                            hidden = false;
+                        }
+                    }
+                }
+
+                if (hidden)
+                {
+                    node->flags &= ~WorldNodeFlag::has_entity;
+                }
+                else
+                {
+                    node->flags |= WorldNodeFlag::has_entity;
+                }
             }
         }
     });
     // clang-format on
 }
 
-PLUGIN_API
-const char* plugin_get_name()
+void Boot::init_ui()
 {
-    return "Entity Hider";
-}
+    Api::add_label("Players");
+    Api::add_hr();
+    ui_players_hide_checkbox = Api::add_checkbox("Hidden");
+    ui_players_show_self_checkbox = Api::add_checkbox("Show Self");
+    ui_players_show_friends_checkbox = Api::add_checkbox("Show Friends");
 
-PLUGIN_API
-void plugin_init(crs::InitType type, crs::Plugin *plugin)
-{
-    if (type == crs::InitType::loaded)
-    {
-        entity_hider_plugin.plugin = plugin;
-        entity_hider_plugin.api = &plugin->api;
-
-        auto &api = plugin->api;
-        api.event_bus_register("on_engine_tick", (void *)&event_handler_engine_tick, &entity_hider_plugin);
-    }
-
-    auto &api = plugin->api;
-
-    auto label = api.ui_allocate_component(crs::PluginComponentType::label, plugin->ui_tab_container_id);
-    api.ui_update_component_text(label, "Players");
-    api.ui_allocate_component(crs::PluginComponentType::hr, plugin->ui_tab_container_id);
-
-    entity_hider_plugin.ui_players_hide_checkbox = api.ui_allocate_component(crs::PluginComponentType::checkbox, plugin->ui_tab_container_id);
-    api.ui_update_component_text(entity_hider_plugin.ui_players_hide_checkbox, "Hidden");
-
-    entity_hider_plugin.ui_players_show_self_checkbox = api.ui_allocate_component(crs::PluginComponentType::checkbox, plugin->ui_tab_container_id);
-    api.ui_update_component_text(entity_hider_plugin.ui_players_show_self_checkbox, "Show Self");
-
-    entity_hider_plugin.ui_players_show_friends_checkbox = api.ui_allocate_component(crs::PluginComponentType::checkbox, plugin->ui_tab_container_id);
-    api.ui_update_component_text(entity_hider_plugin.ui_players_show_friends_checkbox, "Show Friends");
-
-    auto label_npcs = api.ui_allocate_component(crs::PluginComponentType::label, plugin->ui_tab_container_id);
-    api.ui_update_component_text(label_npcs, "NPCs");
-    api.ui_allocate_component(crs::PluginComponentType::hr, plugin->ui_tab_container_id);
-
-    entity_hider_plugin.ui_npcs_hide_checkbox = api.ui_allocate_component(crs::PluginComponentType::checkbox, plugin->ui_tab_container_id);
-    api.ui_update_component_text(entity_hider_plugin.ui_npcs_hide_checkbox, "Hidden");
+    Api::add_label("NPCs");
+    Api::add_hr();
+    ui_npcs_hide_checkbox = Api::add_checkbox("Hidden");
 }

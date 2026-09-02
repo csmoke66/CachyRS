@@ -169,7 +169,7 @@ namespace crs
 
         LOG(INFO, "Placing x86 hooks...");
         hook_manager->x86("menu_execute", &get_globals()->menu_execute, unique_hook<MenuExecuteHook>());
-        hook_manager->x86("render_widget", &get_globals()->render_widget, unique_hook<RenderWidgetHook>());
+        //hook_manager->x86("render_widget", &get_globals()->render_widget, unique_hook<RenderWidgetHook>());
         hook_manager->x86("set_varbit", &get_globals()->set_varbit, unique_hook<SetVarBitHook>());
         hook_manager->x86("engine_tick", &get_globals()->engine_tick, unique_hook<EngineTickHook>());
         hook_manager->x86("add_menu_option", &get_globals()->add_menu_option, unique_hook<AddMenuOptionHook>());

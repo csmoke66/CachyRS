@@ -3,8 +3,16 @@
 
 namespace crs
 {
+    struct EngineTickArgs
+    {
+        Engine *engine;
+    };
+
     class EngineTickEvent : public Event
     {
+    public:
+        EngineTickArgs args;
+
     public:
         static constexpr ::std::string specific_id()
         {
@@ -12,7 +20,10 @@ namespace crs
         }
 
     public:
-        EngineTickEvent();
+        EngineTickEvent(Engine *engine);
+
+    public:
+        void *get_args() override;
     };
 
     struct MenuOpenedEventArgs
@@ -121,5 +132,4 @@ namespace crs
         void *get_args() override;
     };
 
-    
 }

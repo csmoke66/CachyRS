@@ -8,16 +8,33 @@ namespace crs
 {
     void EngineTickHook::tick_ui(Engine *engine)
     {
-        if (engine->state == GameState::lobby_screen || engine->state == GameState::in_game)
+        if (RS.ui_visible)
         {
-            RS.dom_node_item_containers->update();
-        }
+            if (engine->state == GameState::lobby_screen || engine->state == GameState::in_game)
+            {
+                if (RS.dom_node_item_containers->visible)
+                {
+                    RS.dom_node_item_containers->update();
+                }
+            }
 
-        if (engine->state == GameState::in_game)
-        {
-            RS.dom_node_npcs->update();
-            RS.dom_node_players->update();
-            RS.dom_node_world_settings->update();
+            if (engine->state == GameState::in_game)
+            {
+                if (RS.dom_node_npcs->visible)
+                {
+                    RS.dom_node_npcs->update();
+                }
+
+                if (RS.dom_node_players->visible)
+                {
+                    RS.dom_node_players->update();
+                }
+
+                if (RS.dom_node_world_settings->visible)
+                {
+                    RS.dom_node_world_settings->update();
+                }
+            }
         }
     }
 
@@ -83,7 +100,7 @@ namespace crs
         {
             for (auto it = cache->containers.begin; it != cache->containers.end; it++)
             {
-                auto& container = get_cached_container(it->id);
+                auto &container = get_cached_container(it->id);
                 if (it->items.size() > container.items.size())
                 {
                     auto new_slots = it->items.size() - container.items.size();
@@ -94,8 +111,8 @@ namespace crs
                 auto slot = 0;
                 for (auto item_it = it->items.begin; item_it != it->items.end; item_it++)
                 {
-                    auto& container_item = container.items[slot++];
-                    if (container_item.id != item_it->id || 
+                    auto &container_item = container.items[slot++];
+                    if (container_item.id != item_it->id ||
                         container_item.amount != item_it->amount)
                     {
                         auto delta = 0;
@@ -140,7 +157,7 @@ namespace crs
 
         tick_stats();
 
-        auto event = EngineTickEvent();
+        auto event = EngineTickEvent(engine);
         RS.event_bus.dispatch(EngineTickEvent::specific_id(), &event);
 
         watch_item_changes(engine);

@@ -25,6 +25,14 @@ namespace crs
         }
     }
 
+    void HookManager::ptr(const ::std::string &name, void* address, ::std::unique_ptr<GenericHook> hook)
+    {
+        hook->trampoline = *(void**)address;
+        iat_hook(vt_offset, address, hook.get());
+
+        hooks[name] = std::move(hook);
+    }
+
     void HookManager::x86(const ::std::string &name, void *target, ::std::unique_ptr<GenericHook> hook)
     {
         asm_hook(vt_offset, target, hook.get());

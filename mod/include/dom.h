@@ -156,7 +156,8 @@ namespace crs
         ::std::vector<std::unique_ptr<DomValue>> values;
 
         bool deleted = false;
-
+        bool visible = false;
+        
     public:
         ::std::map<::std::string, std::shared_ptr<DomNode>> children;
 

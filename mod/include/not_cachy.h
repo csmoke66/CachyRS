@@ -48,9 +48,9 @@ namespace crs
             {
                 if (auto update = *(i))
                 {
-                    if (auto entity = update->entity)
+                    if (auto player = update->player)
                     {
-                        fn(entity);
+                        fn(player);
                     }
                 }
             }
@@ -66,9 +66,9 @@ namespace crs
             {
                 if (auto p = update_cache->npcs[i])
                 {
-                    if (auto entity = p->entity)
+                    if (auto npc = p->npc)
                     {
-                        fn(entity);
+                        fn(npc);
                     }
                 }
             }

@@ -227,7 +227,8 @@ namespace crs
     {
         auto dom_node_ext = get_rml_dom_node(node);
         auto rendered = !dom_node_ext->wrapper_element || is_rendered(dom_node_ext->wrapper_element);
-
+        node->visible = rendered;
+        
         if (rendered)
         {
             if (!node->is_built)
