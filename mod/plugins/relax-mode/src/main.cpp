@@ -91,7 +91,7 @@ void Boot::init_ui()
 {
     Api::add_label("Relax Mode");
     Api::add_hr();
-    ui_mode_dropdown = Api::add_dropdown({"Forinthry Prayer", "Load Last Preset"});
+    ui_mode_dropdown = Api::add_dropdown({"Test"});
 
     // clang-format off
     ui_mode_dropdown->on_changed([](auto idx) 
