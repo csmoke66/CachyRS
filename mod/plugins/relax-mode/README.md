@@ -4,4 +4,6 @@ Allows for performing common in-game activities without high accuracy. Provides 
 ![relax-mode](media/main.gif)
 
 ## Account Safety
-This is completely safe to use, and you will not be banned. If you combine this with other automatic input like an auto-clicker, you will be banned.
+This is completely safe to use, and you will not be banned. If you combine this with other automatic input like an auto-clicker, you will be banned.  
+  
+However I'm not responsible for your account. You can make your own decisions.
