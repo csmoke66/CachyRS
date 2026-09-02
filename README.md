@@ -3,8 +3,8 @@ A third party client for RS3 (and eventually, OSRS.)
 
 **THIS PROJECT IS A WIP AND ACTIVELY UNDER DEVELOPMENT**
 ## Plugins
-* [Entity-Hider](mod/plugins/entity-hider)
-
+* [Entity Hider](mod/plugins/entity-hider)
+* [Relax Mode](mod/plugins/relax-mode)
 ## Compiling
 Currently only LLVM/Clang are supported.
 ### Dependencies
