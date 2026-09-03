@@ -2,16 +2,15 @@
 
 namespace crs
 {
-    UserInterface::~UserInterface()
-    {
-    }
+  UserInterface::~UserInterface()
+  {
+  }
 
-    void UserInterface::reload()
-    {
-    }
-    
-    void UserInterface::add_reload_callback(std::function<void()> function)
-    {
+  void UserInterface::reload()
+  {
+  }
 
-    }
-}
+  void UserInterface::add_reload_callback(std::function<void()> function)
+  {
+  }
+} // namespace crs

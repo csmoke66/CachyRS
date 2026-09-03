@@ -12,17 +12,19 @@ struct WorldSettingMask
 
 struct WorldSetting
 {
-	// 0x0
+	// 0x8
 	uint32_t value;
-	// 0x4
-	PAD(0x14);
-	// 0x18
-	uint8_t uninitialized;
-	// 0x19
-	PAD(0x7);
-	// 0x20
+	// 0xc
+	PAD(0x4);
+	// 0x10
+	uint8_t initialized;
+	// 0x11
+	PAD(0x17);
+	// 0x28
 	IdObject<uint32_t, 0x4, WorldSetting> *next;
 };
+static_assert(off(WorldSetting, value) == 0x0, INVALID_OFFSET);
+static_assert(off(WorldSetting, initialized) == 0x8, INVALID_OFFSET);
 static_assert(off(WorldSetting, next) == 0x20, INVALID_OFFSET);
 
 // This class actually extends MUCH further, and uses a list much
@@ -31,12 +33,7 @@ class WorldSettingCache
 {
 public:
 	// 0x0
-	PAD_VT();
-	// 0x8
-
-public:
-	// 0x8
-	PAD(0x20);
+	PAD(0x28);
 	// 0x28
 	IdObject<uint32_t, 0x4, WorldSetting> **vars;
 	// 0x30

@@ -13,13 +13,14 @@
 
 namespace crs
 {
-    void SdlGetWindowWMInfoHook::handler(CpuState *cpu_state)
-    {
-        BaseHook::handler(cpu_state);
+  void SdlGetWindowWMInfoHook::handler(CpuState *cpu_state)
+  {
+    BaseHook::handler(cpu_state);
 
-        cpu_state->rax = (uint64_t)trampoline((SDL_Window *)CPU_FIRST_ARG(cpu_state),
-                                              (SDL_SysWMinfo *)CPU_SECOND_ARG(cpu_state));
+    cpu_state->rax = static_cast<uint64_t>(trampoline(
+        reinterpret_cast<SDL_Window *>(CPU_FIRST_ARG(cpu_state)),
+        reinterpret_cast<SDL_SysWMinfo *>(CPU_SECOND_ARG(cpu_state))));
 
-        this->info = *(SDL_SysWMinfo *)CPU_SECOND_ARG(cpu_state);
-    }
-}
+    this->info = *(SDL_SysWMinfo *)CPU_SECOND_ARG(cpu_state);
+  }
+} // namespace crs

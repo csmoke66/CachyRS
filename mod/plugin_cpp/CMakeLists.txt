@@ -5,6 +5,7 @@ add_library(plugin_cpp STATIC
     src/plugin_cpp.cpp
     src/plugin_cpp_entity.cpp
     src/plugin_cpp_ui.cpp
+    src/plugin_cpp_item.cpp
 )
 
 target_include_directories(plugin_cpp PUBLIC include)

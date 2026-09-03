@@ -14,8 +14,10 @@ struct NpcUpdateCache;
 struct Globals
 {
 	PAD(0xf39b0);
-	char menu_action_handler_widget;
-	PAD(0x6eb3f);
+	char menu_action_handler_widget1;
+	PAD(0x14f);
+	char menu_action_handler_widget2;
+	PAD(0x6e9ef);
 	char menu_action_handler_walk;
 	PAD(0xa6f);
 	char menu_action_handler_npc7;
@@ -68,7 +70,8 @@ struct Globals
 	PAD(0xe290);
 	void* heap;
 };
-static_assert(off(Globals, menu_action_handler_widget) == 0xf39b0, INVALID_OFFSET);
+static_assert(off(Globals, menu_action_handler_widget1) == 0xf39b0, INVALID_OFFSET);
+static_assert(off(Globals, menu_action_handler_widget2) == 0xf3b00, INVALID_OFFSET);
 static_assert(off(Globals, menu_action_handler_walk) == 0x1624f0, INVALID_OFFSET);
 static_assert(off(Globals, menu_action_handler_npc7) == 0x162f60, INVALID_OFFSET);
 static_assert(off(Globals, menu_action_handler_npc6) == 0x162f90, INVALID_OFFSET);
@@ -125,7 +128,7 @@ struct Engine
 	PAD(0x4);
 	LocalPlayer* local_player;
 	PAD(0x8);
-	char world_settings;
+	WorldSettingCache world_settings;
 };
 static_assert(off(Engine, window_state) == 0x90, INVALID_OFFSET);
 static_assert(off(Engine, time) == 0x504, INVALID_OFFSET);

@@ -3,8 +3,8 @@
 
 namespace crs
 {
-    class CachyDomTreeListener : public DomTreeListener
-    {
-        void on_click(std::shared_ptr<DomNode> node) override;
-    };
-}
+  class CachyDomTreeListener : public DomTreeListener
+  {
+    void on_click(std::shared_ptr<DomNode> node) override;
+  };
+} // namespace crs

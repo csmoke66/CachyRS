@@ -2,13 +2,11 @@
 
 namespace crs
 {
-    Item::Item() : id(-1), amount(0)
-    {
+  Item::Item() : id(-1), amount(0)
+  {
+  }
 
-    }
-
-    Item::Item(const Item &o) : id(o.id), amount(o.amount)
-    {
-        
-    }
-}
+  Item::Item(const Item &o) : id(o.id), amount(o.amount)
+  {
+  }
+} // namespace crs

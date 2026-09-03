@@ -13,10 +13,10 @@
 
 namespace crs
 {
-    void SdlDestroyContextHook::handler(CpuState *cpu_state)
-    {
-        BaseHook::handler(cpu_state);
+  void SdlDestroyContextHook::handler(CpuState *cpu_state)
+  {
+    BaseHook::handler(cpu_state);
 
-        trampoline((SDL_GLContext)CPU_FIRST_ARG(cpu_state));
-    }
-}
+    trampoline(reinterpret_cast<SDL_GLContext>(CPU_FIRST_ARG(cpu_state)));
+  }
+} // namespace crs

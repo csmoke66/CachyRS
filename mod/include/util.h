@@ -1,6 +1,6 @@
 #pragma once
-#include <cstdint>
 #include <cstddef>
+#include <cstdint>
 #include <initializer_list>
 
 namespace crs
@@ -10,23 +10,23 @@ namespace crs
 
 #define off(t, f) offsetof(t, f)
 
-    void *allocate_executable_memory(void *data, size_t size);
-    void patch_non_writable_memory(void *target, void *data, size_t size, int prot);
+  void *allocate_executable_memory(void *data, size_t size);
+  void patch_non_writable_memory(void *target, void *data, size_t size, int prot);
 
-    template <typename T, typename... A>
-    FINLINE T dref(const void *obj, ::std::initializer_list<uint64_t> args)
+  template <typename T, typename... A>
+  FINLINE T dref(const void *obj, std::initializer_list<uint64_t> args)
+  {
+    const void *last = obj;
+    for (auto a : args)
     {
-        const void *last = obj;
-        for (auto a : args)
-        {
-            if (!last)
-            {
-                break;
-            }
-            
-            last = *((const void **)((const char *)last + a));
-        }
+      if (!last)
+      {
+        break;
+      }
 
-        return (T)last;
+      last = *((const void **)((const char *)last + a));
     }
-}
+
+    return (T)last;
+  }
+} // namespace crs

@@ -5,36 +5,36 @@
 
 namespace crs
 {
-    class RenderWidgetHook;
-    class SdlPollEventHook;
+  class RenderWidgetHook;
+  class SdlPollEventHook;
 
-    class DeveloperOverlay
-    {
-    private:
-        bool initialized = false;
+  class DeveloperOverlay
+  {
+  private:
+    bool initialized = false;
 
-    public:
-        bool player_overlay_on = false;
-        const Entity* player_overlay_target = nullptr;
+  public:
+    bool player_overlay_on = false;
+    const Entity *player_overlay_target = nullptr;
 
-    private:
-        const RenderWidgetHook *render_widget_hook;
-        const SdlPollEventHook *poll_event_hook;
+  private:
+    const RenderWidgetHook *render_widget_hook;
+    const SdlPollEventHook *poll_event_hook;
 
-    private:
-        void render_player_overlay(ImDrawList *draw_list, WorldNode *root);
-        void render_npc_overlay(ImDrawList *draw_list, WorldNode *root);
-        void render_object_overlay(ImDrawList *draw_list, WorldNode *root);
-        void render_ground_item_overlay(ImDrawList *draw_list, WorldNode *root);
+  private:
+    void render_player_overlay(ImDrawList *draw_list, WorldNode *root);
+    void render_npc_overlay(ImDrawList *draw_list, WorldNode *root);
+    void render_object_overlay(ImDrawList *draw_list, WorldNode *root);
+    void render_ground_item_overlay(ImDrawList *draw_list, WorldNode *root);
 
-    private:
-        void render_widget_picker(ImDrawList *draw_list, Engine *engine, Widget *widget, int x, int y);
-        void render_widget_picker(ImDrawList *draw_list, Engine *engine, WidgetCache *widget_cache);
+  private:
+    void render_widget_picker(ImDrawList *draw_list, Engine *engine, Widget *widget, int x, int y);
+    void render_widget_picker(ImDrawList *draw_list, Engine *engine, WidgetCache *widget_cache);
 
-    public:
-        void init();
+  public:
+    void init();
 
-    public:
-        void render();
-    };
-}
+  public:
+    void render();
+  };
+} // namespace crs

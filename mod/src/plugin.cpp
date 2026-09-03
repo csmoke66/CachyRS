@@ -1,6 +1,6 @@
 #include "plugin.h"
-#include "log.h"
 #include "cachy.h"
+#include "log.h"
 
 #include <dlfcn.h>
 
@@ -8,204 +8,192 @@
 
 namespace crs
 {
-    class CEventBusReceiver : public EventReceiver<Event>
+  class CEventBusReceiver : public EventReceiver<Event>
+  {
+  private:
+    FnPluginEventBusReceiver receiver;
+    void *context;
+
+  public:
+    CEventBusReceiver(FnPluginEventBusReceiver receiver, void *context)
     {
-    private:
-        FnPluginEventBusReceiver receiver;
-        void *context;
-
-    public:
-        CEventBusReceiver(FnPluginEventBusReceiver receiver, void *context)
-        {
-            this->receiver = receiver;
-            this->context = context;
-        }
-
-        void receive(Event *event) override
-        {
-            receiver(event->get_args(), context);
-        }
-    };
-
-    static void plugin_api_log(const char *message)
-    {
-        LOG(PLUGIN, message);
+      this->receiver = receiver;
+      this->context = context;
     }
 
-    static ThreadOwned<Globals *> plugin_api_get_globals()
+    void receive(Event *event) override
     {
-        return RS.get_globals();
+      receiver(event->get_args(), context);
+    }
+  };
+
+  static void plugin_api_log(const char *message)
+  {
+    LOG(PLUGIN, message);
+  }
+
+  static ThreadOwned<Globals *> plugin_api_get_globals()
+  {
+    return RS.get_globals();
+  }
+
+  static uint64_t plugin_api_user_interface_allocate_component(PluginComponentType type, uint64_t parent_id)
+  {
+    return RS.ui_locked([type, parent_id]()
+    {
+      return RS.ui->allocate_component(static_cast<ComponentType>(type), parent_id);
+    });
+  }
+
+  static void plugin_api_user_interface_update_component_text(uint64_t component_id, const char *text)
+  {
+    RS.ui_locked([component_id, text]()
+    {
+      RS.ui->update_component_text(component_id, std::string(text));
+      return false;
+    });
+  }
+
+  static void plugin_api_user_interface_update_component_items(uint64_t component_id, const char **items, size_t item_count)
+  {
+    std::vector<std::string> converted;
+    converted.reserve(item_count);
+    for (auto i = 0; i < item_count; i++)
+    {
+      converted.push_back(items[i]);
     }
 
-    static uint64_t plugin_api_user_interface_allocate_component(PluginComponentType type, uint64_t parent_id)
+    RS.ui_locked([component_id, &converted]()
     {
-        // clang-format off
-        return RS.ui_locked([type, parent_id]()
-        { 
-            return RS.ui->allocate_component((ComponentType)type, parent_id);
-        });
-        // clang-format on
-    }
+      RS.ui->update_component_items(component_id, converted);
+      return false;
+    });
+  }
 
-    static void plugin_api_user_interface_update_component_text(uint64_t component_id, const char *text)
+  static bool plugin_api_user_interface_is_component_checked(uint64_t component_id)
+  {
+    return RS.ui_locked([component_id]()
     {
-        // clang-format off
-        RS.ui_locked([component_id, text]()
-        { 
-            RS.ui->update_component_text(component_id, std::string(text));
-            return false;
-        });
-        // clang-format on
-    }
+      return RS.ui->is_component_checked(component_id);
+    });
+  }
 
-    static void plugin_api_user_interface_update_component_items(uint64_t component_id, const char **items, size_t item_count)
+  static void plugin_api_user_interface_register_dropdown_change_handler(uint64_t component_id, FnPluginUserInterfaceDropDownChangeHandler handler, void *user_data)
+  {
+    RS.ui_locked_nr([component_id, handler, user_data]()
     {
-        std::vector<std::string> converted;
-        converted.reserve(item_count);
-        for (auto i = 0; i < item_count; i++)
-        {
-            converted.push_back(items[i]);
-        }
+      RS.ui->register_dropdown_change_handler(component_id, [component_id, handler, user_data](int index)
+      {
+        handler(component_id, index, user_data);
+      });
+    });
+  }
 
-        // clang-format off
-        RS.ui_locked([component_id, &converted]()
-        { 
-            RS.ui->update_component_items(component_id, converted);
-            return false;
-        });
-        // clang-format on
-    }
-
-    static bool plugin_api_user_interface_is_component_checked(uint64_t component_id)
+  static void plugin_api_user_interface_set_visible(uint64_t component_id, bool visible)
+  {
+    RS.ui_locked_nr([component_id, visible]()
     {
-        // clang-format off
-        return RS.ui_locked([component_id]()
-        { 
-            return RS.ui->is_component_checked(component_id);
-        });
-        // clang-format on
-    }
+      RS.ui->set_component_visible(component_id, visible);
+    });
+  }
 
-    static void plugin_api_user_interface_register_dropdown_change_handler(uint64_t component_id, FnPluginUserInterfaceDropDownChangeHandler handler, void *user_data)
-    {
-        // clang-format off
-        RS.ui_locked_nr([component_id, handler, user_data]()
-        { 
-            RS.ui->register_dropdown_change_handler(component_id, [component_id, handler, user_data](int index)
-            {
-                handler(component_id, index, user_data);
-            });
-        });
-        // clang-format on
-    }
+  static void plugin_api_event_bus_register(const char *id, FnPluginEventBusReceiver receiver, void *context)
+  {
+    RS.event_bus.add_receiver(std::string(id), new CEventBusReceiver(receiver, context));
+  }
 
-    static void plugin_api_user_interface_set_visible(uint64_t component_id, bool visible)
-    {
-        // clang-format off
-        RS.ui_locked_nr([component_id, visible]()
-        { 
-            RS.ui->set_component_visible(component_id, visible);
-        });
-        // clang-format on
-    }
+  void PluginManager::init()
+  {
+    api.log = plugin_api_log;
+    api.get_globals = plugin_api_get_globals;
 
-    static void plugin_api_event_bus_register(const char *id, FnPluginEventBusReceiver receiver, void *context)
-    {
-        RS.event_bus.add_receiver(std::string(id), new CEventBusReceiver(receiver, context));
-    }
-    
-    void PluginManager::init()
-    {
-        api.log = plugin_api_log;
-        api.get_globals = plugin_api_get_globals;
+    api.ui_allocate_component = plugin_api_user_interface_allocate_component;
+    api.ui_update_component_text = plugin_api_user_interface_update_component_text;
+    api.ui_update_component_items = plugin_api_user_interface_update_component_items;
+    api.ui_is_component_checked = plugin_api_user_interface_is_component_checked;
+    api.ui_register_dropdown_change_handler = plugin_api_user_interface_register_dropdown_change_handler;
+    api.ui_set_visible = plugin_api_user_interface_set_visible;
 
-        api.ui_allocate_component = plugin_api_user_interface_allocate_component;
-        api.ui_update_component_text = plugin_api_user_interface_update_component_text;
-        api.ui_update_component_items = plugin_api_user_interface_update_component_items;
-        api.ui_is_component_checked = plugin_api_user_interface_is_component_checked;
-        api.ui_register_dropdown_change_handler = plugin_api_user_interface_register_dropdown_change_handler;
-        api.ui_set_visible = plugin_api_user_interface_set_visible;
-        
-        api.event_bus_register = (FnPluginEventBusRegister)plugin_api_event_bus_register;
-    }
+    api.event_bus_register = reinterpret_cast<FnPluginEventBusRegister>(plugin_api_event_bus_register);
+  }
 
-    void PluginManager::add_load_callback(std::function<void(Plugin *)> function)
-    {
-        plugin_load_callbacks.push_back(function);
-    }
+  void PluginManager::add_load_callback(std::function<void(Plugin *)> function)
+  {
+    plugin_load_callbacks.push_back(function);
+  }
 
 #ifdef __linux__
 #define REQUIRED_EXTENSION ".so"
 
-    void PluginManager::load(const ::std::string &path)
+  void PluginManager::load(const std::string &path)
+  {
+    auto handle = dlopen(path.c_str(), RTLD_NOW);
+    if (!handle)
     {
-        auto handle = dlopen(path.c_str(), RTLD_NOW);
-        if (!handle)
-        {
-            LOG(ERROR, "Failed to load plugin at '" << path << "'");
-            return;
-        }
-
-        auto get_name = (FnPluginGetName)dlsym(handle, "plugin_get_name");
-        if (!get_name)
-        {
-
-            LOG(ERROR, "Plugin at '" << path << "' does not export 'plugin_get_name'");
-            return;
-        }
-
-        auto init = (FnPluginInit)dlsym(handle, "plugin_init");
-        if (!init)
-        {
-
-            LOG(ERROR, "Plugin at '" << path << "' does not export 'plugin_init'");
-            return;
-        }
-
-        auto name = get_name();
-
-        auto new_plugin = std::make_unique<Plugin>();
-        new_plugin->name = name;
-        new_plugin->get_name = get_name;
-        new_plugin->init = init;
-        new_plugin->api = api;
-
-        for (auto &function : plugin_load_callbacks)
-        {
-            function(new_plugin.get());
-        }
-
-        init(InitType::loaded, new_plugin.get());
-
-        LOG(INFO, "Loaded plugin '" << new_plugin->name << "' at '" + path << "'");
-        plugins.push_back(std::move(new_plugin));
+      LOG(ERROR, "Failed to load plugin at '" << path << "'");
+      return;
     }
+
+    auto get_name = reinterpret_cast<FnPluginGetName>(dlsym(handle, "plugin_get_name"));
+    if (!get_name)
+    {
+
+      LOG(ERROR, "Plugin at '" << path << "' does not export 'plugin_get_name'");
+      return;
+    }
+
+    auto init = reinterpret_cast<FnPluginInit>(dlsym(handle, "plugin_init"));
+    if (!init)
+    {
+
+      LOG(ERROR, "Plugin at '" << path << "' does not export 'plugin_init'");
+      return;
+    }
+
+    auto name = get_name();
+
+    auto new_plugin = std::make_unique<Plugin>();
+    new_plugin->name = name;
+    new_plugin->get_name = get_name;
+    new_plugin->init = init;
+    new_plugin->api = api;
+
+    for (auto &function : plugin_load_callbacks)
+    {
+      function(new_plugin.get());
+    }
+
+    init(InitType::loaded, new_plugin.get());
+
+    LOG(INFO, "Loaded plugin '" << new_plugin->name << "' at '" + path << "'");
+    plugins.push_back(std::move(new_plugin));
+  }
 #else
-    UNSUPPORTED_OS();
+  UNSUPPORTED_OS();
 #endif
 
-    void PluginManager::load_all(const ::std::string &path)
+  void PluginManager::load_all(const std::string &path)
+  {
+    if (std::filesystem::exists(path) &&
+        std::filesystem::is_directory(path))
     {
-        if (std::filesystem::exists(path) &&
-            std::filesystem::is_directory(path))
+      for (auto &entry : std::filesystem::directory_iterator(path))
+      {
+        if (std::filesystem::is_regular_file(entry) &&
+            entry.path().extension() == REQUIRED_EXTENSION)
         {
-            for (auto &entry : std::filesystem::directory_iterator(path))
-            {
-                if (std::filesystem::is_regular_file(entry) &&
-                    entry.path().extension() == REQUIRED_EXTENSION)
-                {
-                    load(entry.path().string());
-                }
-            }
+          load(entry.path().string());
         }
-        else
-        {
-            LOG(ERROR, "Plugin directory '" << path << "' is invalid");
-        }
+      }
     }
+    else
+    {
+      LOG(ERROR, "Plugin directory '" << path << "' is invalid");
+    }
+  }
 
-    const std::vector<std::unique_ptr<Plugin>> &PluginManager::view_plugins() const
-    {
-        return this->plugins;
-    }
-}
+  const std::vector<std::unique_ptr<Plugin>> &PluginManager::view_plugins() const
+  {
+    return this->plugins;
+  }
+} // namespace crs

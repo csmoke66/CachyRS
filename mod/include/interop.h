@@ -3,5 +3,5 @@
 
 namespace crs
 {
-    ::std::string interop_get_home_directory();
+  std::string interop_get_home_directory();
 }

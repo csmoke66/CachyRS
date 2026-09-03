@@ -13,14 +13,14 @@
 
 namespace crs
 {
-    void EglGetDisplayHook::handler(CpuState *cpu_state)
-    {
-        BaseHook::handler(cpu_state);
-        cpu_state->rax = (uint64_t)trampoline(EGL_DEFAULT_DISPLAY);
+  void EglGetDisplayHook::handler(CpuState *cpu_state)
+  {
+    BaseHook::handler(cpu_state);
+    cpu_state->rax = reinterpret_cast<uint64_t>(trampoline(EGL_DEFAULT_DISPLAY));
 
-        if (!cpu_state->rax)
-        {
-            LOG(EglGetDisplayHook, "Failed to create display " << std::hex << eglGetError());
-        }
+    if (!cpu_state->rax)
+    {
+      LOG(EglGetDisplayHook, "Failed to create display " << std::hex << eglGetError());
     }
-}
+  }
+} // namespace crs

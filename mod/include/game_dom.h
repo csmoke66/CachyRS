@@ -4,102 +4,101 @@
 
 namespace crs
 {
-    template<typename T>
-    class GameContainerNode : public TypedChildrenDomNode<T>
+  template <typename T>
+  class GameContainerNode : public TypedChildrenDomNode<T>
+  {
+  public:
+    GameContainerNode(std::shared_ptr<DomTree> tree, const std::string &id, const std::string &type) : TypedChildrenDomNode<T>(tree, id, type)
     {
-        public:
-        GameContainerNode(std::shared_ptr<DomTree> tree, const ::std::string& id, const ::std::string& type) : TypedChildrenDomNode<T>(tree, id, type)
-        {
+    }
 
-        }
+  public:
+    virtual void update() = 0;
+  };
 
-    public:
-        virtual void update() = 0;
-    };
+  class PlayerDomNode : public ValueDomNode<const Entity *>
+  {
+  public:
+    bool seen = true;
 
-    class PlayerDomNode : public ValueDomNode<const Entity*>
-    {
-    public:
-        bool seen = true;
+  public:
+    PlayerDomNode(std::shared_ptr<DomTree> tree, const std::string &id, const std::string &type);
+  };
 
-    public:
-        PlayerDomNode(std::shared_ptr<DomTree> tree, const ::std::string& id, const ::std::string& type);
-    };
+  class PlayersDomNode : public GameContainerNode<PlayerDomNode>
+  {
+  public:
+    PlayersDomNode(std::shared_ptr<DomTree> tree, const std::string &id, const std::string &type);
 
-    class PlayersDomNode : public GameContainerNode<PlayerDomNode>
-    {
-    public:
-        PlayersDomNode(std::shared_ptr<DomTree> tree, const ::std::string& id, const ::std::string& type);
+  public:
+    void update() override;
+  };
 
-    public:
-        void update() override;
-    };
+  class NpcDomNode : public ValueDomNode<const Entity *>
+  {
+  public:
+    bool seen = true;
 
-    class NpcDomNode : public ValueDomNode<const Entity*>
-    {
-    public:
-        bool seen = true;
+  public:
+    NpcDomNode(std::shared_ptr<DomTree> tree, const std::string &id, const std::string &type);
+  };
 
-    public:
-        NpcDomNode(std::shared_ptr<DomTree> tree, const ::std::string& id, const ::std::string& type);
-    };
+  class NpcsDomNode : public GameContainerNode<NpcDomNode>
+  {
+  public:
+    NpcsDomNode(std::shared_ptr<DomTree> tree, const std::string &id, const std::string &type);
 
-    class NpcsDomNode : public GameContainerNode<NpcDomNode>
-    {
-    public:
-        NpcsDomNode(std::shared_ptr<DomTree> tree, const ::std::string& id, const ::std::string& type);
+  public:
+    void update() override;
+  };
 
-    public:
-        void update() override;
-    };
+  class ItemDomNode : public ValueDomNode<Item>
+  {
+  public:
+    Item item;
+    bool seen = true;
 
-    class ItemDomNode : public ValueDomNode<Item>
-    {
-    public:
-        Item item;
-        bool seen = true;
+  public:
+    ItemDomNode(std::shared_ptr<DomTree> tree, const std::string &id, const std::string &type);
+  };
 
-    public:
-        ItemDomNode(std::shared_ptr<DomTree> tree, const ::std::string& id, const ::std::string& type);
-    };
+  class ItemContainerDomNode : public TypedChildrenDomNode<ItemDomNode>
+  {
+  public:
+    uint32_t id;
+    bool seen = true;
 
-    class ItemContainerDomNode : public TypedChildrenDomNode<ItemDomNode>
-    {
-    public:
-        uint32_t id;
-        bool seen = true;
+  public:
+    ItemContainerDomNode(std::shared_ptr<DomTree> tree, const std::string &id, const std::string &type);
 
-    public:
-        ItemContainerDomNode(std::shared_ptr<DomTree> tree, const ::std::string& id, const ::std::string& type);
+  public:
+    void update(const std::string &parent_id, const ItemContainer &container);
+  };
 
-    public:
-        void update(const std::string& parent_id, const ItemContainer& container);
-    };
+  class ItemContainersDomNode : public GameContainerNode<ItemContainerDomNode>
+  {
+  public:
+    ItemContainersDomNode(std::shared_ptr<DomTree> tree, const std::string &id, const std::string &type);
 
-    class ItemContainersDomNode : public GameContainerNode<ItemContainerDomNode>
-    {
-    public:
-        ItemContainersDomNode(std::shared_ptr<DomTree> tree, const ::std::string& id, const ::std::string& type);
+  public:
+    void update() override;
+  };
 
-    public:
-        void update() override;
-    };
+  class WorldSettingDomNode : public DomNode
+  {
+  public:
+    bool seen = true;
 
-    class WorldSettingDomNode : public DomNode
-    {
-    public:
-        bool seen = true;
+  public:
+    WorldSettingDomNode(std::shared_ptr<DomTree> tree, const std::string &id, const std::string &type);
+  };
 
-    public:
-        WorldSettingDomNode(std::shared_ptr<DomTree> tree, const ::std::string& id, const ::std::string& type);
-    };
+  class WorldSettingsDomNode : public GameContainerNode<WorldSettingDomNode>
+  {
+  public:
+    WorldSettingsDomNode(std::shared_ptr<DomTree> tree, const std::string &id, const std::string &type);
 
-    class WorldSettingsDomNode : public GameContainerNode<WorldSettingDomNode>
-    {
-    public:
-        WorldSettingsDomNode(std::shared_ptr<DomTree> tree, const ::std::string& id, const ::std::string& type);
-
-    public:
-        void update() override;
-    };
-}
+  public:
+    void update() override;
+  };
+} // namespace crs

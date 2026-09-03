@@ -1,26 +1,25 @@
-#include <fstream>
-#include <vector>
-#include <elf.h>
 #include <cstring>
+#include <elf.h>
+#include <fstream>
 #include <iostream>
+#include <vector>
 
-#include "updater.h"
 #include "pattern.h"
+#include "updater.h"
 
 static csh capstone_handle;
 
 static std::vector<uint8_t> read_file(const std::string &filePath)
 {
-    std::ifstream file(filePath, std::ios::binary);
+  std::ifstream file(filePath, std::ios::binary);
 
-    return std::vector<uint8_t>((std::istreambuf_iterator<char>(file)),
-                                std::istreambuf_iterator<char>());
+  return std::vector<uint8_t>((std::istreambuf_iterator<char>(file)),
+      std::istreambuf_iterator<char>());
 }
 
 std::vector<PatternObject> build_pattern_objects()
 {
-    // clang-format off
-
+  // clang-format off
     std::vector<PatternObject> objects;
     objects.push_back({"Globals", {
         new DefaultPattern{
@@ -73,10 +72,17 @@ std::vector<PatternObject> build_pattern_objects()
                 validator(new AlignmentValidator(0x10))},
 
         new DefaultPattern{
-            "menu_action_handler_widget",
+            "menu_action_handler_widget1",
             compile_ida_pattern("4C 8B 5C 24 ? 4D 89 A5"),
             {"char", 1},
             (new MenuActionHandlerExtractor(capstone_handle, 9))->
+                validator(new AlignmentValidator(0x10))},
+
+        new DefaultPattern{
+            "menu_action_handler_widget2",
+            compile_ida_pattern("4C 8B 5C 24 ? 4D 89 A5"),
+            {"char", 1},
+            (new MenuActionHandlerExtractor(capstone_handle, 5))->
                 validator(new AlignmentValidator(0x10))},
 
         new DefaultPattern{
@@ -277,7 +283,7 @@ std::vector<PatternObject> build_pattern_objects()
         new DefaultPattern{
             "world_settings",
             compile_ida_pattern("4D 8D A5 ? ? ? ? ? ? ? ? ? ? ? ? 4C 8B 70"),
-            { "char", 1, },
+            { "WorldSettingCache", 0x34, },
             (new ImmExtractor(0x3, 0x0, 4))->
                 validator(new AlignmentValidator(0x8))},
         new DefaultPattern{
@@ -446,51 +452,51 @@ std::vector<PatternObject> build_pattern_objects()
                  
     }});
 
-    // clang-format on
-    return objects;
+  // clang-format on
+  return objects;
 }
 int main()
 {
-    cs_open(CS_ARCH_X86, CS_MODE_64, &capstone_handle);
-    cs_option(capstone_handle, CS_OPT_DETAIL, CS_OPT_ON);
+  cs_open(CS_ARCH_X86, CS_MODE_64, &capstone_handle);
+  cs_option(capstone_handle, CS_OPT_DETAIL, CS_OPT_ON);
 
-    auto data = read_file("rs2client");
-    auto ehdr = (Elf64_Ehdr *)(data.data());
-    auto shdrs = (Elf64_Shdr *)(data.data() + ehdr->e_shoff);
-    auto shstrtab = (const char *)(data.data() + shdrs[ehdr->e_shstrndx].sh_offset);
+  auto data = read_file("rs2client");
+  auto ehdr = (Elf64_Ehdr *)(data.data());
+  auto shdrs = (Elf64_Shdr *)(data.data() + ehdr->e_shoff);
+  auto shstrtab = (const char *)(data.data() + shdrs[ehdr->e_shstrndx].sh_offset);
 
-    uint8_t *text;
-    Elf64_Shdr text_hdr;
+  uint8_t *text;
+  Elf64_Shdr text_hdr;
 
-    for (int i = 0; i < ehdr->e_shnum; i++)
+  for (int i = 0; i < ehdr->e_shnum; i++)
+  {
+    auto &sh = shdrs[i];
+    auto name = shstrtab + sh.sh_name;
+
+    if (strcmp(name, ".text") == 0)
     {
-        auto &sh = shdrs[i];
-        auto name = shstrtab + sh.sh_name;
-
-        if (strcmp(name, ".text") == 0)
-        {
-            text_hdr = sh;
-            text = data.data() + sh.sh_offset;
-            break;
-        }
+      text_hdr = sh;
+      text = data.data() + sh.sh_offset;
+      break;
     }
+  }
 
-    auto elf_interface = ElfInterface((Elf64_Addr)data.data());
-    elf_interface.init_base();
-    elf_interface.init();
+  auto elf_interface = ElfInterface((Elf64_Addr)data.data());
+  elf_interface.init_base();
+  elf_interface.init();
 
-    ImportedFunction remote_memset;
-    LOG(test, elf_interface.find_import("memset", &remote_memset));
-    LOG(test, remote_memset.name << " " << remote_memset.addr);
+  ImportedFunction remote_memset;
+  LOG(test, elf_interface.find_import("memset", &remote_memset));
+  LOG(test, remote_memset.name << " " << remote_memset.addr);
 
-    LOG(info, "Building pattern objects...");
-    auto pattern_objects = build_pattern_objects();
+  LOG(info, "Building pattern objects...");
+  auto pattern_objects = build_pattern_objects();
 
-    LOG(info, "Matching objects...");
-    auto matched = match_to_object(elf_interface, text, text_hdr, pattern_objects);
+  LOG(info, "Matching objects...");
+  auto matched = match_to_object(elf_interface, text, text_hdr, pattern_objects);
 
-    LOG(info, "Compiling to headers...");
-    std::ofstream out_header("reversed_generated.h");
-    out_header << compile_objects_to_header(matched);
-    out_header.close();
+  LOG(info, "Compiling to headers...");
+  std::ofstream out_header("reversed_generated.h");
+  out_header << compile_objects_to_header(matched);
+  out_header.close();
 }

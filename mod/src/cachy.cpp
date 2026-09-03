@@ -3,12 +3,12 @@
 
 #include "cachy_dom.h"
 
-#include <format>
 #include <filesystem>
+#include <format>
 
+#include <EGL/egl.h>
 #include <GL/gl.h>
 #include <GL/glx.h>
-#include <EGL/egl.h>
 
 #include <RmlUi_Platform_SDL.h>
 
@@ -18,296 +18,294 @@
 
 namespace crs
 {
-    CachyRS RS;
+  CachyRS RS;
 
-    void CachyRS::init_process_info()
+  void CachyRS::init_process_info()
+  {
+    pi.init();
+  }
+
+  void CachyRS::init_imgui()
+  {
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGui::StyleColorsDark();
+
+    auto style = &ImGui::GetStyle();
+    auto colors = style->Colors;
+
+    style->WindowBorderSize = 1.0f;
+    style->ChildBorderSize = 1.0f;
+    style->PopupBorderSize = 1.0f;
+    style->FrameBorderSize = 1.0f;
+
+    style->WindowRounding = 2.0f;
+    style->ChildRounding = 2.0f;
+    style->FrameRounding = 2.0f;
+    style->PopupRounding = 2.0f;
+    style->GrabRounding = 2.0f;
+
+    colors[ImGuiCol_Text] = ImVec4(0.69f, 0.69f, 0.69f, 1.00f);
+    colors[ImGuiCol_TextDisabled] = ImVec4(0.35f, 0.35f, 0.35f, 1.00f);
+    colors[ImGuiCol_WindowBg] = ImVec4(0.18f, 0.18f, 0.18f, 1.00f);
+    colors[ImGuiCol_ChildBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+    colors[ImGuiCol_PopupBg] = ImVec4(0.18f, 0.18f, 0.18f, 1.00f);
+    colors[ImGuiCol_Border] = ImVec4(0.22f, 0.22f, 0.22f, 1.00f);
+    colors[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+    colors[ImGuiCol_FrameBg] = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
+    colors[ImGuiCol_FrameBgHovered] = ImVec4(0.29f, 0.29f, 0.29f, 1.00f);
+    colors[ImGuiCol_FrameBgActive] = ImVec4(0.39f, 0.39f, 0.39f, 1.00f);
+    colors[ImGuiCol_TitleBg] = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
+    colors[ImGuiCol_TitleBgActive] = ImVec4(0.18f, 0.18f, 0.18f, 1.00f);
+    colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
+    colors[ImGuiCol_MenuBarBg] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
+    colors[ImGuiCol_ScrollbarBg] = ImVec4(0.18f, 0.18f, 0.18f, 1.00f);
+    colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.31f, 0.31f, 0.31f, 1.00f);
+    colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.41f, 0.41f, 0.41f, 1.00f);
+    colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.51f, 0.51f, 0.51f, 1.00f);
+    colors[ImGuiCol_CheckMark] = ImVec4(0.69f, 0.69f, 0.69f, 1.00f);
+    colors[ImGuiCol_CheckboxSelectedBg] = ImVec4(0.15f, 0.15f, 0.15f, 0.50f);
+    colors[ImGuiCol_SliderGrab] = ImVec4(0.40f, 0.40f, 0.40f, 1.00f);
+    colors[ImGuiCol_SliderGrabActive] = ImVec4(0.59f, 0.59f, 0.59f, 1.00f);
+    colors[ImGuiCol_Button] = ImVec4(0.22f, 0.22f, 0.22f, 1.00f);
+    colors[ImGuiCol_ButtonHovered] = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
+    colors[ImGuiCol_ButtonActive] = ImVec4(0.12f, 0.12f, 0.12f, 1.00f);
+    colors[ImGuiCol_Header] = ImVec4(0.18f, 0.18f, 0.18f, 0.00f);
+    colors[ImGuiCol_HeaderHovered] = ImVec4(0.22f, 0.22f, 0.22f, 0.78f);
+    colors[ImGuiCol_HeaderActive] = ImVec4(0.29f, 0.29f, 0.29f, 0.78f);
+    colors[ImGuiCol_Separator] = ImVec4(0.29f, 0.29f, 0.29f, 0.50f);
+    colors[ImGuiCol_SeparatorHovered] = ImVec4(0.49f, 0.49f, 0.49f, 0.78f);
+    colors[ImGuiCol_SeparatorActive] = ImVec4(0.69f, 0.69f, 0.69f, 1.00f);
+    colors[ImGuiCol_ResizeGrip] = ImVec4(0.29f, 0.29f, 0.29f, 1.00f);
+    colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.49f, 0.49f, 0.49f, 1.00f);
+    colors[ImGuiCol_ResizeGripActive] = ImVec4(0.69f, 0.69f, 0.69f, 1.00f);
+    colors[ImGuiCol_InputTextCursor] = ImVec4(0.78f, 0.78f, 0.78f, 1.00f);
+    colors[ImGuiCol_TabHovered] = ImVec4(0.49f, 0.49f, 0.49f, 0.80f);
+    colors[ImGuiCol_Tab] = ImVec4(0.29f, 0.29f, 0.29f, 1.00f);
+    colors[ImGuiCol_TabSelected] = ImVec4(0.39f, 0.39f, 0.39f, 1.00f);
+    colors[ImGuiCol_TabSelectedOverline] = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
+    colors[ImGuiCol_TabDimmed] = ImVec4(0.29f, 0.29f, 0.29f, 0.78f);
+    colors[ImGuiCol_TabDimmedSelected] = ImVec4(0.39f, 0.39f, 0.39f, 0.78f);
+    colors[ImGuiCol_TabDimmedSelectedOverline] = ImVec4(0.50f, 0.50f, 0.50f, 0.00f);
+    colors[ImGuiCol_PlotLines] = ImVec4(0.61f, 0.61f, 0.61f, 1.00f);
+    colors[ImGuiCol_PlotLinesHovered] = ImVec4(1.00f, 0.43f, 0.35f, 1.00f);
+    colors[ImGuiCol_PlotHistogram] = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
+    colors[ImGuiCol_PlotHistogramHovered] = ImVec4(1.00f, 0.60f, 0.00f, 1.00f);
+    colors[ImGuiCol_TableHeaderBg] = ImVec4(0.19f, 0.19f, 0.20f, 1.00f);
+    colors[ImGuiCol_TableBorderStrong] = ImVec4(0.29f, 0.29f, 0.29f, 1.00f);
+    colors[ImGuiCol_TableBorderLight] = ImVec4(0.29f, 0.29f, 0.29f, 0.50f);
+    colors[ImGuiCol_TableRowBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+    colors[ImGuiCol_TableRowBgAlt] = ImVec4(1.00f, 1.00f, 1.00f, 0.06f);
+    colors[ImGuiCol_TextLink] = ImVec4(0.29f, 0.50f, 1.00f, 1.00f);
+    colors[ImGuiCol_TextSelectedBg] = ImVec4(0.26f, 0.59f, 0.98f, 0.35f);
+    colors[ImGuiCol_TreeLines] = ImVec4(0.43f, 0.43f, 0.50f, 0.50f);
+    colors[ImGuiCol_DragDropTarget] = ImVec4(1.00f, 1.00f, 0.00f, 0.90f);
+    colors[ImGuiCol_DragDropTargetBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+    colors[ImGuiCol_UnsavedMarker] = ImVec4(0.69f, 0.69f, 0.69f, 1.00f);
+    colors[ImGuiCol_NavCursor] = ImVec4(0.98f, 0.98f, 0.98f, 1.00f);
+    colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
+    colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
+    colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
+  }
+
+  void CachyRS::init_dom()
+  {
+    dom_node_item_containers = std::make_shared<ItemContainersDomNode>(dom_tree, "item_containers", "item_containers");
+    dom_tree->add_dom_node(dom_node_item_containers);
+
+    dom_node_players = std::make_shared<PlayersDomNode>(dom_tree, "players", "players");
+    dom_tree->add_dom_node(dom_node_players);
+
+    dom_node_npcs = std::make_shared<NpcsDomNode>(dom_tree, "npcs", "npcs");
+    dom_tree->add_dom_node(dom_node_npcs);
+
+    dom_node_world_settings = std::make_shared<WorldSettingsDomNode>(dom_tree, "world_settings", "world_settings");
+    dom_tree->add_dom_node(dom_node_world_settings);
+
+    dom_tree->set_listener(std::make_unique<CachyDomTreeListener>());
+  }
+
+  void CachyRS::init_hooks()
+  {
+    LOG(INFO, "Resolving hook handler in virtual table...");
+    auto dummy = std::make_unique<DummyHook>();
+    auto vt = *(void ***)dummy.get();
+
+    // Our hooks rely on being able to call into a virtual object in order to have hook
+    // specific contexts, to avoid global state being scattered everywhere for each hook.
+    //
+    // Due to constructor/deconstructor virtual function layout being different on each compiler
+    // we do not know where our hook handler virtual function will fall in the virtual function table.
+    //
+    // The dummy hook is empty except for 3 'int 3' instructions. We scan the virtual function table
+    // to locate this function, and then we pass it to the hook manager to be inserted into the
+    // shellcode that calls our handler virtual function.
+    uint8_t vt_offset = 0xff;
+    for (auto i = 0; i < 10; i++)
     {
-        pi.init();
+      if (!memcmp(vt[i], "\xcc\xcc\xcc", 3))
+      {
+        vt_offset = (uint8_t)(i * sizeof(void *));
+        break;
+      }
     }
 
-    void CachyRS::init_imgui()
+    if (vt_offset == 0xff)
     {
-        IMGUI_CHECKVERSION();
-        ImGui::CreateContext();
-        ImGui::StyleColorsDark();
-
-        auto style = &ImGui::GetStyle();
-        auto colors = style->Colors;
-
-        style->WindowBorderSize = 1.0f;
-        style->ChildBorderSize = 1.0f;
-        style->PopupBorderSize = 1.0f;
-        style->FrameBorderSize = 1.0f;
-
-        style->WindowRounding = 2.0f;
-        style->ChildRounding = 2.0f;
-        style->FrameRounding = 2.0f;
-        style->PopupRounding = 2.0f;
-        style->GrabRounding = 2.0f;
-
-        colors[ImGuiCol_Text] = ImVec4(0.69f, 0.69f, 0.69f, 1.00f);
-        colors[ImGuiCol_TextDisabled] = ImVec4(0.35f, 0.35f, 0.35f, 1.00f);
-        colors[ImGuiCol_WindowBg] = ImVec4(0.18f, 0.18f, 0.18f, 1.00f);
-        colors[ImGuiCol_ChildBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
-        colors[ImGuiCol_PopupBg] = ImVec4(0.18f, 0.18f, 0.18f, 1.00f);
-        colors[ImGuiCol_Border] = ImVec4(0.22f, 0.22f, 0.22f, 1.00f);
-        colors[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
-        colors[ImGuiCol_FrameBg] = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
-        colors[ImGuiCol_FrameBgHovered] = ImVec4(0.29f, 0.29f, 0.29f, 1.00f);
-        colors[ImGuiCol_FrameBgActive] = ImVec4(0.39f, 0.39f, 0.39f, 1.00f);
-        colors[ImGuiCol_TitleBg] = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
-        colors[ImGuiCol_TitleBgActive] = ImVec4(0.18f, 0.18f, 0.18f, 1.00f);
-        colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
-        colors[ImGuiCol_MenuBarBg] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
-        colors[ImGuiCol_ScrollbarBg] = ImVec4(0.18f, 0.18f, 0.18f, 1.00f);
-        colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.31f, 0.31f, 0.31f, 1.00f);
-        colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.41f, 0.41f, 0.41f, 1.00f);
-        colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.51f, 0.51f, 0.51f, 1.00f);
-        colors[ImGuiCol_CheckMark] = ImVec4(0.69f, 0.69f, 0.69f, 1.00f);
-        colors[ImGuiCol_CheckboxSelectedBg] = ImVec4(0.15f, 0.15f, 0.15f, 0.50f);
-        colors[ImGuiCol_SliderGrab] = ImVec4(0.40f, 0.40f, 0.40f, 1.00f);
-        colors[ImGuiCol_SliderGrabActive] = ImVec4(0.59f, 0.59f, 0.59f, 1.00f);
-        colors[ImGuiCol_Button] = ImVec4(0.22f, 0.22f, 0.22f, 1.00f);
-        colors[ImGuiCol_ButtonHovered] = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
-        colors[ImGuiCol_ButtonActive] = ImVec4(0.12f, 0.12f, 0.12f, 1.00f);
-        colors[ImGuiCol_Header] = ImVec4(0.18f, 0.18f, 0.18f, 0.00f);
-        colors[ImGuiCol_HeaderHovered] = ImVec4(0.22f, 0.22f, 0.22f, 0.78f);
-        colors[ImGuiCol_HeaderActive] = ImVec4(0.29f, 0.29f, 0.29f, 0.78f);
-        colors[ImGuiCol_Separator] = ImVec4(0.29f, 0.29f, 0.29f, 0.50f);
-        colors[ImGuiCol_SeparatorHovered] = ImVec4(0.49f, 0.49f, 0.49f, 0.78f);
-        colors[ImGuiCol_SeparatorActive] = ImVec4(0.69f, 0.69f, 0.69f, 1.00f);
-        colors[ImGuiCol_ResizeGrip] = ImVec4(0.29f, 0.29f, 0.29f, 1.00f);
-        colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.49f, 0.49f, 0.49f, 1.00f);
-        colors[ImGuiCol_ResizeGripActive] = ImVec4(0.69f, 0.69f, 0.69f, 1.00f);
-        colors[ImGuiCol_InputTextCursor] = ImVec4(0.78f, 0.78f, 0.78f, 1.00f);
-        colors[ImGuiCol_TabHovered] = ImVec4(0.49f, 0.49f, 0.49f, 0.80f);
-        colors[ImGuiCol_Tab] = ImVec4(0.29f, 0.29f, 0.29f, 1.00f);
-        colors[ImGuiCol_TabSelected] = ImVec4(0.39f, 0.39f, 0.39f, 1.00f);
-        colors[ImGuiCol_TabSelectedOverline] = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
-        colors[ImGuiCol_TabDimmed] = ImVec4(0.29f, 0.29f, 0.29f, 0.78f);
-        colors[ImGuiCol_TabDimmedSelected] = ImVec4(0.39f, 0.39f, 0.39f, 0.78f);
-        colors[ImGuiCol_TabDimmedSelectedOverline] = ImVec4(0.50f, 0.50f, 0.50f, 0.00f);
-        colors[ImGuiCol_PlotLines] = ImVec4(0.61f, 0.61f, 0.61f, 1.00f);
-        colors[ImGuiCol_PlotLinesHovered] = ImVec4(1.00f, 0.43f, 0.35f, 1.00f);
-        colors[ImGuiCol_PlotHistogram] = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
-        colors[ImGuiCol_PlotHistogramHovered] = ImVec4(1.00f, 0.60f, 0.00f, 1.00f);
-        colors[ImGuiCol_TableHeaderBg] = ImVec4(0.19f, 0.19f, 0.20f, 1.00f);
-        colors[ImGuiCol_TableBorderStrong] = ImVec4(0.29f, 0.29f, 0.29f, 1.00f);
-        colors[ImGuiCol_TableBorderLight] = ImVec4(0.29f, 0.29f, 0.29f, 0.50f);
-        colors[ImGuiCol_TableRowBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
-        colors[ImGuiCol_TableRowBgAlt] = ImVec4(1.00f, 1.00f, 1.00f, 0.06f);
-        colors[ImGuiCol_TextLink] = ImVec4(0.29f, 0.50f, 1.00f, 1.00f);
-        colors[ImGuiCol_TextSelectedBg] = ImVec4(0.26f, 0.59f, 0.98f, 0.35f);
-        colors[ImGuiCol_TreeLines] = ImVec4(0.43f, 0.43f, 0.50f, 0.50f);
-        colors[ImGuiCol_DragDropTarget] = ImVec4(1.00f, 1.00f, 0.00f, 0.90f);
-        colors[ImGuiCol_DragDropTargetBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
-        colors[ImGuiCol_UnsavedMarker] = ImVec4(0.69f, 0.69f, 0.69f, 1.00f);
-        colors[ImGuiCol_NavCursor] = ImVec4(0.98f, 0.98f, 0.98f, 1.00f);
-        colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
-        colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
-        colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
+      LOG(ERROR, "Failed to find hook handler virtual table function");
+      return;
     }
 
-    void CachyRS::init_dom()
+    hook_manager = std::make_unique<HookManager>(&pi, vt_offset);
+
+    LOG(INFO, "Placing IAT hooks...");
+    hook_manager->iat("egl_swap_buffers", "eglSwapBuffers", unique_hook<EglSwapBuffersHook>());
+    hook_manager->iat("egl_get_display", "eglGetDisplay", unique_hook<EglGetDisplayHook>());
+    hook_manager->iat("egl_init", "eglInitialize", unique_hook<EglInitHook>());
+    hook_manager->iat("egl_create_window_surface", "eglCreateWindowSurface", unique_hook<EglCreateWindowSurfaceHook>());
+    hook_manager->iat("egl_choose_config", "eglChooseConfig", unique_hook<EglChooseConfigHook>());
+    hook_manager->iat("sdl_get_window_wm_info", "SDL_GetWindowWMInfo", unique_hook<SdlGetWindowWMInfoHook>());
+    hook_manager->iat("sdl_poll_event", "SDL_PollEvent", unique_hook<SdlPollEventHook>());
+
+    LOG(INFO, "Placing x86 hooks...");
+    hook_manager->x86("menu_execute", &get_globals()->menu_execute, unique_hook<MenuExecuteHook>());
+    // hook_manager->x86("render_widget", &get_globals()->render_widget, unique_hook<RenderWidgetHook>());
+    hook_manager->x86("set_varbit", &get_globals()->set_varbit, unique_hook<SetVarBitHook>());
+    hook_manager->x86("engine_tick", &get_globals()->engine_tick, unique_hook<EngineTickHook>());
+    hook_manager->x86("add_menu_option", &get_globals()->add_menu_option, unique_hook<AddMenuOptionHook>());
+    hook_manager->x86("add_chat_message", &get_globals()->add_chat_message, unique_hook<AddChatMessageHook>());
+  }
+
+  std::string CachyRS::get_configuration_dir() const
+  {
+    return interop_get_home_directory() + std::string("/.local/share/cachy-rs/");
+  }
+
+  std::string CachyRS::resolve_configuration(const std::string &file) const
+  {
+    return get_configuration_dir() + file;
+  }
+
+  ThreadOwned<Globals *> CachyRS::get_globals() const
+  {
+    if (!!hook_manager)
     {
-        dom_node_item_containers = std::make_shared<ItemContainersDomNode>(dom_tree, "item_containers", "item_containers");
-        dom_tree->add_dom_node(dom_node_item_containers);
-
-        dom_node_players = std::make_shared<PlayersDomNode>(dom_tree, "players", "players");
-        dom_tree->add_dom_node(dom_node_players);
-
-        dom_node_npcs = std::make_shared<NpcsDomNode>(dom_tree, "npcs", "npcs");
-        dom_tree->add_dom_node(dom_node_npcs);
-
-        dom_node_world_settings = std::make_shared<WorldSettingsDomNode>(dom_tree, "world_settings", "world_settings");
-        dom_tree->add_dom_node(dom_node_world_settings);
-
-        dom_tree->set_listener(std::make_unique<CachyDomTreeListener>());
-    }
-
-    void CachyRS::init_hooks()
-    {
-        LOG(INFO, "Resolving hook handler in virtual table...");
-        auto dummy = ::std::make_unique<DummyHook>();
-        auto vt = *(void ***)dummy.get();
-
-        // Our hooks rely on being able to call into a virtual object in order to have hook
-        // specific contexts, to avoid global state being scattered everywhere for each hook.
-        //
-        // Due to constructor/deconstructor virtual function layout being different on each compiler
-        // we do not know where our hook handler virtual function will fall in the virtual function table.
-        //
-        // The dummy hook is empty except for 3 'int 3' instructions. We scan the virtual function table
-        // to locate this function, and then we pass it to the hook manager to be inserted into the
-        // shellcode that calls our handler virtual function.
-        uint8_t vt_offset = 0xff;
-        for (auto i = 0; i < 10; i++)
+      auto hook = hook_manager->view_hook<BaseHook>("engine_tick");
+      if (!!hook)
+      {
+        auto tid = hook->thread_id();
+        if (tid.has_value())
         {
-            if (!memcmp(vt[i], "\xcc\xcc\xcc", 3))
-            {
-                vt_offset = (uint8_t)(i * sizeof(void *));
-                break;
-            }
+          return ThreadOwned<Globals *>(tid.value(), (Globals *)pi.game_base());
         }
-
-        if (vt_offset == 0xff)
-        {
-            LOG(ERROR, "Failed to find hook handler virtual table function");
-            return;
-        }
-
-        hook_manager = ::std::make_unique<HookManager>(&pi, vt_offset);
-
-        LOG(INFO, "Placing IAT hooks...");
-        hook_manager->iat("egl_swap_buffers", "eglSwapBuffers", unique_hook<EglSwapBuffersHook>());
-        hook_manager->iat("egl_get_display", "eglGetDisplay", unique_hook<EglGetDisplayHook>());
-        hook_manager->iat("egl_init", "eglInitialize", unique_hook<EglInitHook>());
-        hook_manager->iat("egl_create_window_surface", "eglCreateWindowSurface", unique_hook<EglCreateWindowSurfaceHook>());
-        hook_manager->iat("egl_choose_config", "eglChooseConfig", unique_hook<EglChooseConfigHook>());
-        hook_manager->iat("sdl_get_window_wm_info", "SDL_GetWindowWMInfo", unique_hook<SdlGetWindowWMInfoHook>());
-        hook_manager->iat("sdl_poll_event", "SDL_PollEvent", unique_hook<SdlPollEventHook>());
-
-        LOG(INFO, "Placing x86 hooks...");
-        hook_manager->x86("menu_execute", &get_globals()->menu_execute, unique_hook<MenuExecuteHook>());
-        //hook_manager->x86("render_widget", &get_globals()->render_widget, unique_hook<RenderWidgetHook>());
-        hook_manager->x86("set_varbit", &get_globals()->set_varbit, unique_hook<SetVarBitHook>());
-        hook_manager->x86("engine_tick", &get_globals()->engine_tick, unique_hook<EngineTickHook>());
-        hook_manager->x86("add_menu_option", &get_globals()->add_menu_option, unique_hook<AddMenuOptionHook>());
-        hook_manager->x86("add_chat_message", &get_globals()->add_chat_message, unique_hook<AddChatMessageHook>());
+      }
     }
 
-    ::std::string CachyRS::get_configuration_dir() const
+    return ThreadOwned<Globals *>((Globals *)pi.game_base());
+  }
+
+  bool CachyRS::project_to_screen(const Vec3<float> &scene, Vec2<float> *out) const
+  {
+    auto scene_003 = NRS.scene_003();
+    if (!scene_003)
     {
-        return interop_get_home_directory() + std::string("/.local/share/cachy-rs/");
+      return false;
     }
 
-    ::std::string CachyRS::resolve_configuration(const std::string &file) const
+    auto matrix = scene_003->projection_matrix;
+    auto bounds = ImGui::GetIO().DisplaySize;
+
+    Vec3<float> clip;
+    clip.x = scene.x * matrix.flat[0] + scene.y * matrix.flat[4] + scene.z * matrix.flat[8] + matrix.flat[12];
+    clip.y = scene.x * matrix.flat[1] + scene.y * matrix.flat[5] + scene.z * matrix.flat[9] + matrix.flat[13];
+
+    auto w = scene.x * matrix.flat[3] + scene.y * matrix.flat[7] + scene.z * matrix.flat[11] + matrix.flat[15];
+    if (w >= 0.1f)
     {
-        return get_configuration_dir() + file;
+      Vec3<float> pos;
+      pos.x = clip.x / w;
+      pos.y = clip.y / w;
+
+      auto x = (bounds.x / 2 * pos.x) + (pos.x + bounds.x / 2);
+      auto y = -(bounds.y / 2 * pos.y) + (pos.y + bounds.y / 2);
+
+      *out = { x, y };
+      return true;
     }
 
-    ThreadOwned<Globals *> CachyRS::get_globals() const
+    *out = { 0, 0 };
+    return false;
+  }
+
+  void CachyRS::init()
+  {
+    LOG(DEBUG, "Initializing configuration directory at " << get_configuration_dir());
+    std::filesystem::create_directories(std::filesystem::path(get_configuration_dir()));
+
+    LOG(INFO, "Initializing process info...");
+    init_process_info();
+    LOG(INFO, "Game= " << pi.game_base());
+
+    LOG(INFO, "Initializing ImGui...");
+    init_imgui();
+
+    LOG(INFO, "Initializing UI...");
+    auto rml_ui = std::make_shared<RmlUserInterface>();
+    ui = rml_ui;
+    dom_tree = rml_ui;
+
+    rml_ui->pre_init();
+
+    LOG(INFO, "Binding plugin manager to UI...");
+
+    plugin_manager.add_load_callback([this](Plugin *plugin)
     {
-        if (!!hook_manager)
-        {
-            auto hook = hook_manager->view_hook<BaseHook>("engine_tick");
-            if (!!hook)
-            {
-                auto tid = hook->thread_id();
-                if (tid.has_value())
-                {
-                    return ThreadOwned<Globals *>(tid.value(), (Globals *)pi.game_base());
-                }
-            }
-        }
-
-        return ThreadOwned<Globals *>((Globals *)pi.game_base());
-    }
-
-    bool CachyRS::project_to_screen(const Vec3<float> &scene, Vec2<float> *out) const
-    {
-        auto scene_003 = NRS.scene_003();
-        if (!scene_003)
-        {
-            return false;
-        }
-
-        auto matrix = scene_003->projection_matrix;
-        auto bounds = ImGui::GetIO().DisplaySize;
-
-        Vec3<float> clip;
-        clip.x = scene.x * matrix.flat[0] + scene.y * matrix.flat[4] + scene.z * matrix.flat[8] + matrix.flat[12];
-        clip.y = scene.x * matrix.flat[1] + scene.y * matrix.flat[5] + scene.z * matrix.flat[9] + matrix.flat[13];
-
-        auto w = scene.x * matrix.flat[3] + scene.y * matrix.flat[7] + scene.z * matrix.flat[11] + matrix.flat[15];
-        if (w >= 0.1f)
-        {
-            Vec3<float> pos;
-            pos.x = clip.x / w;
-            pos.y = clip.y / w;
-
-            auto x = (bounds.x / 2 * pos.x) + (pos.x + bounds.x / 2);
-            auto y = -(bounds.y / 2 * pos.y) + (pos.y + bounds.y / 2);
-
-            *out = {x, y};
-            return true;
-        }
-
-        *out = {0, 0};
+      ui_locked([this, plugin]()
+      {
+        plugin->ui_tab_container_id = ui->allocate_tab(plugin->name);
         return false;
-    }
+      });
+    });
 
-    void CachyRS::init()
+    ui->add_reload_callback([this]()
     {
-        LOG(DEBUG, "Initializing configuration directory at " << get_configuration_dir());
-        std::filesystem::create_directories(std::filesystem::path(get_configuration_dir()));
-
-        LOG(INFO, "Initializing process info...");
-        init_process_info();
-        LOG(INFO, "Game= " << pi.game_base());
-
-        LOG(INFO, "Initializing ImGui...");
-        init_imgui();
-
-        LOG(INFO, "Initializing UI...");
-        auto rml_ui = ::std::make_shared<RmlUserInterface>();
-        ui = rml_ui;
-        dom_tree = rml_ui;
-
-        rml_ui->pre_init();
-
-        LOG(INFO, "Binding plugin manager to UI...");
-
-        // clang-format off
-        plugin_manager.add_load_callback([this](Plugin *plugin)
+      ui_locked([this]()
+      {
+        for (auto &plugin : plugin_manager.view_plugins())
         {
-            ui_locked([this, plugin]()
-            {
-                plugin->ui_tab_container_id = ui->allocate_tab(plugin->name);
-                return false;
-            });
-        });
-
-        ui->add_reload_callback([this]() 
-        {
-            ui_locked([this]()
-            {
-                for (auto& plugin : plugin_manager.view_plugins())
-                {
-                    plugin->ui_tab_container_id = ui->allocate_tab(plugin->name);
-                    plugin->init(crs::InitType::refreshed, plugin.get());
-                }
-                return false;
-            });
-        });
-        // clang-format on
-
-        LOG(INFO, "Initializing capstone...");
-        asm_init();
-
-        LOG(INFO, "Initializing DOM...");
-        init_dom();
-
-        LOG(INFO, "Initializing hooks...");
-        init_hooks();
-
-        LOG(INFO, "Initializing developer overlay...");
-        developer_overlay.init();
-    }
-
-    void CachyRS::push_ui_state()
-    {
-        if (ui_visible)
-        {
-            dom_node_item_containers->prune();
-            dom_node_players->prune();
-            dom_node_npcs->prune();
-            dom_node_world_settings->prune();
-
-            dom_tree->build_dom_node(dom_node_item_containers);
-            dom_tree->build_dom_node(dom_node_players);
-            dom_tree->build_dom_node(dom_node_npcs);
-            dom_tree->build_dom_node(dom_node_world_settings);
+          plugin->ui_tab_container_id = ui->allocate_tab(plugin->name);
+          plugin->init(crs::InitType::refreshed, plugin.get());
         }
+        return false;
+      });
+    });
+
+    LOG(INFO, "Initializing capstone...");
+    asm_init();
+
+    LOG(INFO, "Initializing DOM...");
+    init_dom();
+
+    LOG(INFO, "Initializing hooks...");
+    init_hooks();
+
+    LOG(INFO, "Initializing developer overlay...");
+    developer_overlay.init();
+  }
+
+  void CachyRS::push_ui_state()
+  {
+    if (ui_visible)
+    {
+      dom_node_item_containers->prune();
+      dom_node_players->prune();
+      dom_node_npcs->prune();
+      dom_node_world_settings->prune();
+
+      dom_tree->build_dom_node(dom_node_item_containers);
+      dom_tree->build_dom_node(dom_node_players);
+      dom_tree->build_dom_node(dom_node_npcs);
+      dom_tree->build_dom_node(dom_node_world_settings);
     }
-}
+  }
+} // namespace crs

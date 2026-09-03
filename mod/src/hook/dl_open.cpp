@@ -12,13 +12,15 @@
 
 namespace crs
 {
-    void DlOpenHook::handler(CpuState *cpu_state)
-    {
-        BaseHook::handler(cpu_state);
+  void DlOpenHook::handler(CpuState *cpu_state)
+  {
+    BaseHook::handler(cpu_state);
 
-        auto name = (const char *)CPU_FIRST_ARG(cpu_state);
-        LOG(DlOpenHook, "Opening " << (name ? name : "NULL"));
-        
-        cpu_state->rax = (uint64_t)trampoline((const char *)CPU_FIRST_ARG(cpu_state), (int)CPU_SECOND_ARG(cpu_state));
-    }
-}
+    auto name = (const char *)CPU_FIRST_ARG(cpu_state);
+    LOG(DlOpenHook, "Opening " << (name ? name : "NULL"));
+
+    cpu_state->rax = reinterpret_cast<uint64_t>(trampoline(
+        reinterpret_cast<const char *>(CPU_FIRST_ARG(cpu_state)),
+        static_cast<int>(CPU_SECOND_ARG(cpu_state))));
+  }
+} // namespace crs

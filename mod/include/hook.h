@@ -1,10 +1,10 @@
 #pragma once
+#include <concepts>
 #include <cstdint>
 #include <map>
 #include <memory>
-#include <concepts>
-#include <thread>
 #include <optional>
+#include <thread>
 
 #include "process.h"
 #include "reversed/reversed.h"
@@ -12,37 +12,37 @@
 namespace crs
 {
 #pragma pack(push, 1)
-    struct Xmm
+  struct Xmm
+  {
+    union
     {
-        union
-        {
-            float fp[4];
-            double dfp[2];
-            uint64_t qword[2];
-        };
+      float fp[4];
+      double dfp[2];
+      uint64_t qword[2];
     };
+  };
 
-    struct CpuState
-    {
-        uint64_t rax;
-        uint64_t rbx;
-        uint64_t rcx;
-        uint64_t rdx;
-        uint64_t rsi;
-        uint64_t rdi;
-        uint64_t rbp;
-        uint64_t rsp;
-        uint64_t r8;
-        uint64_t r9;
-        uint64_t r10;
-        uint64_t r11;
-        uint64_t r12;
-        uint64_t r13;
-        uint64_t r14;
-        uint64_t r15;
-        Xmm xmm[16];
-    };
-    static_assert(sizeof(CpuState) == 0x180, INVALID_SIZE);
+  struct CpuState
+  {
+    uint64_t rax;
+    uint64_t rbx;
+    uint64_t rcx;
+    uint64_t rdx;
+    uint64_t rsi;
+    uint64_t rdi;
+    uint64_t rbp;
+    uint64_t rsp;
+    uint64_t r8;
+    uint64_t r9;
+    uint64_t r10;
+    uint64_t r11;
+    uint64_t r12;
+    uint64_t r13;
+    uint64_t r14;
+    uint64_t r15;
+    Xmm xmm[16];
+  };
+  static_assert(sizeof(CpuState) == 0x180, INVALID_SIZE);
 
 #ifdef __linux__
 #define CPU_FIRST_FARG(C) C->xmm[0].fp[2]
@@ -56,80 +56,79 @@ namespace crs
 // + 0x18 because the stack is offset by 0x18 to make room for XMM registers
 #define CPU_STACK_ARG(C, I) *((uint64_t *)(C->rsp + 0x18 + sizeof(uint64_t) + (sizeof(uint64_t) * I)))
 #else
-    UNSUPPORTED_OS();
+  UNSUPPORTED_OS();
 #endif
 #pragma pack(pop)
 
-    class BaseHook
+  class BaseHook
+  {
+  protected:
+    std::optional<std::thread::id> last_thread_id;
+    std::atomic<uint64_t> call_count = 0;
+
+  public:
+    virtual ~BaseHook()
     {
-    protected:
-        std::optional<std::thread::id> last_thread_id;
-        std::atomic<uint64_t> call_count = 0;
-
-    public:
-        virtual ~BaseHook()
-        {
-
-        }
-
-    public:
-        virtual void handler(CpuState *cpu_state);
-
-    public:
-        std::optional<std::thread::id> thread_id() const;
-    };
-
-    template <typename T>
-    class Hook : public BaseHook
-    {
-    public:
-        T trampoline;
-    };
-
-    typedef Hook<void*> GenericHook;
-
-    class DummyHook : public BaseHook
-    {
-    public:
-        void handler(CpuState *cpu_state);
-    };
-
-    class HookManager
-    {
-    private:
-        ProcessInterface *pi;
-        uint8_t vt_offset;
-        ::std::map<std::string, std::unique_ptr<BaseHook>> hooks;
-
-    public:
-        HookManager(ProcessInterface *pi, uint8_t vt_offset);
-
-    public:
-        template <std::derived_from<BaseHook> T>
-        const T *view_hook(const ::std::string &name)
-        {
-            auto hook = hooks.find(name);
-            if (hook == hooks.end())
-            {
-                return nullptr;
-            }
-
-            return (const T *)hook->second.get();
-        }
-
-    public:
-        void iat(const ::std::string &name, const ::std::string &symbol, ::std::unique_ptr<GenericHook> hook);
-        void ptr(const ::std::string &name, void* address, ::std::unique_ptr<GenericHook> hook);
-        void x86(const ::std::string &name, void *target, ::std::unique_ptr<GenericHook> hook);
-    };
-
-    template <std::derived_from<BaseHook> T>
-    FINLINE ::std::unique_ptr<GenericHook> unique_hook()
-    {
-        return ::std::unique_ptr<GenericHook>((GenericHook *)new T());
     }
 
-    void asm_init();
-    void asm_hook(uint8_t vt_offset, void *target, GenericHook *hook);
-    void iat_hook(uint8_t vt_offset, void *target, GenericHook *hook);
-}
+  public:
+    virtual void handler(CpuState *cpu_state);
+
+  public:
+    std::optional<std::thread::id> thread_id() const;
+  };
+
+  template <typename T>
+  class Hook : public BaseHook
+  {
+  public:
+    T trampoline;
+  };
+
+  typedef Hook<void *> GenericHook;
+
+  class DummyHook : public BaseHook
+  {
+  public:
+    void handler(CpuState *cpu_state);
+  };
+
+  class HookManager
+  {
+  private:
+    ProcessInterface *pi;
+    uint8_t vt_offset;
+    std::map<std::string, std::unique_ptr<BaseHook>> hooks;
+
+  public:
+    HookManager(ProcessInterface *pi, uint8_t vt_offset);
+
+  public:
+    template <std::derived_from<BaseHook> T>
+    const T *view_hook(const std::string &name)
+    {
+      auto hook = hooks.find(name);
+      if (hook == hooks.end())
+      {
+        return nullptr;
+      }
+
+      return (const T *)hook->second.get();
+    }
+
+  public:
+    void iat(const std::string &name, const std::string &symbol, std::unique_ptr<GenericHook> hook);
+    void ptr(const std::string &name, void *address, std::unique_ptr<GenericHook> hook);
+    void x86(const std::string &name, void *target, std::unique_ptr<GenericHook> hook);
+  };
+
+  template <std::derived_from<BaseHook> T>
+  FINLINE std::unique_ptr<GenericHook> unique_hook()
+  {
+    return std::unique_ptr<GenericHook>((GenericHook *)new T());
+  }
+
+  void asm_init();
+  void asm_hook(uint8_t vt_offset, void *target, GenericHook *hook);
+  void iat_hook(uint8_t vt_offset, void *target, GenericHook *hook);
+} // namespace crs

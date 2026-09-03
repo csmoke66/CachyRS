@@ -3,133 +3,133 @@
 
 namespace crs
 {
-    struct EngineTickArgs
+  struct EngineTickArgs
+  {
+    Engine *engine;
+  };
+
+  class EngineTickEvent : public Event
+  {
+  public:
+    EngineTickArgs args;
+
+  public:
+    static constexpr std::string specific_id()
     {
-        Engine *engine;
-    };
+      return "on_engine_tick";
+    }
 
-    class EngineTickEvent : public Event
+  public:
+    EngineTickEvent(Engine *engine);
+
+  public:
+    void *get_args() override;
+  };
+
+  struct MenuOpenedEventArgs
+  {
+    bool opened;
+  };
+
+  class MenuOpenedEvent : public Event
+  {
+  public:
+    MenuOpenedEventArgs args;
+
+  public:
+    static constexpr std::string specific_id()
     {
-    public:
-        EngineTickArgs args;
+      return "on_menu_opened";
+    }
 
-    public:
-        static constexpr ::std::string specific_id()
-        {
-            return "on_engine_tick";
-        }
+  public:
+    MenuOpenedEvent(bool opened);
 
-    public:
-        EngineTickEvent(Engine *engine);
+  public:
+    void *get_args() override;
+  };
 
-    public:
-        void *get_args() override;
-    };
+  struct MenuActionEventArgs
+  {
+    MenuActionArgs *args;
+    MenuActionTemplate **action_template;
+    bool bypass_logic = false;
+  };
 
-    struct MenuOpenedEventArgs
+  class MenuActionEvent : public Event
+  {
+  public:
+    MenuActionEventArgs args;
+
+  public:
+    static constexpr std::string pre_id()
     {
-        bool opened;
-    };
+      return "on_menu_action_pre";
+    }
 
-    class MenuOpenedEvent : public Event
+    static constexpr std::string post_id()
     {
-    public:
-        MenuOpenedEventArgs args;
+      return "on_menu_action_post";
+    }
 
-    public:
-        static constexpr ::std::string specific_id()
-        {
-            return "on_menu_opened";
-        }
+  public:
+    MenuActionEvent(const std::string &id, MenuActionArgs *args, MenuActionTemplate **action_template);
 
-    public:
-        MenuOpenedEvent(bool opened);
+  public:
+    void *get_args() override;
+  };
 
-    public:
-        void *get_args() override;
-    };
+  struct WorldSettingChangedEventArgs
+  {
+    uint32_t world_setting_id;
+    uint32_t value;
+  };
 
-    struct MenuActionEventArgs
+  class WorldSettingChangedEvent : public Event
+  {
+  public:
+    WorldSettingChangedEventArgs args;
+
+  public:
+    static constexpr std::string specific_id()
     {
-        MenuActionArgs *args;
-        MenuActionTemplate **action_template;
-        bool bypass_logic = false;
-    };
+      return "on_set_varbit";
+    }
 
-    class MenuActionEvent : public Event
+  public:
+    WorldSettingChangedEvent(uint32_t world_setting_id, uint32_t value);
+
+  public:
+    void *get_args() override;
+  };
+
+  struct ItemChangedArgs
+  {
+    uint32_t id;
+    uint32_t slot;
+    int32_t old_id;
+    int32_t old_amount;
+    int32_t new_id;
+    int32_t new_amount;
+    int32_t stack_delta;
+  };
+
+  class ItemChangedEvent : public Event
+  {
+  public:
+    ItemChangedArgs args;
+
+  public:
+    static constexpr std::string specific_id()
     {
-    public:
-        MenuActionEventArgs args;
+      return "on_set_item_container";
+    }
 
-    public:
-        static constexpr ::std::string pre_id()
-        {
-            return "on_menu_action_pre";
-        }
+  public:
+    ItemChangedEvent(uint32_t id, uint32_t slot, int32_t old_id, int32_t old_amount, int32_t new_id, int32_t new_amount, int32_t stack_delta);
 
-        static constexpr ::std::string post_id()
-        {
-            return "on_menu_action_post";
-        }
+  public:
+    void *get_args() override;
+  };
 
-    public:
-        MenuActionEvent(const std::string &id, MenuActionArgs *args, MenuActionTemplate **action_template);
-
-    public:
-        void *get_args() override;
-    };
-
-    struct SetVarBitArgs
-    {
-        uint32_t world_setting_id;
-        uint32_t value;
-    };
-
-    class SetVarBitEvent : public Event
-    {
-    public:
-        SetVarBitArgs args;
-
-    public:
-        static constexpr ::std::string specific_id()
-        {
-            return "on_set_varbit";
-        }
-
-    public:
-        SetVarBitEvent(uint32_t world_setting_id, uint32_t value);
-
-    public:
-        void *get_args() override;
-    };
-
-    struct ItemChangedArgs
-    {
-        uint32_t id;
-        uint32_t slot;
-        int32_t old_id;
-        int32_t old_amount;
-        int32_t new_id;
-        int32_t new_amount;
-        int32_t stack_delta;
-    };
-
-    class ItemChangedEvent : public Event
-    {
-    public:
-        ItemChangedArgs args;
-
-    public:
-        static constexpr ::std::string specific_id()
-        {
-            return "on_set_item_container";
-        }
-
-    public:
-        ItemChangedEvent(uint32_t id, uint32_t slot, int32_t old_id, int32_t old_amount, int32_t new_id, int32_t new_amount, int32_t stack_delta);
-
-    public:
-        void *get_args() override;
-    };
-
-}
+} // namespace crs

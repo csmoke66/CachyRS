@@ -12,19 +12,19 @@
 
 namespace crs
 {
-    void EglChooseConfigHook::handler(CpuState *cpu_state)
-    {
-        BaseHook::handler(cpu_state);
-        cpu_state->rax = (uint64_t)trampoline(
-            (EGLDisplay)CPU_FIRST_ARG(cpu_state),
-            (EGLint *)CPU_SECOND_ARG(cpu_state),
-            (EGLConfig *)CPU_THIRD_ARG(cpu_state),
-            (EGLint)CPU_FOURTH_ARG(cpu_state),
-            (EGLint *)CPU_FIFTH_ARG(cpu_state));
+  void EglChooseConfigHook::handler(CpuState *cpu_state)
+  {
+    BaseHook::handler(cpu_state);
+    cpu_state->rax = static_cast<uint64_t>(trampoline(
+        reinterpret_cast<EGLDisplay>(CPU_FIRST_ARG(cpu_state)),
+        reinterpret_cast<EGLint *>(CPU_SECOND_ARG(cpu_state)),
+        reinterpret_cast<EGLConfig *>(CPU_THIRD_ARG(cpu_state)),
+        static_cast<EGLint>(CPU_FOURTH_ARG(cpu_state)),
+        reinterpret_cast<EGLint *>(CPU_FIFTH_ARG(cpu_state))));
 
-        if (!cpu_state->rax)
-        {
-            LOG(EglChooseConfigHook, "eglChooseConfig failed " << std::hex << eglGetError());
-        }
+    if (!cpu_state->rax)
+    {
+      LOG(EglChooseConfigHook, "eglChooseConfig failed " << std::hex << eglGetError());
     }
-}
+  }
+} // namespace crs

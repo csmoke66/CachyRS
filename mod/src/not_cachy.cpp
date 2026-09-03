@@ -3,124 +3,124 @@
 
 namespace crs
 {
-    NotCachyRS NRS;
+  NotCachyRS NRS;
 
-    Scene003 *NotCachyRS::scene_003() const
+  Scene003 *NotCachyRS::scene_003() const
+  {
+    auto globals = RS.get_globals();
+    auto engine = globals->engine;
+    if (!engine)
     {
-        auto globals = RS.get_globals();
-        auto engine = globals->engine;
-        if (!engine)
-        {
-            return nullptr;
-        }
-
-        auto scene_001 = engine->scene_001;
-        if (!scene_001)
-        {
-            return nullptr;
-        }
-
-        auto scene_002 = scene_001->scene_002.reference(scene_001->scene_index);
-        if (!scene_002)
-        {
-            return nullptr;
-        }
-
-        return scene_002->scene_003;
+      return nullptr;
     }
 
-    WorldNode *NotCachyRS::root_node() const
+    auto scene_001 = engine->scene_001;
+    if (!scene_001)
     {
-        return dref<WorldNode *>(scene_003(), {off(Scene003, world_root)});
+      return nullptr;
     }
 
-    WidgetCache *NotCachyRS::widget_cache() const
+    auto scene_002 = scene_001->scene_002.reference(scene_001->scene_index);
+    if (!scene_002)
     {
-        return dref<WidgetCache *>(
-            RS.get_globals(),
-            {off(Globals, engine),
-             off(Engine, widget_cache)});
+      return nullptr;
     }
 
-    SDL_Window *NotCachyRS::sdl_window() const
+    return scene_002->scene_003;
+  }
+
+  WorldNode *NotCachyRS::root_node() const
+  {
+    return dref<WorldNode *>(scene_003(), { off(Scene003, world_root) });
+  }
+
+  WidgetCache *NotCachyRS::widget_cache() const
+  {
+    return dref<WidgetCache *>(
+        RS.get_globals(),
+        { off(Globals, engine),
+            off(Engine, widget_cache) });
+  }
+
+  SDL_Window *NotCachyRS::sdl_window() const
+  {
+    return dref<SDL_Window *>(
+        RS.get_globals(),
+        { off(Globals, linux_001),
+            off(Linux001, linux_002),
+            off(Linux002, linux_003),
+            off(Linux003, linux_004),
+            off(Linux004, linux_005),
+            off(Linux005, sdl_window) });
+  }
+
+  ItemCache *NotCachyRS::item_cache() const
+  {
+    return dref<ItemCache *>(
+        RS.get_globals(),
+        { off(Globals, engine),
+            off(Engine, item_cache) });
+  }
+
+  PlayerUpdateCache *NotCachyRS::player_update_cache() const
+  {
+    return dref<PlayerUpdateCache *>(
+        RS.get_globals(),
+        { off(Globals, engine),
+            off(Engine, player_update_cache) });
+  }
+
+  NpcUpdateCache *NotCachyRS::npc_update_cache() const
+  {
+    return dref<NpcUpdateCache *>(
+        RS.get_globals(),
+        { off(Globals, engine),
+            off(Engine, npc_update_cache) });
+  }
+
+  Cache001 *NotCachyRS::cache() const
+  {
+    return dref<Cache001 *>(
+        RS.get_globals(),
+        { off(Globals, engine),
+            off(Engine, cache) });
+  }
+
+  CacheIndex *NotCachyRS::cache_index(CacheIndexOrdinal ordinal) const
+  {
+    if (auto cache = this->cache())
     {
-        return dref<SDL_Window *>(
-            RS.get_globals(),
-            {off(Globals, linux_001),
-             off(Linux001, linux_002),
-             off(Linux002, linux_003),
-             off(Linux003, linux_004),
-             off(Linux004, linux_005),
-             off(Linux005, sdl_window)});
+      return cache->indices[static_cast<uint8_t>(ordinal)];
     }
 
-    ItemCache *NotCachyRS::item_cache() const
+    return nullptr;
+  }
+
+  CacheIndex *NotCachyRS::cache_index_world_settings() const
+  {
+    if (auto cache = this->cache())
     {
-        return dref<ItemCache *>(
-            RS.get_globals(),
-            {off(Globals, engine),
-             off(Engine, item_cache)});
+      return cache->get_world_settings_index();
     }
 
-    PlayerUpdateCache *NotCachyRS::player_update_cache() const
+    return nullptr;
+  }
+
+  WorldSettingCache *NotCachyRS::world_setting_cache() const
+  {
+    auto engine = RS.get_globals()->engine;
+    if (!engine)
     {
-        return dref<PlayerUpdateCache *>(
-            RS.get_globals(),
-            {off(Globals, engine),
-             off(Engine, player_update_cache)});
+      return nullptr;
     }
 
-    NpcUpdateCache *NotCachyRS::npc_update_cache() const
-    {
-        return dref<NpcUpdateCache *>(
-            RS.get_globals(),
-            {off(Globals, engine),
-             off(Engine, npc_update_cache)});
-    }
+    return &engine->world_settings;
+  }
 
-    Cache001 *NotCachyRS::cache() const
-    {
-        return dref<Cache001 *>(
-            RS.get_globals(),
-            {off(Globals, engine),
-             off(Engine, cache)});
-    }
-
-    CacheIndex *NotCachyRS::cache_index(CacheIndexOrdinal ordinal) const
-    {
-        if (auto cache = this->cache())
-        {
-            return cache->indices[(uint8_t)ordinal];
-        }
-
-        return nullptr;
-    }
-
-    CacheIndex *NotCachyRS::cache_index_world_settings() const
-    {
-        if (auto cache = this->cache())
-        {
-            return cache->get_world_settings_index();
-        }
-
-        return nullptr;
-    }
-
-    WorldSettingCache *NotCachyRS::world_setting_cache() const
-    {
-        auto engine = RS.get_globals()->engine;
-        if (!engine)
-        {
-            return nullptr;
-        }
-
-        return (WorldSettingCache *)&engine->world_settings;
-    }
-
-    uint32_t NotCachyRS::mask_world_setting(const WorldSetting *setting, const WorldSettingMask *mask) const
-    {
-        // TODO FIXME
-        return 0;
-        //return ((1 << (mask->end + 1 - mask->begin)) - 1) & (setting->value >> mask->begin);
-    }
-}
+  uint32_t NotCachyRS::mask_world_setting(const WorldSetting *setting, const WorldSettingMask *mask) const
+  {
+    // TODO FIXME
+    return 0;
+    // return ((1 << (mask->end + 1 - mask->begin)) - 1) & (setting->value >> mask->begin);
+  }
+} // namespace crs

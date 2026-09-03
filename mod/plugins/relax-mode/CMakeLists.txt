@@ -3,6 +3,8 @@ project(relax-mode LANGUAGES CXX)
 
 add_library(relax-mode SHARED
     src/main.cpp
+    src/dropdown.cpp
+    src/archaeology.cpp
 )
 
 target_include_directories(relax-mode PUBLIC 

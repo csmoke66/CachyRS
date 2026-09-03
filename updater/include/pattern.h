@@ -5,8 +5,8 @@
 
 #include <elf.h>
 
-#include "type.h"
 #include "elf_interface.h"
+#include "type.h"
 
 #include <capstone.h>
 
@@ -14,19 +14,19 @@ template <typename T>
 class DataValidator
 {
 public:
-    virtual bool validate(const T *t) = 0;
+  virtual bool validate(const T *t) = 0;
 };
 
 class AlignmentValidator : public DataValidator<uint64_t>
 {
 private:
-    uint64_t alignment;
+  uint64_t alignment;
 
 public:
-    AlignmentValidator(uint64_t alignment);
+  AlignmentValidator(uint64_t alignment);
 
 public:
-    bool validate(const uint64_t *t) override;
+  bool validate(const uint64_t *t) override;
 };
 
 //
@@ -36,31 +36,31 @@ template <typename T>
 class Extractor
 {
 private:
-    std::vector<DataValidator<T> *> data_validators;
+  std::vector<DataValidator<T> *> data_validators;
 
 public:
-    virtual T extract(const ElfInterface& elf, const uint8_t *data) = 0;
+  virtual T extract(const ElfInterface &elf, const uint8_t *data) = 0;
 
-    T extract_validated(const ElfInterface& elf, const uint8_t *data)
+  T extract_validated(const ElfInterface &elf, const uint8_t *data)
+  {
+    auto t = extract(elf, data);
+    for (auto dv : data_validators)
     {
-        auto t = extract(elf, data);
-        for (auto dv : data_validators)
-        {
-            if (!dv->validate(&t))
-            {
-                return (T)0;
-            }
-        }
-
-        return t;
+      if (!dv->validate(&t))
+      {
+        return (T)0;
+      }
     }
+
+    return t;
+  }
 
 public:
-    Extractor<T> *validator(DataValidator<T> *v)
-    {
-        data_validators.push_back(v);
-        return this;
-    }
+  Extractor<T> *validator(DataValidator<T> *v)
+  {
+    data_validators.push_back(v);
+    return this;
+  }
 };
 
 //
@@ -72,16 +72,16 @@ public:
 class ImmExtractor : public Extractor<uint64_t>
 {
 private:
-    uint64_t offset_to_data;
-    uint64_t offset;
-    size_t data_size;
-    bool factor_in_rip;
+  uint64_t offset_to_data;
+  uint64_t offset;
+  size_t data_size;
+  bool factor_in_rip;
 
 public:
-    ImmExtractor(uint64_t offset_to_data, uint64_t offset, size_t data_size, bool factor_in_rip = false);
+  ImmExtractor(uint64_t offset_to_data, uint64_t offset, size_t data_size, bool factor_in_rip = false);
 
 public:
-    uint64_t extract(const ElfInterface& elf, const uint8_t *data) override;
+  uint64_t extract(const ElfInterface &elf, const uint8_t *data) override;
 };
 
 //
@@ -89,13 +89,13 @@ public:
 //
 class DirectExtractor : public Extractor<uint64_t>
 {
-    uint64_t offset;
+  uint64_t offset;
 
 public:
-    DirectExtractor(uint64_t offset);
+  DirectExtractor(uint64_t offset);
 
 public:
-    uint64_t extract(const ElfInterface& elf, const uint8_t *data) override;
+  uint64_t extract(const ElfInterface &elf, const uint8_t *data) override;
 };
 
 //
@@ -106,41 +106,41 @@ public:
 class MenuActionHandlerExtractor : public Extractor<uint64_t>
 {
 private:
-    csh capstone_handle;
-    uint64_t lea_offset;
+  csh capstone_handle;
+  uint64_t lea_offset;
 
 public:
-    MenuActionHandlerExtractor(csh capstone_handle, uint64_t lea_offset);
+  MenuActionHandlerExtractor(csh capstone_handle, uint64_t lea_offset);
 
 public:
-    uint64_t extract(const ElfInterface& elf, const uint8_t *data) override;
+  uint64_t extract(const ElfInterface &elf, const uint8_t *data) override;
 };
 
 class CallExtractor : public Extractor<uint64_t>
 {
 private:
-    csh capstone_handle;
-    uint64_t call_offset;
+  csh capstone_handle;
+  uint64_t call_offset;
 
 public:
-    CallExtractor(csh capstone_handle, uint64_t call_offset);
+  CallExtractor(csh capstone_handle, uint64_t call_offset);
 
 public:
-    uint64_t extract(const ElfInterface& elf, const uint8_t *data) override;
+  uint64_t extract(const ElfInterface &elf, const uint8_t *data) override;
 };
 
 class ConstructorSizeExtractor : public Extractor<uint64_t>
 {
 private:
-    csh capstone_handle;
-    x86_reg reg;
-    uint32_t end;
+  csh capstone_handle;
+  x86_reg reg;
+  uint32_t end;
 
 public:
-    ConstructorSizeExtractor(csh capstone_handle, x86_reg reg, uint32_t end);
+  ConstructorSizeExtractor(csh capstone_handle, x86_reg reg, uint32_t end);
 
 public:
-    uint64_t extract(const ElfInterface& elf, const uint8_t *data) override;
+  uint64_t extract(const ElfInterface &elf, const uint8_t *data) override;
 };
 
 //
@@ -150,13 +150,13 @@ public:
 class GenericExtractor : public Extractor<uint64_t>
 {
 public:
-    Extractor<uint64_t> *nested;
+  Extractor<uint64_t> *nested;
 
 public:
-    GenericExtractor(void *extractor);
+  GenericExtractor(void *extractor);
 
 public:
-    uint64_t extract(const ElfInterface& elf, const uint8_t *data) override;
+  uint64_t extract(const ElfInterface &elf, const uint8_t *data) override;
 };
 
 //
@@ -166,13 +166,13 @@ public:
 class DummyExtractor : public Extractor<uint64_t>
 {
 private:
-    uint64_t v;
+  uint64_t v;
 
 public:
-    DummyExtractor(uint64_t v);
+  DummyExtractor(uint64_t v);
 
 public:
-    uint64_t extract(const ElfInterface& elf, const uint8_t *data) override;
+  uint64_t extract(const ElfInterface &elf, const uint8_t *data) override;
 };
 
 //
@@ -185,15 +185,15 @@ public:
 class Pattern
 {
 public:
-    std::string name;
-    Type type;
-    Extractor<uint64_t> *extractor;
+  std::string name;
+  Type type;
+  Extractor<uint64_t> *extractor;
 
 public:
-    Pattern(std::string name, Type type, Extractor<uint64_t> *extractor);
+  Pattern(std::string name, Type type, Extractor<uint64_t> *extractor);
 
 public:
-    virtual const uint8_t *find_result(uint8_t *text, Elf64_Shdr text_hdr) = 0;
+  virtual const uint8_t *find_result(uint8_t *text, Elf64_Shdr text_hdr) = 0;
 };
 
 //
@@ -203,13 +203,13 @@ public:
 class DefaultPattern : public Pattern
 {
 public:
-    std::vector<int> pattern;
+  std::vector<int> pattern;
 
 public:
-    DefaultPattern(std::string name, std::vector<int> pattern, Type type, Extractor<uint64_t> *extractor);
+  DefaultPattern(std::string name, std::vector<int> pattern, Type type, Extractor<uint64_t> *extractor);
 
 public:
-    virtual const uint8_t *find_result(uint8_t *text, Elf64_Shdr text_hdr);
+  virtual const uint8_t *find_result(uint8_t *text, Elf64_Shdr text_hdr);
 };
 
 //
@@ -218,10 +218,10 @@ public:
 class DummyPattern : public Pattern
 {
 public:
-    DummyPattern(std::string name, Type type, Extractor<uint64_t> *extractor);
+  DummyPattern(std::string name, Type type, Extractor<uint64_t> *extractor);
 
 public:
-    virtual const uint8_t *find_result(uint8_t *text, Elf64_Shdr text_hdr);
+  virtual const uint8_t *find_result(uint8_t *text, Elf64_Shdr text_hdr);
 };
 
 //
@@ -230,12 +230,12 @@ public:
 //
 struct PatternObject
 {
-    std::string name;
-    std::vector<Pattern *> patterns;
+  std::string name;
+  std::vector<Pattern *> patterns;
 
-    bool is_class = false;
-    bool has_parent = false;
-    std::string parent;
-    
-    Pattern* size_pattern;
+  bool is_class = false;
+  bool has_parent = false;
+  std::string parent;
+
+  Pattern *size_pattern;
 };
