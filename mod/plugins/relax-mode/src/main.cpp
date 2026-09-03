@@ -46,54 +46,54 @@ void override_menu_action(MenuActionEventArgs *event_args, FnMenuActionHandler h
 
 void Boot::init()
 {
-    Api::on_menu_action([](MenuActionEventArgs* args)
+  Api::on_menu_action([](MenuActionEventArgs *args)
+  {
+    auto tmpl = *args->action_template;
+    auto wants_override = [tmpl]()
     {
-        auto tmpl = *args->action_template;
-        auto wants_override = [tmpl]()
-        {
-            if (tmpl->type == MenuActionType::walk && ui_checkbox_override_walk.is_checked())
-            {
-                return true;
-            }
-            else if (tmpl->type == MenuActionType::widget && ui_checkbox_override_widgets.is_checked())
-            {
-                return true;
-            }
-            else if (tmpl->type == MenuActionType::obj && ui_checkbox_override_objects.is_checked())
-            {
-                return true;
-            }
-            else if (tmpl->type == MenuActionType::player && ui_checkbox_override_players.is_checked())
-            {
-                return true;
-            }
-            else if (tmpl->type == MenuActionType::npc && ui_checkbox_override_npcs.is_checked())
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        };
+      if (tmpl->type == MenuActionType::walk && ui_checkbox_override_walk.is_checked())
+      {
+        return true;
+      }
+      else if (tmpl->type == MenuActionType::widget && ui_checkbox_override_widgets.is_checked())
+      {
+        return true;
+      }
+      else if (tmpl->type == MenuActionType::obj && ui_checkbox_override_objects.is_checked())
+      {
+        return true;
+      }
+      else if (tmpl->type == MenuActionType::player && ui_checkbox_override_players.is_checked())
+      {
+        return true;
+      }
+      else if (tmpl->type == MenuActionType::npc && ui_checkbox_override_npcs.is_checked())
+      {
+        return true;
+      }
+      else
+      {
+        return false;
+      }
+    };
 
-        if (wants_override())
+    if (wants_override())
+    {
+      if (ui_mode_content_changer->is_selected(relax_mode_test))
+      {
+        override_menu_action(args, Api::get_menu_action_handler(MenuActionType::walk), { 0, 0xd13, 0xc7c, 0x6d200001 });
+      }
+      else if (ui_mode_content_changer->is_selected(relax_mode_archaeology))
+      {
+        if (ui_archaeology_site_dropdown_content_changer->is_selected(arch_site_kharid_et))
         {
-            if (ui_mode_content_changer->is_selected(relax_mode_test))
-            {
-                override_menu_action(args, Api::get_menu_action_handler(MenuActionType::walk), { 0, 0xd13, 0xc7c, 0x6d200001 });
-            }
-            else if (ui_mode_content_changer->is_selected(relax_mode_archaeology))
-            {
-                if (ui_archaeology_site_dropdown_content_changer->is_selected(arch_site_kharid_et))
-                {
-                    archaeology_override(args, 
-                        ui_archaeology_site_dropdown_content_changer->get_selected(), 
-                        ui_archaeology_site_kharid_et_spot->get_selected());
-                }
-            }
+          archaeology_override(args,
+              ui_archaeology_site_dropdown_content_changer->get_selected(),
+              ui_archaeology_site_kharid_et_spot->get_selected());
         }
-    });
+      }
+    }
+  });
 }
 
 void Boot::init_ui()
