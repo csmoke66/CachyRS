@@ -46,7 +46,6 @@ void override_menu_action(MenuActionEventArgs *event_args, FnMenuActionHandler h
 
 void Boot::init()
 {
-  // clang-format off
     Api::on_menu_action([](MenuActionEventArgs* args)
     {
         auto tmpl = *args->action_template;
@@ -95,7 +94,6 @@ void Boot::init()
             }
         }
     });
-  // clang-format on
 }
 
 void Boot::init_ui()
