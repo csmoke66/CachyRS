@@ -3,34 +3,34 @@
 #pragma pack(push, 1)
 struct PlayerUpdate
 {
-	// 0x0
-	PAD(0x38);
-	// 0x38
-	Player* player;
-	// 0x40
+  // 0x0
+  PAD(0x38);
+  // 0x38
+  Player *player;
+  // 0x40
 };
 
 struct PlayerUpdateCache
 {
-	// 0x0
-	PAD(0x10);
-	// 0x10
-	JVector<PlayerUpdate*> updates;
-	// 0x28
+  // 0x0
+  PAD(0x10);
+  // 0x10
+  JVector<PlayerUpdate *> updates;
+  // 0x28
 };
 
 struct NpcUpdate
 {
-	uint32_t id;
-	// 0x4
-	PAD(0x4);
-	// 0x8
-	ObjectHeader<Npc>* entity_header;
-	// 0x10
-	Npc* npc;
-	// 0x18
-	PAD(0x8);
-	// 0x20
+  uint32_t id;
+  // 0x4
+  PAD(0x4);
+  // 0x8
+  ObjectHeader<Npc> *entity_header;
+  // 0x10
+  Npc *npc;
+  // 0x18
+  PAD(0x8);
+  // 0x20
 };
 
 #pragma pack(pop)

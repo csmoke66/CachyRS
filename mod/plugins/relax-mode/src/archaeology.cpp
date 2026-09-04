@@ -26,26 +26,25 @@ static void khard_et_main_entrance_override(MenuActionEventArgs *args)
     auto is_at_bank = self.tile_position() == Vec2<uint32_t>(3356, 3197);
     if (!is_at_bank && soil_box.has_value() && has_soil && Api::get_world_setting(9370) < 100)
     {
-      *args->args = soil_box->fill_menu_action_args(1);
-      override_menu_action(args, Api::get_menu_action_handler(MenuActionType::widget, 0));
+      Api::override_current_menu_action(Api::get_menu_action_handler(MenuActionType::widget, 0),
+          soil_box->create_menu_action_args(1));
     }
     else
     {
       if (soil_box.has_value() && Api::get_world_setting(9370) != 0)
       {
-        if (Api::has_selected_item())
+        if (!Api::has_selected_item())
         {
-          override_menu_action(args, Api::get_menu_action_handler(MenuActionType::obj, 6), { 115427, 3356, 3198, 1 });
+          Api::select_item(1473, 5, soil_box->get_slot());
         }
-        else
-        {
-          *args->args = soil_box->fill_menu_action_args(0);
-          override_menu_action(args, Api::get_menu_action_handler(MenuActionType::widget, 1));
-        }
+
+        Api::override_current_menu_action(Api::get_menu_action_handler(MenuActionType::obj, 6),
+            { 115427, 3356, 3198, 1 });
       }
       else
       {
-        override_menu_action(args, Api::get_menu_action_handler(MenuActionType::obj, 3), { 115427, 3356, 3198, 1 });
+        Api::override_current_menu_action(Api::get_menu_action_handler(MenuActionType::obj, 3),
+            { 115427, 3356, 3198, 1 });
       }
     }
   }
@@ -53,12 +52,13 @@ static void khard_et_main_entrance_override(MenuActionEventArgs *args)
   {
     if (soil_box.has_value() && has_soil && Api::get_world_setting(9370) < 100)
     {
-      *args->args = soil_box->fill_menu_action_args(1);
-      override_menu_action(args, Api::get_menu_action_handler(MenuActionType::widget, 0));
+      Api::override_current_menu_action(Api::get_menu_action_handler(MenuActionType::widget, 0),
+          soil_box->create_menu_action_args(1));
     }
     else
     {
-      override_menu_action(args, Api::get_menu_action_handler(MenuActionType::obj, 0), { 117100, 3370, 3189, 1 });
+      Api::override_current_menu_action(Api::get_menu_action_handler(MenuActionType::obj, 0),
+          { 117100, 3370, 3189, 1 });
     }
   }
 }

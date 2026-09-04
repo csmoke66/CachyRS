@@ -51,6 +51,3 @@ enum KhardEtSpot : int32_t
 {
   kharid_et_main_entrance
 };
-
-void override_menu_action(MenuActionEventArgs *event_args, FnMenuActionHandler handler, const std::array<uint32_t, 4> &args);
-void override_menu_action(MenuActionEventArgs *event_args, FnMenuActionHandler handler);

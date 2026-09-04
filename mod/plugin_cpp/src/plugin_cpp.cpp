@@ -9,6 +9,12 @@ namespace crs
   static ApiEventList<std::function<void(uint32_t, uint32_t)>> world_setting_changed_events;
   static std::map<uint64_t, std::shared_ptr<ApiDropDown>> ui_dropdowns;
 
+  static MenuActionTemplate menu_action_override_template;
+  static bool has_menu_action_override = false;
+  static FnMenuActionHandler menu_action_override_handler;
+  static MenuActionArgs menu_action_override_args;
+  static bool menu_action_override_bypass;
+
   static void event_handler_engine_tick(EngineTickArgs *args, void *)
   {
     tick_events.iterate([args](auto &f)
@@ -23,6 +29,17 @@ namespace crs
     {
       f(args);
     });
+
+    if (has_menu_action_override)
+    {
+      memcpy(&menu_action_override_template, *args->action_template, sizeof(MenuActionTemplate));
+      menu_action_override_template.handler = menu_action_override_handler;
+      *args->action_template = &menu_action_override_template;
+      *args->args = menu_action_override_args;
+      args->bypass_logic = menu_action_override_bypass;
+
+      has_menu_action_override = false;
+    }
   }
 
   static void event_handler_world_setting_changed(WorldSettingChangedEventArgs *args, void *)
@@ -364,7 +381,7 @@ namespace crs
     return 0;
   }
 
-  ApiItemContainer Api::get_item_container(uint32_t id, uint32_t encoded_widget)
+  ApiItemContainer Api::get_item_container(uint32_t id, uint16_t parent_widget, uint16_t child_widget)
   {
     auto engine = Api::raw_engine();
     if (!engine)
@@ -389,7 +406,7 @@ namespace crs
         {
           if (item->id != -1)
           {
-            items.push_back(ApiItem(encoded_widget, slot, item->id, item->amount));
+            items.push_back(ApiItem(parent_widget, child_widget, slot, item->id, item->amount));
           }
 
           slot += 1;
@@ -404,7 +421,7 @@ namespace crs
 
   ApiItemContainer Api::get_inventory()
   {
-    return Api::get_item_container(93, 0x5c10005);
+    return Api::get_item_container(93, 1473, 5);
   }
 
   bool Api::has_selected_item()
@@ -465,6 +482,43 @@ namespace crs
 
     return nullptr;
   }
+
+  void Api::perform_menu_action(FnMenuActionHandler handler, const MenuActionArgs &args)
+  {
+    MenuActionTemplate templ;
+    templ.engine = Api::raw_engine();
+    templ.handler = handler;
+
+    MenuActionContext ctx;
+    ctx.tmpl = &templ;
+    ctx.args = args;
+
+    ActionMenuContext am_ctx;
+    am_ctx.menu_action_context = &ctx;
+
+    Api::log(std::format("test {} {} {} {}", ctx.args.r[0], ctx.args.r[1], ctx.args.r[2], ctx.args.r[3]));
+    handler(&templ, &am_ctx);
+  }
+
+  void Api::select_item(uint16_t parent_widget, uint16_t child_widget, int32_t slot)
+  {
+    MenuActionArgs args;
+    args.args_widget.option_idx = 0;
+    args.args_widget.sub_idx = slot;
+    args.args_widget.widget_id = ((uint32_t)parent_widget << 16) | child_widget;
+    args.args_widget.always_1 = 1;
+
+    perform_menu_action(Api::get_menu_action_handler(MenuActionType::widget, 1), args);
+  }
+
+  void Api::override_current_menu_action(FnMenuActionHandler handler, const MenuActionArgs &args, bool bypass)
+  {
+    crs::has_menu_action_override = true;
+    crs::menu_action_override_handler = handler;
+    crs::menu_action_override_args = args;
+    crs::menu_action_override_bypass = bypass;
+  }
+
   uint64_t Api::on_tick(std::function<void()> f)
   {
     return crs::tick_events.reg(f);

@@ -44,7 +44,7 @@ std::string compile_object_to_structure(const Object *object)
     auto is_last = (i == fields.size() - 1);
     if (is_first)
     {
-      ss << "\tPAD(0x" << std::hex << field.relative_offset << ");" << std::endl;
+      ss << "  PAD(0x" << std::hex << field.relative_offset << ");" << std::endl;
     }
     else
     {
@@ -54,10 +54,10 @@ std::string compile_object_to_structure(const Object *object)
         LOG(ERROR, "Field " << prev.name << " overlaps " << field.name << " in object " << object->name);
       }
 
-      ss << "\tPAD(0x" << std::hex << (field.relative_offset - prev.relative_offset - prev.type.size) << ");" << std::endl;
+      ss << "  PAD(0x" << std::hex << (field.relative_offset - prev.relative_offset - prev.type.size) << ");" << std::endl;
     }
 
-    ss << "\t" << field.type.type << " " << field.name;
+    ss << "  " << field.type.type << " " << field.name;
     if (field.type.arr)
     {
       ss << "[" << field.type.arr_size << "]";
@@ -71,7 +71,7 @@ std::string compile_object_to_structure(const Object *object)
       auto field_end = field.relative_offset + field.type.size;
       if (field_end < object->rel_size)
       {
-        ss << "\tPAD(0x" << std::hex << (object->rel_size - field_end) << ");" << std::endl;
+        ss << " PAD(0x" << std::hex << (object->rel_size - field_end) << ");" << std::endl;
       }
     }
   }

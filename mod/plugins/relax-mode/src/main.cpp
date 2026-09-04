@@ -25,25 +25,6 @@ std::string Boot::name()
   return "Relax Mode";
 }
 
-void override_menu_action(MenuActionEventArgs *event_args, FnMenuActionHandler handler, const std::array<uint32_t, 4> &args)
-{
-  memcpy(&our_template, *event_args->action_template, sizeof(MenuActionTemplate));
-  our_template.handler = reinterpret_cast<FnMenuActionHandler>(handler);
-  *event_args->action_template = &our_template;
-
-  memcpy(event_args->args->r, args.data(), sizeof(int32_t) * 4);
-  event_args->bypass_logic = true;
-}
-
-void override_menu_action(MenuActionEventArgs *event_args, FnMenuActionHandler handler)
-{
-  memcpy(&our_template, *event_args->action_template, sizeof(MenuActionTemplate));
-  our_template.handler = reinterpret_cast<FnMenuActionHandler>(handler);
-  *event_args->action_template = &our_template;
-
-  event_args->bypass_logic = true;
-}
-
 void Boot::init()
 {
   Api::on_menu_action([](MenuActionEventArgs *args)
@@ -81,7 +62,8 @@ void Boot::init()
     {
       if (ui_mode_content_changer->is_selected(relax_mode_test))
       {
-        override_menu_action(args, Api::get_menu_action_handler(MenuActionType::walk), { 0, 0xd13, 0xc7c, 0x6d200001 });
+        Api::override_current_menu_action(Api::get_menu_action_handler(MenuActionType::walk),
+            { 0, 0xd13, 0xc7c, 0x6d200001 });
       }
       else if (ui_mode_content_changer->is_selected(relax_mode_archaeology))
       {

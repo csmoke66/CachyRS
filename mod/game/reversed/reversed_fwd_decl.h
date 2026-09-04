@@ -16,7 +16,7 @@ struct MenuActionContext;
 struct ActionMenuContext;
 class Cache003;
 struct Cache002;
-template<typename T, typename B>
+template <typename T, typename B>
 struct CacheBuffer;
 class CacheIndexInner;
 struct CacheIndex;

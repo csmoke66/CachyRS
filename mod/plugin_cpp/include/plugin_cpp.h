@@ -171,21 +171,23 @@ namespace crs
   class ApiItem
   {
   private:
-    uint32_t encoded_widget;
+    uint16_t parent_widget;
+    uint16_t child_widget;
     int32_t slot;
     int32_t id;
     int32_t amount;
 
   public:
-    ApiItem(uint32_t encoded_widget, int32_t slot, int32_t id, int32_t amount);
+    ApiItem(uint16_t parent_widget, uint16_t child_widget, int32_t slot, int32_t id, int32_t amount);
     ApiItem(const ApiItem &o);
 
   public:
-    MenuActionArgs fill_menu_action_args(int index);
+    MenuActionArgs create_menu_action_args(int index);
 
   public:
     int32_t get_id();
     int32_t get_amount();
+    int32_t get_slot();
   };
 
   class ApiItemContainer
@@ -271,12 +273,18 @@ namespace crs
     static uint32_t get_world_setting(uint32_t id);
 
     // item containers
-    static ApiItemContainer get_item_container(uint32_t id, uint32_t encoded_widget);
+    static ApiItemContainer get_item_container(uint32_t id, uint16_t parent_widget, uint16_t child_widget);
     static ApiItemContainer get_inventory();
     static bool has_selected_item();
 
     // menu actions
     static FnMenuActionHandler get_menu_action_handler(MenuActionType type, uint32_t idx = 0);
+    static void perform_menu_action(FnMenuActionHandler handler, const MenuActionArgs& args);
+    // This should be safe from botting risks as it only modifies internal 
+    // client state, and does not send any packets.
+    static void select_item(uint16_t parent_widget, uint16_t child_widget, int32_t slot);
+    // Utility for overriding the next menu action event.
+    static void override_current_menu_action(FnMenuActionHandler handler, const MenuActionArgs& args, bool bypass = false);
 
   public: // C++ event handling
     static uint64_t on_tick(std::function<void()> f);

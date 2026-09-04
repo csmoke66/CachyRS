@@ -2,24 +2,25 @@
 
 namespace crs
 {
-  ApiItem::ApiItem(uint32_t encoded_widget, int32_t slot, int32_t id, int32_t amount)
+  ApiItem::ApiItem(uint16_t parent_widget, uint16_t child_widget, int32_t slot, int32_t id, int32_t amount)
   {
-    this->encoded_widget = encoded_widget;
+    this->parent_widget = parent_widget;
+    this->child_widget = child_widget;
     this->slot = slot;
     this->id = id;
     this->amount = amount;
   }
 
-  ApiItem::ApiItem(const ApiItem &o) : ApiItem(o.encoded_widget, o.slot, o.id, o.amount)
+  ApiItem::ApiItem(const ApiItem &o) : ApiItem(o.parent_widget, o.child_widget, o.slot, o.id, o.amount)
   {
   }
 
-  MenuActionArgs ApiItem::fill_menu_action_args(int index)
+  MenuActionArgs ApiItem::create_menu_action_args(int index)
   {
     MenuActionArgs args;
     args.args_widget.option_idx = index;
     args.args_widget.sub_idx = slot;
-    args.args_widget.widget_id = encoded_widget;
+    args.args_widget.widget_id = ((uint32_t)parent_widget << 16) | child_widget;
     args.args_widget.always_1 = 1;
     return args;
   }
@@ -32,6 +33,11 @@ namespace crs
   int32_t ApiItem::get_amount()
   {
     return this->amount;
+  }
+
+  int32_t ApiItem::get_slot()
+  {
+    return this->slot;
   }
 
   ApiItemContainer::ApiItemContainer()

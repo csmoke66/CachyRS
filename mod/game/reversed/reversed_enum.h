@@ -2,51 +2,51 @@
 
 enum class WorldNodeFlag : uint16_t
 {
-	has_entity = 0x200,
+  has_entity = 0x200,
 };
 
 enum class EntityType : uint8_t
 {
-	npc = 1,
-	player = 2,
-	ground_item = 3,
-	effect = 4,
-	object1 = 0,
-	object2 = 12,
+  npc = 1,
+  player = 2,
+  ground_item = 3,
+  effect = 4,
+  object1 = 0,
+  object2 = 12,
 };
 
 enum class GameState : uint32_t
 {
-	login_screen = 10,
-	lobby_screen = 20,
-	in_game = 30,
+  login_screen = 10,
+  lobby_screen = 20,
+  in_game = 30,
 };
 
 enum class WidgetType : uint8_t
 {
-	container = 19,
-	text = 2,
-	media = 2,
+  container = 19,
+  text = 2,
+  media = 2,
 };
 
 enum class CacheIndexOrdinal : uint8_t
 {
-	varbit = 7,
-	items = 10
+  varbit = 7,
+  items = 10
 };
 
 enum class ModelItemOrdinal : uint8_t
 {
-	// TODO FIXME add more of these..
-	weapon_primary = 15,
-	weapon_offhand = 16,
+  // TODO FIXME add more of these..
+  weapon_primary = 15,
+  weapon_offhand = 16,
 };
 
 enum class MenuActionType : uint32_t
 {
-	walk = 0,
-	widget = 1,
-	obj = 3,
-	npc = 4,
-	player = 7,
+  walk = 0,
+  widget = 1,
+  obj = 3,
+  npc = 4,
+  player = 7,
 };
