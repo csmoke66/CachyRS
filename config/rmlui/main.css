@@ -1,3 +1,7 @@
+@decorator screen-tracker : screen-tracker {
+    /* Add any custom properties your VisibilityTrackerInstancer looks for */
+}
+
 body {
     --bg-color-primary: #353535;
     --bg-color-secondary: #42424271;
@@ -8,6 +12,8 @@ body {
 
     --dom-background: #121212;
     --dom-node-hover: #080808;
+
+    --text-secondary: #b0b0cf;
 }
 
 body {
@@ -101,6 +107,72 @@ h4 {
 
 p {
     display: block;
+}
+
+select {
+    display: inline-block;
+    width: 150dp;
+    height: 28dp;
+
+    background-color: var(--control);
+    border: 1px #292929;
+    border-radius: 2px;
+    box-shadow: #1a1a1a 1px 1px 1px;
+}
+
+select:hover {
+    background-color: var(--control-hover);
+}
+
+select:active {
+    background-color: var(--control-active);
+}
+
+select selectvalue {
+    display: block;
+    padding: 6dp;
+    color: white;
+    font-size: 12dp;
+}
+
+select selectarrow {
+    display: block;
+    width: 20dp;
+    height: 100%;
+
+    background-color: var(--bg-color-secondary);
+    border-left: 1px #292929;
+}
+
+select selectarrow:hover {
+    background-color: var(--control-hover);
+}
+
+select selectbox {
+    display: block;
+    background-color: var(--dom-background);
+    border: 1px #292929;
+    box-shadow: #000a 3px 3px 3px;
+
+    overflow-y: auto;
+    max-height: 150dp;
+}
+
+select selectbox option {
+    display: block;
+    padding: 6dp;
+    color: white;
+    font-size: 12dp;
+}
+
+select selectbox option:hover {
+    background-color: var(--dom-node-hover);
+    color: white;
+}
+
+select selectbox option:checked {
+    background-color: var(--control-active);
+    color: var(--text-secondary);
 }
 
 button {
