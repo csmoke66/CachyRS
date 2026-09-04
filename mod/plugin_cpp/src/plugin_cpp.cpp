@@ -381,18 +381,18 @@ namespace crs
     return 0;
   }
 
-  ApiItemContainer Api::get_item_container(uint32_t id, uint16_t parent_widget, uint16_t child_widget)
+  std::optional<ApiItemContainer> Api::get_item_container(uint32_t id, uint16_t parent_widget, uint16_t child_widget)
   {
     auto engine = Api::raw_engine();
     if (!engine)
     {
-      return ApiItemContainer();
+      return std::optional<ApiItemContainer>();
     }
 
     auto item_cache = engine->item_cache;
     if (!item_cache)
     {
-      return ApiItemContainer();
+      return std::optional<ApiItemContainer>();
     }
 
     for (auto i = item_cache->containers.begin; i != item_cache->containers.end; i++)
@@ -416,10 +416,10 @@ namespace crs
       }
     }
 
-    return ApiItemContainer();
+    return std::optional<ApiItemContainer>();
   }
 
-  ApiItemContainer Api::get_inventory()
+  std::optional<ApiItemContainer> Api::get_inventory()
   {
     return Api::get_item_container(93, 1473, 5);
   }
@@ -459,7 +459,8 @@ namespace crs
 
     static uint64_t widget_offsets[] = {
       off(Globals, menu_action_handler_widget1),
-      off(Globals, menu_action_handler_widget2)
+      off(Globals, menu_action_handler_widget2),
+      off(Globals, menu_action_handler_widget3)
     };
 
     auto globals = Api::raw_globals();

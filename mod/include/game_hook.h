@@ -112,6 +112,7 @@ namespace crs
 
   private:
     void watch_item_changes(Engine *engine);
+    void watch_widget_changes(Engine *engine);
 
   public:
     void handler(CpuState *cpu_state) override;
@@ -129,10 +130,23 @@ namespace crs
     void handler(CpuState *cpu_state) override;
   };
 
+  struct RenderedWidgetSnapshot
+  {
+    Widget *widget;
+    uint32_t time;
+  };
+
   class RenderWidgetHook : public Hook<FnRenderWidget>
   {
+  private:
+    std::map<const Widget *, RenderedWidgetSnapshot> snapshots;
+
   public:
     void handler(CpuState *cpu_state) override;
+
+  public:
+    bool is_visible(const Widget *w) const;
+    void remove_stale(uint32_t before);
   };
 
   class SetVarBitHook : public Hook<FnSetVarBit>

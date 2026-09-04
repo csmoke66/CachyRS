@@ -3,4 +3,4 @@
 
 using namespace crs;
 
-void archaeology_override(MenuActionEventArgs *args, int32_t site, int32_t spot);
+void archaeology_override(int32_t site, int32_t spot);

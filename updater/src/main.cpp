@@ -86,6 +86,13 @@ std::vector<PatternObject> build_pattern_objects()
                 validator(new AlignmentValidator(0x10))},
 
         new DefaultPattern{
+            "menu_action_handler_widget3",
+            compile_ida_pattern("4C 8B 5C 24 ? 4D 89 A5"),
+            {"char", 1},
+            (new MenuActionHandlerExtractor(capstone_handle, 7))->
+                validator(new AlignmentValidator(0x10))},
+
+        new DefaultPattern{
             "menu_action_handler_walk",
             compile_ida_pattern("4C 8B 5C 24 ? 4D 89 A5"),
             {"char", 1},

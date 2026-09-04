@@ -17,7 +17,9 @@ struct Globals
   char menu_action_handler_widget1;
   PAD(0x14f);
   char menu_action_handler_widget2;
-  PAD(0x6e9ef);
+  PAD(0x300ef);
+  char menu_action_handler_widget3;
+  PAD(0x3e8ff);
   char menu_action_handler_walk;
   PAD(0xa6f);
   char menu_action_handler_npc7;
@@ -72,6 +74,7 @@ struct Globals
 };
 static_assert(off(Globals, menu_action_handler_widget1) == 0xf39b0, INVALID_OFFSET);
 static_assert(off(Globals, menu_action_handler_widget2) == 0xf3b00, INVALID_OFFSET);
+static_assert(off(Globals, menu_action_handler_widget3) == 0x123bf0, INVALID_OFFSET);
 static_assert(off(Globals, menu_action_handler_walk) == 0x1624f0, INVALID_OFFSET);
 static_assert(off(Globals, menu_action_handler_npc7) == 0x162f60, INVALID_OFFSET);
 static_assert(off(Globals, menu_action_handler_npc6) == 0x162f90, INVALID_OFFSET);

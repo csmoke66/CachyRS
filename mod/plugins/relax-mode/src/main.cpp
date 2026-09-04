@@ -15,6 +15,9 @@ static ApiContainer ui_container_test;
 
 static ApiContainer ui_container_archaeology;
 static std::unique_ptr<DropDownContentChanger> ui_archaeology_site_dropdown_content_changer;
+
+static ApiContainer ui_archaeology_site_sift;
+
 static ApiContainer ui_archaeology_site_kharid_et;
 static std::shared_ptr<ApiDropDown> ui_archaeology_site_kharid_et_spot;
 
@@ -67,10 +70,13 @@ void Boot::init()
       }
       else if (ui_mode_content_changer->is_selected(relax_mode_archaeology))
       {
-        if (ui_archaeology_site_dropdown_content_changer->is_selected(arch_site_kharid_et))
+        if (ui_archaeology_site_dropdown_content_changer->is_selected(arch_site_sift))
         {
-          archaeology_override(args,
-              ui_archaeology_site_dropdown_content_changer->get_selected(),
+          archaeology_override(arch_site_sift, -1);
+        }
+        else if (ui_archaeology_site_dropdown_content_changer->is_selected(arch_site_kharid_et))
+        {
+          archaeology_override(arch_site_kharid_et,
               ui_archaeology_site_kharid_et_spot->get_selected());
         }
       }
@@ -98,7 +104,10 @@ void Boot::init_ui()
   ui_mode_content_changer->reset();
 
   ui_archaeology_site_dropdown_content_changer = DropDownContentChanger::new_changer(
-      ui_container_archaeology.get_id(), { { "Kharid-et", &ui_archaeology_site_kharid_et } });
+      ui_container_archaeology.get_id(), { { "Sifting", &ui_archaeology_site_sift },
+                                             { "Kharid-et", &ui_archaeology_site_kharid_et } });
+
+  ui_archaeology_site_sift = ui_container_archaeology.add_container();
 
   ui_archaeology_site_kharid_et = ui_container_archaeology.add_container();
   ui_archaeology_site_kharid_et_spot = ui_archaeology_site_kharid_et.add_dropdown({ "Entrace" });

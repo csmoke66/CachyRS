@@ -273,8 +273,8 @@ namespace crs
     static uint32_t get_world_setting(uint32_t id);
 
     // item containers
-    static ApiItemContainer get_item_container(uint32_t id, uint16_t parent_widget, uint16_t child_widget);
-    static ApiItemContainer get_inventory();
+    static std::optional<ApiItemContainer> get_item_container(uint32_t id, uint16_t parent_widget = 0xffff, uint16_t child_widget = 0xffff);
+    static std::optional<ApiItemContainer> get_inventory();
     static bool has_selected_item();
 
     // menu actions

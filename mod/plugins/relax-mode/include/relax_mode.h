@@ -44,6 +44,7 @@ enum RelaxMode : int32_t
 
 enum ArchaeologySite : int32_t
 {
+  arch_site_sift,
   arch_site_kharid_et
 };
 

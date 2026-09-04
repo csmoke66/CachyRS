@@ -129,6 +129,11 @@ namespace crs
     }
   }
 
+  void EngineTickHook::watch_widget_changes(Engine *engine)
+  {
+    auto render_widget_hook = RS.hook_manager->view_hook<RenderWidgetHook>("egl_swap_buffers");
+  }
+
   void EngineTickHook::handler(CpuState *cpu_state)
   {
     BaseHook::handler(cpu_state);
