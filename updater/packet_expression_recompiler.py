@@ -1,10 +1,3 @@
-# This is just a POC for packet expression recompilation currently.
-#
-# It extracts all possible packet construction expressions, and recompiles them
-# back into x86. The recompiled code can then be called to create packets
-# exactly like the game does.
-#
-# Currently it is just hard-coded for the current walking packet handler.
 from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, List
@@ -40,13 +33,6 @@ class ExpirOpcode(Enum):
 
 class ExpirHardwareRegister(Enum):
     RSP = 1
-
-class ExpirGameValue(Enum):
-    ENGINE = 1
-    WIDGET_CACHE = 2
-    UNKNOWN_1 = 3
-    MENU_ACTIONS = 4
-    PACKET_BUFFER = 5
 
 class ExpirArgType(Enum):
     CONSTANT = 1
@@ -138,7 +124,6 @@ def compile_expr_var_ref(val_str, var_idx):
             ])
 
     return None
-
     
 def compile_expr_to_ir(memory_load_registry, memory_store_registry, expr):
     expr_to_id = {}
@@ -197,6 +182,8 @@ def compile_expr_to_ir(memory_load_registry, memory_store_registry, expr):
 
             raise ValueError(f"unhandled str {val_str}")
         elif node.hash() in expr_to_id:
+            # optimization to reduce duplicate mappings in expressions
+            # into a single variable
             return IrWalkResult(expr_to_id[node.hash()], ExpirArgType.VAR)
         elif node.op == 'Concat':
             flattened_args = []
@@ -237,19 +224,6 @@ def compile_expr_to_ir(memory_load_registry, memory_store_registry, expr):
         else:
             child_vars = [walk(arg) for arg in node.args if isinstance(arg, (claripy.ast.bv.BV, claripy.ast.fp.FP))]
 
-            op_map = {
-                '__add__': ' + ', 
-                '__sub__': ' - ',
-                '__xor__': ' ^ ', 
-                '__mul__': ' * ',
-                '__invert__': '~',
-                'Extract': 'Extract',
-                'fpToSBV': 'fpToSBV',
-                'fpToFP': 'fpToFP'
-            }
-            
-            op_symbol = op_map.get(node.op, node.op)
-
             var_idx = var_counter
             var_counter += 1
 
@@ -257,49 +231,48 @@ def compile_expr_to_ir(memory_load_registry, memory_store_registry, expr):
             args = []
             
             args.append(ExpirArg(ExpirArgType.VAR, var_idx))
-            if op_symbol == '~':
+            if node.op == '__invert__':
                 opcode = ExpirOpcode.INVERT
                 args.append(ExpirArg(child_vars[0].type, child_vars[0].idx))
-            elif op_symbol == ' + ':
+            elif node.op == '__add__':
                 opcode = ExpirOpcode.ADD
                 args.append(ExpirArg(child_vars[0].type, child_vars[0].idx))
                 args.append(ExpirArg(child_vars[1].type, child_vars[1].idx))
-            elif op_symbol == ' - ':
+            elif node.op == '__sub__':
                 opcode = ExpirOpcode.SUB
                 args.append(ExpirArg(child_vars[0].type, child_vars[0].idx))
                 args.append(ExpirArg(child_vars[1].type, child_vars[1].idx))
-            elif op_symbol == ' ^ ':
+            elif node.op == '__xor__':
                 opcode = ExpirOpcode.XOR
                 args.append(ExpirArg(child_vars[0].type, child_vars[0].idx))
                 args.append(ExpirArg(child_vars[1].type, child_vars[1].idx))
-            elif op_symbol == ' * ':
+            elif node.op == '__mul__':
                 opcode = ExpirOpcode.MUL
                 args.append(ExpirArg(child_vars[0].type, child_vars[0].idx))
                 args.append(ExpirArg(child_vars[1].type, child_vars[1].idx))
-            elif op_symbol == 'Extract':
+            elif node.op == 'Extract':
                 opcode = ExpirOpcode.EXTRACT
                 args.append(ExpirArg(ExpirArgType.CONSTANT, node.args[0]))
                 args.append(ExpirArg(ExpirArgType.CONSTANT, node.args[1]))
                 args.append(ExpirArg(child_vars[0].type, child_vars[0].idx))
-            elif op_symbol == 'fpToSBV':
+            elif node.op == 'fpToSBV':
                 opcode = ExpirOpcode.FP_TO_SBV
                 args.append(ExpirArg(ExpirArgType.CONSTANT, node.args[0]))
                 args.append(ExpirArg(ExpirArgType.CONSTANT, node.args[2])) 
                 args.append(ExpirArg(child_vars[0].type, child_vars[0].idx))
-            elif op_symbol == 'fpToFP':
+            elif node.op == 'fpToFP':
                 opcode = ExpirOpcode.FP_TO_FP
                 args.append(ExpirArg(ExpirArgType.CONSTANT, node.args[0]))
                 args.append(ExpirArg(ExpirArgType.CONSTANT, node.args[2])) 
                 args.append(ExpirArg(child_vars[0].type, child_vars[0].idx))
             else:
-                raise ValueError(f"unhandled type {op_symbol}")
+                raise ValueError(f"unhandled type {node.op}")
             
             ir_unsorted.append(ExpirNode(opcode, args))
             expr_to_id[node.hash()] = var_idx
             return IrWalkResult(var_idx, ExpirArgType.VAR)
         
     walk(expr)
-
     if len(ir_unsorted) == 0 and expr.op == 'BVV':
         ir_unsorted.append(ExpirNode(ExpirOpcode.LOAD_CONST, [
             ExpirArg(ExpirArgType.VAR, 0),
@@ -336,7 +309,6 @@ class ExpirToLLVMCompiler:
         self.i64 = ir.IntType(64)
         self.i8 = ir.IntType(8)
         
-        # Initialize an empty LLVM module
         self.module = ir.Module(name="expir_compiled_module")
         self.builder = None
         self.func = None
@@ -365,7 +337,6 @@ class ExpirToLLVMCompiler:
             gv_idx = ir.Constant(self.i64, arg.value)
             ptr = self.builder.gep(self.func_args_ptr, [gv_idx], name=f"addr_fa_{arg.value}")
             return self.builder.ptrtoint(ptr, self.i64)
-            #return self.builder.load(ptr, name=f"val_{arg.value}")
             
         raise NotImplementedError(f"Unsupported ExpirArgType: {arg.type}")
 
@@ -519,16 +490,13 @@ class ExpirToLLVMCompiler:
 
                 if src_width < target_width:
                     self.vmap[dest_var_idx] = self.builder.fpext(
-                        src_float_val, target_fp_type, name=f"fp_extend_{dest_var_idx}"
-                    )
+                        src_float_val, target_fp_type, name=f"fp_extend_{dest_var_idx}")
                 elif src_width > target_width:
                     self.vmap[dest_var_idx] = self.builder.fptrunc(
-                        src_float_val, target_fp_type, name=f"fp_trunc_{dest_var_idx}"
-                    )
+                        src_float_val, target_fp_type, name=f"fp_trunc_{dest_var_idx}")
                 else:
                     self.vmap[dest_var_idx] = self.builder.bitcast(
-                        src_float_val, target_fp_type, name=f"fp_copy_{dest_var_idx}"
-                    )
+                        src_float_val, target_fp_type, name=f"fp_copy_{dest_var_idx}")
 
             elif node.opcode == ExpirOpcode.INVALID:
                 self.builder.unreachable()
@@ -665,11 +633,10 @@ class Analyzer:
         state.inspect.b('mem_write', when=angr.BP_AFTER, action=bind_unconstrained_writes)
 
     def extract_packet_writes(self):
-        print(f"Stashes present: {list(self.simgr.stashes.keys())}")
         all_final_states = [s.state if hasattr(s, 'state') else s for s in (self.simgr.deadended + self.simgr.active + self.simgr.errored)]
 
         count = 0
-        for i, f_state in enumerate(all_final_states):
+        for _, f_state in enumerate(all_final_states):
             actions = f_state.history.actions
             packet_body = f_state.globals.get("packet_body")
             if packet_body != None:
@@ -692,7 +659,6 @@ class Analyzer:
                         print(f"here: {target_variable_name} {addr_ast}")
 
                         if target_variable_name in address_variables:
-                            print(f"?? {data_ast} {addr_ast}")
                             load_expr = compile_expr_to_ir(f_state.globals["memory_load_registry"], 
                                                            f_state.globals["memory_store_registry"],
                                                            claripy.simplify(data_ast))
@@ -706,11 +672,6 @@ class Analyzer:
                                     if arg.type == ExpirArgType.VAR:
                                         arg.value += len(load_expr)
 
-                            print(f" -> load")
-                            print_ir(load_expr)
-                            print(f" -> store")
-                            print_ir(store_expr)
-
                             all_expr = load_expr + store_expr
                             all_expr.append(ExpirNode(ExpirOpcode.STORE, [
                                 ExpirArg(ExpirArgType.VAR, len(load_expr) - 1),
@@ -718,8 +679,6 @@ class Analyzer:
                                 ExpirArg(ExpirArgType.CONSTANT, size_in_bytes * 8)
                             ]))
         
-                            print(f" -> all")
-                            print_ir(all_expr)
                             compiler.compile_nodes(all_expr)
 
                 
