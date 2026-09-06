@@ -633,12 +633,13 @@ class Analyzer:
         state.inspect.b('mem_write', when=angr.BP_AFTER, action=bind_unconstrained_writes)
 
     def extract_packet_writes(self):
-        all_final_states = [s.state if hasattr(s, 'state') else s for s in (self.simgr.deadended + self.simgr.active + self.simgr.errored)]
+        all_final_states = [s.state if hasattr(s, 'state') else s for s in (
+            self.simgr.deadended + self.simgr.active + self.simgr.errored)]
 
         count = 0
-        for _, f_state in enumerate(all_final_states):
-            actions = f_state.history.actions
-            packet_body = f_state.globals.get("packet_body")
+        for _, state in enumerate(all_final_states):
+            actions = state.history.actions
+            packet_body = state.globals.get("packet_body")
             if packet_body != None:
                 compiler = ExpirToLLVMCompiler()
                 compiler.init_body()
@@ -648,10 +649,8 @@ class Analyzer:
                         data_ast = action.data.ast
 
                         size_in_bits = action.size.ast
-                        if isinstance(size_in_bits, int):
-                            size_in_bytes = size_in_bits // 8
-                        else:
-                            size_in_bytes = f_state.solver.eval(size_in_bits) // 8
+                        if not isinstance(size_in_bits, int):
+                            size_in_bits = state.solver.eval(size_in_bits)
 
                         target_variable_name = packet_body.args[0] 
 
@@ -659,29 +658,34 @@ class Analyzer:
                         print(f"here: {target_variable_name} {addr_ast}")
 
                         if target_variable_name in address_variables:
-                            load_expr = compile_expr_to_ir(f_state.globals["memory_load_registry"], 
-                                                           f_state.globals["memory_store_registry"],
+                            load_expr = compile_expr_to_ir(state.globals["memory_load_registry"], 
+                                                           state.globals["memory_store_registry"],
                                                            claripy.simplify(data_ast))
                             
-                            store_expr = compile_expr_to_ir(f_state.globals["memory_load_registry"], 
-                                                            f_state.globals["memory_store_registry"], 
+                            store_expr = compile_expr_to_ir(state.globals["memory_load_registry"], 
+                                                            state.globals["memory_store_registry"], 
                                                             claripy.simplify(addr_ast))
-                            
+
+                            # both of the traces have overlapping variables
+                            # so we offset the 2nd expression's variable numbers
                             for node in store_expr:
                                 for arg in node.args:
                                     if arg.type == ExpirArgType.VAR:
                                         arg.value += len(load_expr)
 
+                            # combine both the load + store and then we
+                            # add our store operation because it's not tracked
+                            # in our write cache for some reason..
                             all_expr = load_expr + store_expr
                             all_expr.append(ExpirNode(ExpirOpcode.STORE, [
                                 ExpirArg(ExpirArgType.VAR, len(load_expr) - 1),
                                 ExpirArg(ExpirArgType.VAR, len(load_expr) + len(store_expr) - 1),
-                                ExpirArg(ExpirArgType.CONSTANT, size_in_bytes * 8)
+                                ExpirArg(ExpirArgType.CONSTANT, size_in_bits)
                             ]))
-        
+
+                            # compile into our lifted function
                             compiler.compile_nodes(all_expr)
 
-                
                 llvm_module = compiler.finish_body()
                 print(str(llvm_module))
                 save_llvm_module_to_object_file(llvm_module, f"{count}.o")
