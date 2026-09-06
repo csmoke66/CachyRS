@@ -31,14 +31,10 @@ class ExpirOpcode(Enum):
     FP_TO_FP = 13,
     INVALID = 14
 
-class ExpirHardwareRegister(Enum):
-    RSP = 1
-
 class ExpirArgType(Enum):
     CONSTANT = 1
     VAR = 2
-    HW_REG = 3
-    FUNC_ARGS = 4
+    FUNC_ARGS = 3
 
 @dataclass
 class ExpirArg:
@@ -315,7 +311,6 @@ class ExpirToLLVMCompiler:
         
         self.vmap: Dict[int, ir.Value] = {}
 
-        self.hw_regs_ptr = None
         self.func_args_ptr = None
 
     def _get_llvm_arg(self, arg: ExpirArg) -> ir.Value:
@@ -327,11 +322,6 @@ class ExpirToLLVMCompiler:
             if arg.value not in self.vmap:
                 raise ValueError(f"Variable idx {arg.value} referenced before definition.")
             return self.vmap[arg.value]
-            
-        elif arg.type == ExpirArgType.HW_REG:
-            reg_idx = ir.Constant(self.i64, arg.value.value)
-            ptr = self.builder.gep(self.hw_regs_ptr, [reg_idx], name=f"addr_{arg.value.name}")
-            return self.builder.load(ptr, name=f"val_{arg.value.name}")
             
         elif arg.type == ExpirArgType.FUNC_ARGS:
             gv_idx = ir.Constant(self.i64, arg.value)
