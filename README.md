@@ -8,7 +8,10 @@ A third party client for RS3 (and eventually, OSRS.)
 ## Compiling
 Currently only LLVM/Clang are supported.
 ### Dependencies
+* `CMake`
+* `FakeIt`
 * `Capstone`
+* `sdl2_image`
 ### Linux
 `git clone https://github.com/csmoke66/CachyRS`  
 `cd CachyRS`  
