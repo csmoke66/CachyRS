@@ -544,7 +544,7 @@ class Analyzer:
         # not sure if this is required
         state.options.add(angr.options.SYMBOLIC_WRITE_ADDRESSES)
 
-        # we want tracking, so we can fully run out simulation
+        # we want tracking, so we can fully run our simulation
         # and then pull out what we want
         state.options.add(angr.options.TRACK_MEMORY_ACTIONS)
         state.options.add(angr.options.TRACK_ACTION_HISTORY)
