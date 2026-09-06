@@ -336,11 +336,9 @@ class ExpirToLLVMCompiler:
         
         self.func = ir.Function(self.module, fnty, name=func_name)
         
-        self.func.args[0].name = "hw_regs"
-        self.func.args[1].name = "game_values"
+        self.func.args[0].name = "func_args"
         
-        self.hw_regs_ptr = self.func.args[0]
-        self.func_args_ptr = self.func.args[1]
+        self.func_args_ptr = self.func.args[0]
         
         entry_block = self.func.append_basic_block(name="entry")
         self.builder = ir.IRBuilder(entry_block)
