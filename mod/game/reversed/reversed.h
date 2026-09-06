@@ -32,6 +32,7 @@ namespace crs
 #include "reversed_scene.h"
 #include "reversed_widget.h"
 #include "reversed_item_cache.h"
+#include "reversed_network.h"
 #include "reversed_linux.h"
 #include "reversed_fn_decl.h"
 #include "reversed_traits.h"

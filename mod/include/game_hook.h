@@ -154,4 +154,10 @@ namespace crs
   public:
     void handler(CpuState *cpu_state) override;
   };
+
+  class SendPacketHook : public Hook<FnSendPacket>
+  {
+  public:
+    void handler(CpuState *cpu_state) override;
+  };
 } // namespace crs

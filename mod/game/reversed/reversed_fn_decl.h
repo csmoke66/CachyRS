@@ -25,3 +25,4 @@ typedef void *(*FnRenderWidget)(Widget *, void *, JVector<WidgetChild> *, int, i
 typedef void *(*FnSetVarBit)(const WorldSettingCache *, const CacheBuffer<void, WorldSettingMask> *, const uint32_t *);
 typedef void (*FnAddMenuOption)(void *, const char *, uint8_t *, int32_t, void *, int32_t *, int32_t, int32_t, int32_t, int32_t, uint8_t, uint8_t, int32_t, uint8_t, uint8_t, void *, uint8_t, int32_t);
 typedef void *(*FnAddChatMessage)(void *, int, int, int, const char *, const char *, const char *, const char *, void *, const char *, void *);
+typedef void (*FnSendPacket)(void*, PacketContainer*);
