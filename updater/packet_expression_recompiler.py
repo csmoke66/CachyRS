@@ -536,14 +536,28 @@ class Analyzer:
         self.memory_store_registry = {}
 
         state = self.project.factory.blank_state(addr=0x1624F0)
+
+        # this is simply for speed
         state.options.add(angr.options.UNICORN)
         state.options.add(angr.options.UNICORN_SYM_REGS_SUPPORT)
+
+        # not sure if this is required
         state.options.add(angr.options.SYMBOLIC_WRITE_ADDRESSES)
+
+        # we want tracking, so we can fully run out simulation
+        # and then pull out what we want
         state.options.add(angr.options.TRACK_MEMORY_ACTIONS)
         state.options.add(angr.options.TRACK_ACTION_HISTORY)
         return state
 
     def setup_engine(self, state):
+        """
+        Sets up engine memory for the packet construction.
+
+        The engine itself isn't specifically used, so we symbolize child pointers
+        which are used.
+        """
+
         self.engine_194a8_addr = state.heap.allocate(0x10000)
         state.memory.store(self.engine_194a8_addr + 0x490, claripy.BVS("engine_194a8_490#", 32), endness=state.arch.memory_endness)
         
@@ -552,6 +566,12 @@ class Analyzer:
         state.memory.store(self.engine_addr + 0x194a8, claripy.BVV(self.engine_194a8_addr, 64), endness=state.arch.memory_endness)
         
     def setup_menu(self, state):
+        """
+        Sets up menu memory for the packet construction.
+
+        Specifically we symbolize the menu actions which are directly put into the packet
+        after obfuscation.
+        """
         self.menu_args_addr = state.heap.allocate(0x100)
         state.memory.store(self.menu_args_addr + 0x48, claripy.BVS("menu_action_0#", 32), endness=state.arch.memory_endness)
         state.memory.store(self.menu_args_addr + 0x4c, claripy.BVS("menu_action_1#", 32), endness=state.arch.memory_endness)
@@ -564,12 +584,8 @@ class Analyzer:
         self.menu_action_addr = state.heap.allocate(0x200)
         state.memory.store(self.menu_action_addr, self.engine_addr, endness=state.arch.memory_endness)
 
-    def apply_redirection_stubs(self, state):
-        class BadFunctionHook(SimProcedure):
-            def run(self):
-                raise ValueError("bad function")
-            
-        class SkipFunction_19A420_Hook(SimProcedure):
+    def apply_hooks(self, state):
+        class Function_19A420_Hook(SimProcedure):
             def run(self):
                 dummy_ptr3 = self.state.heap.allocate(0x400)
                 self.state.memory.store(dummy_ptr3 + 0xd0, claripy.FPS("unknown_1#", claripy.fp.FSORT_FLOAT), endness=state.arch.memory_endness)
@@ -599,9 +615,16 @@ class Analyzer:
                 self.state.memory.store(output + 0x8, claripy.BVV(buffer, 64), endness=state.arch.memory_endness)
                 return buffer
 
-        self.project.hook(0x19a420, SkipFunction_19A420_Hook())
-        self.project.hook(0x230f40, Return1Hook())
+        # this function provides memory used in
+        # packet data, so we need to symbolize it
+        self.project.hook(0x19a420, Function_19A420_Hook())
+
+        # we need to symbolize the packet buffer
         self.project.hook(0x1378d0, AllocatePacketHook())
+
+        # these are primarily to stop angr from 
+        # running for so long, but should not be required
+        self.project.hook(0x230f40, Return1Hook())
         self.project.hook(0x161c10, Return1Hook())
         self.project.hook(0xcdad60, Return1Hook())
         self.project.hook(0x280220, Return1Hook())
@@ -702,7 +725,7 @@ class Analyzer:
         state.regs.rdi = claripy.BVV(self.menu_action_addr, 64)
         state.regs.rsi = claripy.BVV(self.menu_action_ctx_addr, 64)
 
-        self.apply_redirection_stubs(state)
+        self.apply_hooks(state)
         self.apply_expr_caches(state)
 
         self.simgr = self.project.factory.simulation_manager(state)
