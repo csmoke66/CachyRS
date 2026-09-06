@@ -532,9 +532,6 @@ class Analyzer:
             },
             auto_load_libs=True)
 
-        self.memory_load_registry = {}
-        self.memory_store_registry = {}
-
         state = self.project.factory.blank_state(addr=0x1624F0)
 
         # this is simply for speed
