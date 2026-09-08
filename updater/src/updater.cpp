@@ -97,28 +97,42 @@ std::vector<Object *> match_to_object(const ElfInterface &elf, uint8_t *text, El
   for (auto &pattern_obj : patterns)
   {
     auto obj = new Object{ pattern_obj.name, pattern_obj.is_class, pattern_obj.has_parent, pattern_obj.parent };
-    LOG(info, "Matching " << pattern_obj.name);
+    LOG(INFO, "Matching " << pattern_obj.name);
 
     if (auto sizepattern = pattern_obj.size_pattern)
     {
-      LOG(info, "Matching size...");
       auto result = sizepattern->find_result(text, text_hdr);
-
-      obj->size = sizepattern->extractor->extract_validated(elf, result);
-      obj->rel_size = obj->size;
-      if (pattern_obj.has_parent)
+      if (!result)
       {
-        obj->rel_size -= matched[pattern_obj.parent]->size;
+        LOG(ERROR, "Failed to find size for '" << sizepattern->name << "'");
+      }
+      else
+      {
+
+        obj->size = sizepattern->extractor->extract_validated(elf, result);
+        obj->rel_size = obj->size;
+
+        if (pattern_obj.has_parent)
+        {
+          auto parent_matched = matched.find(pattern_obj.parent);
+          if (parent_matched != matched.end())
+          {
+            obj->rel_size -= parent_matched->second->size;
+          }
+        }
       }
     }
 
     size_t size = 0;
     if (pattern_obj.has_parent)
     {
-      size = matched[pattern_obj.parent]->size;
+      auto parent_matched = matched.find(pattern_obj.parent);
+      if (parent_matched != matched.end())
+      {
+        size = parent_matched->second->size;
+      }
     }
 
-    LOG(info, "Matching pattern...");
     for (auto pattern : pattern_obj.patterns)
     {
       auto result = pattern->find_result(text, text_hdr);

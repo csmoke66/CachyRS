@@ -92,7 +92,7 @@ class DirectExtractor : public Extractor<uint64_t>
   uint64_t offset;
 
 public:
-  DirectExtractor(uint64_t offset);
+  DirectExtractor(uint64_t offset = 0);
 
 public:
   uint64_t extract(const ElfInterface &elf, const uint8_t *data) override;

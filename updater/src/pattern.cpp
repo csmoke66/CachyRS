@@ -23,6 +23,11 @@ ImmExtractor::ImmExtractor(uint64_t offset_to_data, uint64_t offset, size_t data
 
 uint64_t ImmExtractor::extract(const ElfInterface &elf, const uint8_t *data)
 {
+  if (!data)
+  {
+    return 0;
+  }
+
   auto data_ptr = data + offset_to_data;
   uint64_t v = 0;
 
@@ -81,6 +86,11 @@ uint64_t MenuActionHandlerExtractor::extract(const ElfInterface &elf, const uint
   cs_insn *insn;
 
   auto ret = false;
+  if (!data)
+  {
+    return 0;
+  }
+
   auto rva = elf.ptr_to_va(elf.offset(data));
   std::vector<Candidate> candidates;
 
@@ -133,6 +143,10 @@ uint64_t CallExtractor::extract(const ElfInterface &elf, const uint8_t *data)
   cs_insn *insn;
 
   auto ret = false;
+  if (!data)
+  {
+    return 0;
+  }
 
   auto called_addr = data + *((int32_t *)(data + 1)) + 5;
   auto rva = elf.ptr_to_va(elf.offset(called_addr));
@@ -180,6 +194,11 @@ uint64_t ConstructorSizeExtractor::extract(const ElfInterface &elf, const uint8_
   auto ret = false;
   uint64_t last_written = 0;
   uint8_t last_sz = 0;
+
+  if (!data)
+  {
+    return 0;
+  }
 
   auto rva = elf.ptr_to_va(elf.offset(data));
 
@@ -256,7 +275,12 @@ DefaultPattern::DefaultPattern(std::string name, std::vector<int> pattern, Type 
 const uint8_t *DefaultPattern::find_result(uint8_t *text, Elf64_Shdr text_hdr)
 {
   const uint8_t *found;
-  pattern_scan(text, text_hdr.sh_size, pattern, &found);
+  auto status = pattern_scan(text, text_hdr.sh_size, pattern, &found);
+  if (status == Status::Duplicates)
+  {
+    LOG(WARNING, "Duplicate pattern");
+    return nullptr;
+  }
   return found;
 }
 
