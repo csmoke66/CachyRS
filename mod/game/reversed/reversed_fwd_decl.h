@@ -6,7 +6,6 @@ struct Linux004;
 struct Linux003;
 struct Linux002;
 struct Linux001;
-struct WindowState;
 struct WorldNode;
 struct Scene002;
 struct Scene001;
