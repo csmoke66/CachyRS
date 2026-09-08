@@ -2,16 +2,17 @@
 #include <chrono>
 #include <thread>
 
+typedef std::chrono::system_clock TimerClock;
 class Timer
 {
 private:
-  std::chrono::system_clock::time_point last_time = std::chrono::system_clock::now();
+ TimerClock::time_point last_time = TimerClock::now();
 
 public:
   template <typename _Rep, typename _Period>
   inline bool check(const std::chrono::duration<_Rep, _Period> &tp)
   {
-    auto now = std::chrono::system_clock::now();
+    auto now = TimerClock::now();
     auto future = last_time + tp;
     auto passed = now >= future;
     if (passed)
@@ -23,6 +24,7 @@ public:
   }
 };
 
+typedef std::chrono::steady_clock StopwatchClock;
 class Stopwatch
 {
 private:
@@ -33,8 +35,8 @@ private:
   };
 
 private:
-  std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-  std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+  StopwatchClock::time_point start = StopwatchClock::now();
+  StopwatchClock::time_point end = StopwatchClock::now();
   State state = State::running;
 
 public:
@@ -42,7 +44,7 @@ public:
   {
     if (state == State::running)
     {
-      return std::chrono::steady_clock::now() - start;
+      return StopwatchClock::now() - start;
     }
     else
     {
@@ -57,13 +59,13 @@ public:
 
   void reset()
   {
-    start = std::chrono::steady_clock::now();
+    start = StopwatchClock::now();
     state = State::running;
   }
 
   void stop()
   {
-    end = std::chrono::steady_clock::now();
+    end = StopwatchClock::now();
     state = State::stopped;
   }
 };

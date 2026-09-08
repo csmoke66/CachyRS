@@ -198,9 +198,9 @@ std::vector<PatternObject> build_pattern_objects()
                 validator(new AlignmentValidator(0x10))},
         new DefaultPattern{
             "set_varbit",
-            compile_ida_pattern("E8 ? ? ? ? 48 89 EF E8 ? ? ? ? 48 83 C4 ? 5B 5D 41 5C 41 5D 41 5E 41 5F C3 0F 1F 44 00 ? 66 2E 0F 1F 84 00 ? ? ? ? 48 8B 7E"),
+            compile_ida_pattern("41 55 41 54 49 89 D5 55 53 48 89 FB 48 83 EC ? 48 8B 46 ? 48 8D 77"),
             {"char", 1},
-            (new ImmExtractor(0x1, 0x5, 4, true))->
+            (new DirectExtractor())->
                 validator(new AlignmentValidator(0x10))},
         new DefaultPattern{
             "add_menu_option",
@@ -222,11 +222,6 @@ std::vector<PatternObject> build_pattern_objects()
     }});
     
     objects.push_back({"Engine", {
-        new DummyPattern{
-            "window_state",
-            { "WindowState*", 8},
-            (new DummyExtractor(0x90))->
-                validator(new AlignmentValidator(0x8))},
         new DefaultPattern{
             "time",
             compile_ida_pattern("44 2B A3 ? ? ? ? 41 83 FC ? 0F 87 ? ? ? ? 45 84 C9"),
@@ -271,7 +266,7 @@ std::vector<PatternObject> build_pattern_objects()
                 validator(new AlignmentValidator(0x8))},
         new DefaultPattern{
             "world_a",
-            compile_ida_pattern("4D 8B B3 ? ? ? ? 41 80 BE"),
+            compile_ida_pattern("4D 8B B3 ? ? ? ? 41 80 BE ? ? ? ? ? 0F 85"),
             { "void*", 8, },
             (new ImmExtractor(0x3, 0x0, 4))->
                 validator(new AlignmentValidator(0x8))},
@@ -327,19 +322,19 @@ std::vector<PatternObject> build_pattern_objects()
         new DummyPattern{
             "parent",
             { "WorldNode*", 8},
-            new DummyExtractor(0x8)},
+            new DummyExtractor(0x18)},
         new DummyPattern{
             "type",
             { "EntityType", 1},
-            new DummyExtractor(0x10)},
+            new DummyExtractor(0x20)},
         new DummyPattern{
             "terrain",
             { "Terrain*", 8},
-            new DummyExtractor(0x50)},
+            new DummyExtractor(0x60)},
     }, false, false, "" ,
      new DefaultPattern{
         "type_size",
-        compile_ida_pattern("48 8D 05 ? ? ? ? C6 47"),
+        compile_ida_pattern("C6 47 ? ? C6 47 ? ? 48 C7 47 ? ? ? ? ? ? ? ? ? ? ? 48 8B 52"),
         { "char", 0x1, },
         new ConstructorSizeExtractor(capstone_handle, x86_reg::X86_REG_RDI, X86_INS_RET)}});
 
@@ -364,7 +359,7 @@ std::vector<PatternObject> build_pattern_objects()
                 validator(new AlignmentValidator(0x8))},
         new DefaultPattern{
             "animation_queue",
-            compile_ida_pattern("4C 8B 8D ? ? ? ? 4C 89 8D"),
+            compile_ida_pattern("49 8B 85 ? ? ? ? 49 89 85 ? ? ? ? 48 83 C4"),
             { "JVector<const uint32_t>", 0x18, },
             (new ImmExtractor(0x3, 0x0, 4))->
                 validator(new AlignmentValidator(0x8))},
@@ -376,7 +371,7 @@ std::vector<PatternObject> build_pattern_objects()
                 validator(new AlignmentValidator(0x8))},
         new DefaultPattern{
             "movement_queue",
-            compile_ida_pattern("4D 8B 8D ? ? ? ? 41 8B 49"),
+            compile_ida_pattern("4D 8B 9D ? ? ? ? 41 8B 4B ? 85 C9 0F 84"),
             { "MovementQueue*", 8, },
             (new ImmExtractor(0x3, 0x0, 4))->
                 validator(new AlignmentValidator(0x8))},
@@ -384,7 +379,7 @@ std::vector<PatternObject> build_pattern_objects()
     true, true, "Entity",
      new DefaultPattern{
         "type_size",
-        compile_ida_pattern("49 BD ? ? ? ? ? ? ? ? 49 BF ? ? ? ? ? ? ? ? 48 89 53"),
+        compile_ida_pattern("49 BF ? ? ? ? ? ? ? ? 66 0F EF C9"),
         { "char", 0x1, },
         new ConstructorSizeExtractor(capstone_handle, x86_reg::X86_REG_RBX, X86_INS_RET)}});
 
