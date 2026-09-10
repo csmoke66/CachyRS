@@ -1,7 +1,7 @@
 #pragma once
 
 #pragma pack(push, 1)
-typedef void *(*FnMenuActionHandler)(MenuActionTemplate *, ActionMenuContext *ctx);
+typedef void *(*FnMenuActionHandler)(MenuActionTemplate *, MenuAction *ctx);
 
 class MenuActionTemplate
 {
@@ -68,7 +68,7 @@ struct MenuActionContext
   MenuActionArgs args;
 };
 
-struct ActionMenuContext
+struct MenuAction
 {
   // 0x0
   PAD(0x8);

@@ -209,6 +209,10 @@ namespace crs
     });
     bool contains(std::function<bool(ApiItem &)> conditional);
     bool is_full();
+    std::vector<ApiItem> filter(std::function<bool(ApiItem &)> condition = [](auto item)
+    {
+      return true;
+    });
   };
 
   class Boot
@@ -257,7 +261,7 @@ namespace crs
 
   public: // API game data
     // players
-    static ApiPlayer self();
+    static std::optional<ApiPlayer> self();
     static std::vector<ApiPlayer> players(std::function<bool(ApiPlayer &)> conditional = [](ApiPlayer &)
     {
       return true;
@@ -279,12 +283,12 @@ namespace crs
 
     // menu actions
     static FnMenuActionHandler get_menu_action_handler(MenuActionType type, uint32_t idx = 0);
-    static void perform_menu_action(FnMenuActionHandler handler, const MenuActionArgs& args);
-    // This should be safe from botting risks as it only modifies internal 
+    static void perform_menu_action(FnMenuActionHandler handler, const MenuActionArgs &args);
+    // This should be safe from botting risks as it only modifies internal
     // client state, and does not send any packets.
     static void select_item(uint16_t parent_widget, uint16_t child_widget, int32_t slot);
     // Utility for overriding the next menu action event.
-    static void override_current_menu_action(FnMenuActionHandler handler, const MenuActionArgs& args, bool bypass = false);
+    static void override_current_menu_action(FnMenuActionHandler handler, const MenuActionArgs &args, bool bypass = false);
 
   public: // C++ event handling
     static uint64_t on_tick(std::function<void()> f);

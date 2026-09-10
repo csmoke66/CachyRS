@@ -3,7 +3,10 @@
 namespace crs
 {
   static PluginApi api;
+
   static Plugin *plugin = nullptr;
+  static ApiCheckBox enabled_checkbox;
+
   static ApiEventList<std::function<void()>> tick_events;
   static ApiEventList<std::function<void(MenuActionEventArgs *)>> menu_action_events;
   static ApiEventList<std::function<void(uint32_t, uint32_t)>> world_setting_changed_events;
@@ -17,37 +20,46 @@ namespace crs
 
   static void event_handler_engine_tick(EngineTickArgs *args, void *)
   {
-    tick_events.iterate([args](auto &f)
+    if (enabled_checkbox.is_checked())
     {
-      f();
-    });
+      tick_events.iterate([args](auto &f)
+      {
+        f();
+      });
+    }
   }
 
   static void event_handler_menu_action(MenuActionEventArgs *args, void *)
   {
-    menu_action_events.iterate([args](auto &f)
+    if (enabled_checkbox.is_checked())
     {
-      f(args);
-    });
+      menu_action_events.iterate([args](auto &f)
+      {
+        f(args);
+      });
 
-    if (has_menu_action_override)
-    {
-      memcpy(&menu_action_override_template, *args->action_template, sizeof(MenuActionTemplate));
-      menu_action_override_template.handler = menu_action_override_handler;
-      *args->action_template = &menu_action_override_template;
-      *args->args = menu_action_override_args;
-      args->bypass_logic = menu_action_override_bypass;
+      if (has_menu_action_override)
+      {
+        memcpy(&menu_action_override_template, *args->action_template, sizeof(MenuActionTemplate));
+        menu_action_override_template.handler = menu_action_override_handler;
+        *args->action_template = &menu_action_override_template;
+        *args->args = menu_action_override_args;
+        args->bypass_logic = menu_action_override_bypass;
 
-      has_menu_action_override = false;
+        has_menu_action_override = false;
+      }
     }
   }
 
   static void event_handler_world_setting_changed(WorldSettingChangedEventArgs *args, void *)
   {
-    world_setting_changed_events.iterate([args](auto &f)
+    if (enabled_checkbox.is_checked())
     {
-      f(args->world_setting_id, args->value);
-    });
+      world_setting_changed_events.iterate([args](auto &f)
+      {
+        f(args->world_setting_id, args->value);
+      });
+    }
   }
 
   uint64_t ApiComponent::get_id()
@@ -321,9 +333,15 @@ namespace crs
     return engine->widget_cache;
   }
 
-  ApiPlayer Api::self()
+  std::optional<ApiPlayer> Api::self()
   {
-    return ApiPlayer(Api::raw_self());
+    auto rs = Api::raw_self();
+    if (!rs)
+    {
+      return std::optional<ApiPlayer>();
+    }
+
+    return ApiPlayer(rs);
   }
 
   std::vector<ApiPlayer> Api::players(std::function<bool(ApiPlayer &)> conditional)
@@ -438,29 +456,29 @@ namespace crs
   FnMenuActionHandler Api::get_menu_action_handler(MenuActionType type, uint32_t idx)
   {
     static uint64_t obj_offsets[] = {
+      off(Globals, menu_action_handler_obj0),
       off(Globals, menu_action_handler_obj1),
       off(Globals, menu_action_handler_obj2),
       off(Globals, menu_action_handler_obj3),
       off(Globals, menu_action_handler_obj4),
       off(Globals, menu_action_handler_obj5),
-      off(Globals, menu_action_handler_obj6),
-      off(Globals, menu_action_handler_obj7)
+      off(Globals, menu_action_handler_obj6)
     };
 
     static uint64_t npc_offsets[] = {
+      off(Globals, menu_action_handler_npc0),
       off(Globals, menu_action_handler_npc1),
       off(Globals, menu_action_handler_npc2),
       off(Globals, menu_action_handler_npc3),
       off(Globals, menu_action_handler_npc4),
       off(Globals, menu_action_handler_npc5),
-      off(Globals, menu_action_handler_npc6),
-      off(Globals, menu_action_handler_npc7)
+      off(Globals, menu_action_handler_npc6)
     };
 
     static uint64_t widget_offsets[] = {
+      off(Globals, menu_action_handler_widget0),
       off(Globals, menu_action_handler_widget1),
-      off(Globals, menu_action_handler_widget2),
-      off(Globals, menu_action_handler_widget3)
+      off(Globals, menu_action_handler_widget2)
     };
 
     auto globals = Api::raw_globals();
@@ -494,7 +512,7 @@ namespace crs
     ctx.tmpl = &templ;
     ctx.args = args;
 
-    ActionMenuContext am_ctx;
+    MenuAction am_ctx;
     am_ctx.menu_action_context = &ctx;
 
     Api::log(std::format("test {} {} {} {}", ctx.args.r[0], ctx.args.r[1], ctx.args.r[2], ctx.args.r[3]));
@@ -557,6 +575,7 @@ void plugin_init(crs::InitType type, crs::Plugin *plugin)
     crs::Boot::init();
   }, []()
   {
+    crs::enabled_checkbox = crs::Api::add_checkbox("Enabled");
     crs::Boot::init_ui();
   });
 }

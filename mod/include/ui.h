@@ -56,6 +56,9 @@ namespace crs
 
   class UserInterface
   {
+  private:
+    bool wants_verify = false;
+    
   public:
     virtual ~UserInterface();
 
@@ -63,6 +66,8 @@ namespace crs
     virtual void init(const std::string &version, const std::string &config_folder, SDL_Window *window, int width, int height) = 0;
     virtual void reload();
     virtual void add_reload_callback(std::function<void()> function);
+    virtual void request_verify();
+    virtual bool check_verify();
 
   public:
     virtual void process(SDL_Event *event) = 0;

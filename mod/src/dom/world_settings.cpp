@@ -26,7 +26,7 @@ namespace crs
       auto c = ws->vars[i];
       while (c)
       {
-        if (c->body.initialized)
+        if (!c->body.initialized)
         {
           auto id = std::format("world_setting_{}", c->id);
           auto child = find_typed_child(id);

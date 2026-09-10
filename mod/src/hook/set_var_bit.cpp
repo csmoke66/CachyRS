@@ -14,7 +14,12 @@ namespace crs
     auto event = WorldSettingChangedEvent(buffer->body->world_setting_id, *value);
     RS.event_bus.dispatch(WorldSettingChangedEvent::specific_id(), &event);
 
-    LOG(INFO, "Update world setting: " << buffer->body->world_setting_id << " to " << *value);
+    void* tmp[8];
+    auto fn = (void(*)(void*, void*, void*, uint32_t))((char*)RS.get_globals().unwrap() + 0xb9b9e0);
+    uint32_t id = buffer->body->world_setting_id;
+    fn(tmp, (char*)wsc + 0x20, &id, id);
+
+    LOG(INFO, "Update world setting: " << buffer->body->world_setting_id << " to " << *value << " at " << tmp[0]);
     cpu_state->rax = reinterpret_cast<uint64_t>(trampoline(wsc, buffer, value));
   }
 } // namespace crs

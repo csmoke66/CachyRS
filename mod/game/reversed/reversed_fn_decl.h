@@ -17,7 +17,7 @@ typedef SDL_Window *(*FnSdlCreateWindow)(const char *, int, int, int, int, uint3
 typedef SDL_GLContext (*FnSdlCreateContext)(SDL_Window *);
 typedef void (*FnSdlDeleteContext)(SDL_GLContext);
 
-typedef void *(*FnMenuExecute)(void *, const ActionMenuContext *, void *);
+typedef void *(*FnMenuExecute)(void *, const MenuAction *, void *);
 typedef void *(*FnHeapAllocate)(void *, size_t, size_t);
 typedef void *(*FnHeapAllocateAligned)(size_t);
 typedef void *(*FnEngineTick)(Engine *, float);

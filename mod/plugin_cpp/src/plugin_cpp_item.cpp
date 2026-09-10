@@ -98,4 +98,17 @@ namespace crs
   {
     return items.size() == capacity;
   }
+
+  std::vector<ApiItem> ApiItemContainer::filter(std::function<bool(ApiItem &)> condition)
+  {
+    std::vector<ApiItem> f;
+    for (auto item : this->items)
+    {
+      if (condition(item))
+      {
+        f.push_back(item);
+      }
+    }
+    return f;
+  }
 } // namespace crs

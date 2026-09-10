@@ -18,7 +18,7 @@ namespace crs
   {
     if (auto ct = *current_tab)
     {
-      ct->SetClass("tabbutton-selected", false);
+      ct->SetClass("selected", false);
     }
 
     if (auto cc = *current_content)
@@ -26,11 +26,21 @@ namespace crs
       cc->SetProperty("display", "none");
     }
 
-    tab->SetClass("tabbutton-selected", true);
+    tab->SetClass("selected", true);
     content->RemoveProperty("display");
 
     *current_tab = tab;
     *current_content = content;
+  }
+
+  VerifyEventHandler::VerifyEventHandler(RmlUserInterface *rml_ui)
+  {
+    this->rml_ui = rml_ui;
+  }
+
+  void VerifyEventHandler::ProcessEvent(Rml::Event &event)
+  {
+    rml_ui->request_verify();
   }
 
   RefreshEventHandler::RefreshEventHandler(RmlUserInterface *rml_ui)

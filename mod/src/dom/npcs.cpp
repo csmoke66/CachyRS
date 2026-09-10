@@ -42,22 +42,31 @@ namespace crs
               child->mark_dirty();
             }
 
-            auto x_value = child->find_value<FloatDomValue>("x");
-            auto y_value = child->find_value<FloatDomValue>("y");
-            auto z_value = child->find_value<FloatDomValue>("z");
+            auto sx_value = child->find_value<FloatDomValue>("scene x");
+            auto sy_value = child->find_value<FloatDomValue>("scene y");
+            auto sz_value = child->find_value<FloatDomValue>("scene z");
 
-            if (x_value->val != entity->position.x ||
-                y_value->val != entity->position.y ||
-                z_value->val != entity->position.z)
+            auto tx_value = child->find_value<Int32DomValue>("tile x");
+            auto ty_value = child->find_value<Int32DomValue>("tile y");
+
+            if (sx_value->val != entity->position.x ||
+                sy_value->val != entity->position.y ||
+                sz_value->val != entity->position.z)
             {
-              x_value->val = entity->position.x;
-              x_value->mark_dirty();
+              sx_value->val = entity->position.x;
+              sx_value->mark_dirty();
 
-              y_value->val = entity->position.y;
-              y_value->mark_dirty();
+              sy_value->val = entity->position.y;
+              sy_value->mark_dirty();
 
-              z_value->val = entity->position.z;
-              z_value->mark_dirty();
+              sz_value->val = entity->position.z;
+              sz_value->mark_dirty();
+
+              tx_value->val = static_cast<int32_t>(entity->position.x / 512.f);
+              tx_value->mark_dirty();
+
+              ty_value->val = static_cast<int32_t>(entity->position.z / 512.f);
+              ty_value->mark_dirty();
 
               child->mark_dirty();
             }
@@ -83,22 +92,34 @@ namespace crs
 
             new_dom_node->add_value(std::make_unique<StringDomValue>("name", entity->name.c_str()));
 
-            auto x_node = std::make_unique<FloatDomValue>("x", entity->position.x);
+            auto sx_node = std::make_unique<FloatDomValue>("scene x", entity->position.x);
             {
-              x_node->mark_hidden();
-              new_dom_node->add_value(std::move(x_node));
+              sx_node->mark_hidden();
+              new_dom_node->add_value(std::move(sx_node));
             }
 
-            auto y_node = std::make_unique<FloatDomValue>("y", entity->position.y);
+            auto sy_node = std::make_unique<FloatDomValue>("scene y", entity->position.y);
             {
-              y_node->mark_hidden();
-              new_dom_node->add_value(std::move(y_node));
+              sy_node->mark_hidden();
+              new_dom_node->add_value(std::move(sy_node));
             }
 
-            auto z_node = std::make_unique<FloatDomValue>("z", entity->position.z);
+            auto sz_node = std::make_unique<FloatDomValue>("scene z", entity->position.z);
             {
-              z_node->mark_hidden();
-              new_dom_node->add_value(std::move(z_node));
+              sz_node->mark_hidden();
+              new_dom_node->add_value(std::move(sz_node));
+            }
+
+            auto tx_node = std::make_unique<Int32DomValue>("tile x", static_cast<int32_t>(entity->position.x / 512.f));
+            {
+              tx_node->mark_hidden();
+              new_dom_node->add_value(std::move(tx_node));
+            }
+
+            auto ty_node = std::make_unique<Int32DomValue>("tile y", static_cast<int32_t>(entity->position.z / 512.f));
+            {
+              ty_node->mark_hidden();
+              new_dom_node->add_value(std::move(ty_node));
             }
 
             for (auto i = entity->animation_queue.begin; i != entity->animation_queue.end; i++)

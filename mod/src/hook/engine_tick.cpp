@@ -6,6 +6,128 @@
 
 namespace crs
 {
+  void EngineTickHook::verify()
+  {
+    auto globals = RS.get_globals().unwrap();
+    if (auto engine = globals->engine)
+    {
+      if (auto lp = engine->local_player)
+      {
+        LOG(DEBUG, " -> engine->lp: "
+                       << lp->name
+                       << " "
+                       << lp->entity_list_index);
+      }
+
+      if (auto cache = engine->player_update_cache)
+      {
+        LOG(DEBUG, " -> engine->player_update_cache: "
+                       << cache->updates.begin
+                       << " "
+                       << cache->updates.end
+                       << " "
+                       << cache->updates.max);
+
+        for (auto it = cache->updates.begin; it != cache->updates.end; it++)
+        {
+          if (auto u = *it)
+          {
+            LOG(DEBUG, "  -> updates: "
+                           << u->player);
+
+            if (auto plr = u->player)
+            {
+              LOG(DEBUG, "   -> plr: "
+                             << plr->name.str()
+                             << " "
+                             << plr->combat_level
+                             << " "
+                             << (uint32_t)plr->type
+                             << " "
+                             << plr->animation_queue.size()
+                             << " "
+                             << plr->model
+                             << " "
+                             << plr->status);
+
+              if (auto status = plr->status)
+              {
+                LOG(DEBUG, "    -> status: "
+                               << status->bars.size());
+
+                for (auto it2 = status->bars.begin; it2 != status->bars.end; it2++)
+                {
+                  LOG(DEBUG, "     -> bar: "
+                                 << it2->data);
+
+                  if (auto data = it2->data)
+                  {
+                    LOG(DEBUG, "      -> data: "
+                                   << data->value
+                                   << " "
+                                   << data->display_time);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      if (auto cache = engine->npc_update_cache)
+      {
+        LOG(DEBUG, " -> engine->npc_update_cache: "
+                       << cache->npcs
+                       << " "
+                       << cache->size
+                       << " "
+                       << cache->valid_count);
+
+        for (auto i = 0; i < cache->size; i++)
+        {
+          if (auto u = cache->npcs[i])
+          {
+            if (auto npc = u->npc)
+            {
+              LOG(DEBUG, "   -> npc: "
+                             << npc
+                             << " "
+                             << npc->name.str()
+                             << " "
+                             << npc->visible_level
+                             << " "
+                             << (uint32_t)npc->type
+                             << " "
+                             << npc->animation_queue.size()
+                             << " "
+                             << npc->status);
+
+              if (auto status = npc->status)
+              {
+                LOG(DEBUG, "    -> status: "
+                               << status->bars.size());
+
+                for (auto it2 = status->bars.begin; it2 != status->bars.end; it2++)
+                {
+                  LOG(DEBUG, "     -> bar: "
+                                 << it2->data);
+
+                  if (auto data = it2->data)
+                  {
+                    LOG(DEBUG, "      -> data: "
+                                   << data->value
+                                   << " "
+                                   << data->display_time);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
   void EngineTickHook::tick_ui(Engine *engine)
   {
     if (RS.ui_visible)
@@ -161,6 +283,11 @@ namespace crs
     RS.event_bus.dispatch(EngineTickEvent::specific_id(), &event);
 
     watch_item_changes(engine);
+
+    if (RS.ui->check_verify())
+    {
+      verify();
+    }
 
     cpu_state->rax = reinterpret_cast<uint64_t>(trampoline(
         engine,

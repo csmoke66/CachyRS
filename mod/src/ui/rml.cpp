@@ -93,7 +93,7 @@ namespace crs
     auto document = context->LoadDocument(path);
     if (!!document)
     {
-      auto title = document->GetElementById("titlebar");
+      auto title = document->GetElementById("title-bar");
 
       auto listener = new DragWindowEventListener(title, document);
       title->AddEventListener(Rml::EventId::Dragstart, listener);
@@ -178,6 +178,9 @@ namespace crs
 
       auto dom_node_ext = get_rml_dom_node(root_dom_node);
       dom_node_ext->element = debug_content->GetElementById("dom-tree");
+
+      auto verify_button = root_document->GetElementById("verify_button");
+      verify_button->AddEventListener(Rml::EventId::Click, new VerifyEventHandler(this));
 
       auto refresh_button = root_document->GetElementById("refresh_button");
       refresh_button->AddEventListener(Rml::EventId::Click, new RefreshEventHandler(this));

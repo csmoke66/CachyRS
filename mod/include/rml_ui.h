@@ -72,6 +72,18 @@ namespace crs
     void ProcessEvent(Rml::Event &event);
   };
 
+  class VerifyEventHandler : public OwnedEventListener
+  {
+  private:
+    RmlUserInterface *rml_ui;
+
+  public:
+    VerifyEventHandler(RmlUserInterface *rml_ui);
+
+  public:
+    void ProcessEvent(Rml::Event &event) override;
+  };
+
   //
   // An event listener for clicking the refresh UI button. Reloads
   // the UI entirely.

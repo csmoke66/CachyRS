@@ -52,6 +52,14 @@ namespace crs
         auto new_dom_node = std::make_shared<ItemDomNode>(tree, id, "item");
         new_dom_node->add_value(std::make_unique<Int32DomValue>("id", i->id));
         new_dom_node->add_value(std::make_unique<Int32DomValue>("amount", i->amount));
+        
+        if (i->id != -1)
+        {
+          auto cache = std::make_unique<PointerDomValue>("desc", NRS.get_cache_data<void>(CacheIndexOrdinal::items, i->id));
+          cache->mark_hidden();
+          new_dom_node->add_value(std::move(cache));
+        }
+
         new_dom_node->parent = shared_from_this();
 
         children[id] = new_dom_node;

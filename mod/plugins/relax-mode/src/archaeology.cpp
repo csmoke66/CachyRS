@@ -67,7 +67,7 @@ static void khard_et_main_entrance_override()
   auto effectively_full = (non_soil_count >= 22 || (total_count >= 22 && Api::get_world_setting(9370) == 100));
   if (effectively_full)
   {
-    auto is_at_bank = self.tile_position() == Vec2<uint32_t>(3356, 3197);
+    auto is_at_bank = self->tile_position() == Vec2<uint32_t>(3356, 3197);
     if (!is_at_bank && soil_box.has_value() && has_soil && Api::get_world_setting(9370) < 100)
     {
       Api::override_current_menu_action(Api::get_menu_action_handler(MenuActionType::widget, 0),

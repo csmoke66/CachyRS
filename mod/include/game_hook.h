@@ -10,6 +10,11 @@ namespace crs
 {
   class MenuExecuteHook : public Hook<FnMenuExecute>
   {
+  private:
+    std::string get_action_handler_name(FnMenuActionHandler handler);
+    std::string get_action_handler_api(FnMenuActionHandler handler);
+    void print_action_handler(MenuActionContext* menu_action_context);
+
   public:
     void handler(CpuState *cpu_state) override;
   };
@@ -104,6 +109,9 @@ namespace crs
   private:
     bool plugins_loaded = false;
     std::map<uint32_t, ItemContainerCache> cached_containers;
+
+  private:
+    void verify();
 
   private:
     void tick_ui(Engine *engine);

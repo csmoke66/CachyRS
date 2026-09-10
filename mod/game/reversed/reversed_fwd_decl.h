@@ -12,7 +12,7 @@ struct Scene001;
 struct WorldA;
 class MenuActionTemplate;
 struct MenuActionContext;
-struct ActionMenuContext;
+struct MenuAction;
 class Cache003;
 struct Cache002;
 template <typename T, typename B>
