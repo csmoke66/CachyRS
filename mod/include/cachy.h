@@ -83,6 +83,9 @@ namespace crs
   public:
     EventBus event_bus;
 
+  public:
+    bool no_graphics;
+
   private:
     void init_process_info();
     void init_imgui();
@@ -100,7 +103,7 @@ namespace crs
     bool project_to_screen(const Vec3<float> &scene, Vec2<float> *out) const;
 
   public:
-    void init();
+    void init(bool no_graphics = false);
 
   public:
     void push_ui_state();

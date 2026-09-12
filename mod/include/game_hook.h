@@ -38,6 +38,12 @@ namespace crs
     void handler(CpuState *cpu_state) override;
   };
 
+  class EglGetProcAddressHook : public Hook<FnEglGetProcAddress>
+  {
+  public:
+    void handler(CpuState *cpu_state) override;
+  };
+
   class EglInitHook : public Hook<FnEglInit>
   {
   public:

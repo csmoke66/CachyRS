@@ -6,6 +6,7 @@
 
 typedef EGLBoolean (*FnEglSwapBuffers)(EGLDisplay, EGLSurface);
 typedef EGLDisplay (*FnEglGetDisplay)(NativeDisplayType);
+typedef void* (*FnEglGetProcAddress)(const char* name);
 typedef EGLDisplay (*FnEGlGetPlatformDispaly)(uint32_t, void *, void *);
 typedef EGLBoolean (*FnEglInit)(EGLDisplay, EGLint *, EGLint *);
 typedef EGLSurface (*FnEglCreateWindowSurface)(EGLDisplay, EGLConfig, NativeWindowType, EGLint *);

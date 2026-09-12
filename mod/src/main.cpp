@@ -34,12 +34,18 @@ extern "C" int __libc_start_main(
   {
     redirect_output();
 
-    if (is_nvidia_wayland())
+    auto no_graphics = getenv("NO_GRAPHICS") != nullptr;
+    if (no_graphics)
+    {
+      setenv("VK_DRIVER_FILES", "/usr/share/vulkan/icd.d/lvp_icd.x86_64.json", 1);
+      setenv("MESA_VK_DEVICE_SELECT", "cpu", 1);
+    }
+    else if (is_nvidia_wayland())
     {
       setenv("MESA_LOADER_DRIVER_OVERRIDE", "zink", 1);
     }
 
-    crs::RS.init();
+    crs::RS.init(no_graphics);
   }
 
   return real_libc_start_main(main, argc, argv, init, fini, rtld_fini, stack_end);

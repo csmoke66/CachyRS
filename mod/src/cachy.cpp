@@ -164,6 +164,11 @@ namespace crs
     hook_manager->iat("egl_init", "eglInitialize", unique_hook<EglInitHook>());
     hook_manager->iat("egl_create_window_surface", "eglCreateWindowSurface", unique_hook<EglCreateWindowSurfaceHook>());
     hook_manager->iat("egl_choose_config", "eglChooseConfig", unique_hook<EglChooseConfigHook>());
+    if (no_graphics)
+    {
+      hook_manager->iat("eglGetProcAddress", "eglGetProcAddress", unique_hook<EglGetProcAddressHook>());
+    }
+    
     hook_manager->iat("sdl_get_window_wm_info", "SDL_GetWindowWMInfo", unique_hook<SdlGetWindowWMInfoHook>());
     hook_manager->iat("sdl_poll_event", "SDL_PollEvent", unique_hook<SdlPollEventHook>());
 
@@ -237,8 +242,10 @@ namespace crs
     return false;
   }
 
-  void CachyRS::init()
+  void CachyRS::init(bool no_graphics)
   {
+    this->no_graphics = no_graphics;
+    
     LOG(DEBUG, "Initializing configuration directory at " << get_configuration_dir());
     std::filesystem::create_directories(std::filesystem::path(get_configuration_dir()));
 
