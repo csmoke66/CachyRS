@@ -110,7 +110,9 @@ struct Engine
   Cache001* cache;
   PAD(0x7c8);
   WidgetCache* widget_cache;
-  PAD(0x20);
+  PAD(0x18);
+  VariableCache* variable_cache;
+  PAD(0x0);
   Menu* menu;
   PAD(0x0);
   NpcUpdateCache* npc_update_cache;
@@ -134,6 +136,7 @@ struct Engine
 static_assert(off(Engine, time) == 0x504, INVALID_OFFSET);
 static_assert(off(Engine, cache) == 0x18cd8, INVALID_OFFSET);
 static_assert(off(Engine, widget_cache) == 0x194a8, INVALID_OFFSET);
+static_assert(off(Engine, variable_cache) == 0x194c8, INVALID_OFFSET);
 static_assert(off(Engine, menu) == 0x194d0, INVALID_OFFSET);
 static_assert(off(Engine, npc_update_cache) == 0x194d8, INVALID_OFFSET);
 static_assert(off(Engine, player_update_cache) == 0x194f8, INVALID_OFFSET);

@@ -59,4 +59,16 @@ namespace crs
   {
     return &args;
   }
+
+  NewChatMessageEvent::NewChatMessageEvent(const std::string& channel, const std::string& sender, const std::string& message) : Event(ItemChangedEvent::specific_id())
+  {
+    strcpy(this->args.channel, channel.c_str());
+    strcpy(this->args.sender, sender.c_str());
+    strcpy(this->args.message, message.c_str());
+  }
+
+  void *NewChatMessageEvent::get_args()
+  {
+    return &args;
+  }
 } // namespace crs

@@ -18,6 +18,7 @@ add_library(mod SHARED
     src/dom/npcs.cpp
     src/dom/players.cpp
     src/dom/world_settings.cpp
+    src/dom/stats.cpp
     
     src/ui/ui.cpp
     src/ui/rml.cpp

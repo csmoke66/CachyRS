@@ -27,6 +27,9 @@ namespace crs
       strcpy((char *)strstr(message->c_str(), "RuneScape"), "CachyRS.");
     }
 
+    auto event = NewChatMessageEvent(channel->str(), name_1->str(), message->str());
+    RS.event_bus.dispatch(NewChatMessageEvent::specific_id(), &event);
+
     cpu_state->rax = reinterpret_cast<uint64_t>(trampoline(
         (void *)CPU_FIRST_ARG(cpu_state),
         static_cast<int>(CPU_SECOND_ARG(cpu_state)),

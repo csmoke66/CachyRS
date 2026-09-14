@@ -132,4 +132,29 @@ namespace crs
     void *get_args() override;
   };
 
+  struct NewChatMessageArgs
+  {
+    char channel[256];
+    char sender[256];
+    char message[256];
+  };
+
+  class NewChatMessageEvent : public Event
+  {
+  public:
+    NewChatMessageArgs args;
+
+  public:
+    static constexpr std::string specific_id()
+    {
+      return "on_new_chat_message";
+    }
+
+  public:
+    NewChatMessageEvent(const std::string& channel, const std::string& sender, const std::string& message);
+
+  public:
+    void *get_args() override;
+  };
+
 } // namespace crs

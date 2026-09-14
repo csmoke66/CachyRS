@@ -38,6 +38,7 @@ struct Terrain;
 struct MovementQueue;
 struct SocialCache;
 struct Menu;
+class VariableCache;
 
 // generated
 struct Entity;

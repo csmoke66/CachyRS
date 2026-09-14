@@ -300,7 +300,12 @@ std::vector<PatternObject> build_pattern_objects()
             { "Menu*", 8 },
             (new ImmExtractor(0x3, 0x0, 4))->
                 validator(new AlignmentValidator(0x8))},
-
+        new DefaultPattern{
+            "variable_cache",
+            compile_ida_pattern("48 8B BD ? ? ? ? 4D 8B 8F"),
+            { "VariableCache*", 8 },
+            (new ImmExtractor(0x3, 0x0, 4))->
+                validator(new AlignmentValidator(0x8))},
     }});
     
     objects.push_back({"Scene003", {

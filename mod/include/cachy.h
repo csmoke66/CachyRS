@@ -68,6 +68,7 @@ namespace crs
     PluginManager plugin_manager;
 
   public:
+    std::shared_ptr<StatsDomNode> dom_node_stats;
     std::shared_ptr<ItemContainersDomNode> dom_node_item_containers;
     std::shared_ptr<PlayersDomNode> dom_node_players;
     std::shared_ptr<NpcsDomNode> dom_node_npcs;

@@ -101,4 +101,22 @@ namespace crs
   public:
     void update() override;
   };
+
+  class StatDomNode : public DomNode
+  {
+  public:
+    bool seen = true;
+
+  public:
+    StatDomNode(std::shared_ptr<DomTree> tree, const std::string &id, const std::string &type);
+  };
+
+  class StatsDomNode : public GameContainerNode<StatDomNode>
+  {
+  public:
+    StatsDomNode(std::shared_ptr<DomTree> tree, const std::string &id, const std::string &type);
+
+  public:
+    void update() override;
+  };
 } // namespace crs

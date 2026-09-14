@@ -18,6 +18,7 @@ namespace crs
     CacheIndex *cache_index_world_settings() const;
     WorldSettingCache *world_setting_cache() const;
     uint32_t mask_world_setting(const WorldSetting *setting, const WorldSettingMask *mask) const;
+    VariableCache *variable_cache() const;
 
     template <typename T>
     T *get_cache_data(CacheIndexOrdinal ordinal, uint32_t idx) const
@@ -33,7 +34,7 @@ namespace crs
       {
         return nullptr;
       }
-      
+
       return inner->get_cache_descriptor_by_index_generic<T>(idx);
     }
   };

@@ -123,4 +123,15 @@ namespace crs
     return 0;
     // return ((1 << (mask->end + 1 - mask->begin)) - 1) & (setting->value >> mask->begin);
   }
+
+  VariableCache *NotCachyRS::variable_cache() const
+  {
+    auto engine = RS.get_globals()->engine;
+    if (!engine)
+    {
+      return nullptr;
+    }
+
+    return engine->variable_cache;
+  }
 } // namespace crs

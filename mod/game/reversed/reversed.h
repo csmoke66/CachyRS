@@ -28,6 +28,7 @@ namespace crs
 #include "reversed_entity_update_cache.h"
 #include "reversed_entity.h"
 #include "reversed_local_player.h"
+#include "reversed_var.h"
 #include "reversed_menu.h"
 #include "reversed_scene.h"
 #include "reversed_widget.h"

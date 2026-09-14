@@ -142,6 +142,11 @@ namespace crs
 
       if (engine->state == GameState::in_game)
       {
+        if (RS.dom_node_stats->visible)
+        {
+          RS.dom_node_stats->update();
+        }
+
         if (RS.dom_node_npcs->visible)
         {
           RS.dom_node_npcs->update();

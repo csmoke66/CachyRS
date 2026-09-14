@@ -110,6 +110,9 @@ namespace crs
 
   void CachyRS::init_dom()
   {
+    dom_node_stats = std::make_shared<StatsDomNode>(dom_tree, "item_containers", "stats");
+    dom_tree->add_dom_node(dom_node_stats);
+
     dom_node_item_containers = std::make_shared<ItemContainersDomNode>(dom_tree, "item_containers", "item_containers");
     dom_tree->add_dom_node(dom_node_item_containers);
 
@@ -304,11 +307,13 @@ namespace crs
   {
     if (ui_visible)
     {
+      dom_node_stats->prune();
       dom_node_item_containers->prune();
       dom_node_players->prune();
       dom_node_npcs->prune();
       dom_node_world_settings->prune();
 
+      dom_tree->build_dom_node(dom_node_stats);
       dom_tree->build_dom_node(dom_node_item_containers);
       dom_tree->build_dom_node(dom_node_players);
       dom_tree->build_dom_node(dom_node_npcs);
