@@ -33,6 +33,8 @@ namespace crs
   typedef const char *(*FnPluginGetName)();
   typedef void (*FnPluginInit)(InitType type, Plugin *plugin);
   typedef void (*FnPluginLog)(const char *message);
+  typedef void (*FnPluginExposedFunction)(void *context);
+
   typedef void (*FnPluginUserInterfaceDropDownChangeHandler)(uint64_t id, int32_t selected, void *user_data);
 
   typedef ThreadOwned<Globals *> (*FnPluginGetGlobals)();
@@ -47,6 +49,9 @@ namespace crs
   typedef void (*FnPluginEventBusReceiver)(void *args, void *context);
   typedef void (*FnPluginEventBusRegister)(const char *id, void *receiver, void *context);
 
+  typedef void (*FnPluginExposeFunction)(const char* name, FnPluginExposedFunction fn, void *context);
+  typedef FnPluginExposedFunction (*FnPluginGetExposedFunction)(const char* name);
+
   struct PluginApi
   {
     FnPluginLog log;
@@ -60,6 +65,9 @@ namespace crs
     FnPluginUserInterfaceSetVisible ui_set_visible;
 
     FnPluginEventBusRegister event_bus_register;
+
+    FnPluginExposeFunction expose_function;
+    FnPluginGetExposedFunction get_exposed_function;
   };
 
   struct Plugin

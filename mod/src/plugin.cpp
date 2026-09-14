@@ -8,6 +8,8 @@
 
 namespace crs
 {
+  static std::map<std::string, FnPluginExposedFunction> exposed_functions;
+
   class CEventBusReceiver : public EventReceiver<Event>
   {
   private:
@@ -102,6 +104,17 @@ namespace crs
     RS.event_bus.add_receiver(std::string(id), new CEventBusReceiver(receiver, context));
   }
 
+  static void plugin_api_expose_function(const char *name, FnPluginExposedFunction fn, void *context)
+  {
+    exposed_functions[name] = fn;
+  }
+
+  static FnPluginExposedFunction plugin_api_get_exposed_function(const char *name)
+  {
+    auto it = exposed_functions.find(name);
+    return it == exposed_functions.end() ? nullptr : it->second;
+  }
+
   void PluginManager::init()
   {
     api.log = plugin_api_log;
@@ -115,6 +128,9 @@ namespace crs
     api.ui_set_visible = plugin_api_user_interface_set_visible;
 
     api.event_bus_register = reinterpret_cast<FnPluginEventBusRegister>(plugin_api_event_bus_register);
+
+    api.expose_function = plugin_api_expose_function;
+    api.get_exposed_function = plugin_api_get_exposed_function;
   }
 
   void PluginManager::add_load_callback(std::function<void(Plugin *)> function)
