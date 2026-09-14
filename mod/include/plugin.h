@@ -44,6 +44,7 @@ namespace crs
   typedef void (*FnPluginUserInterfaceUpdateComponentItems)(uint64_t component_id, const char **items, size_t item_count);
   typedef bool (*FnPluginUserInterfaceIsComponentChecked)(uint64_t component_id);
   typedef void (*FnPluginUserInterfaceRegisterDropDownChangeHandler)(uint64_t component_id, FnPluginUserInterfaceDropDownChangeHandler handler, void *user_data);
+  typedef void (*FnPluginUserInterfaceDropDownSetSelected)(uint64_t component_id, int32_t index);
   typedef void (*FnPluginUserInterfaceSetVisible)(uint64_t component_id, bool visible);
 
   typedef void (*FnPluginEventBusReceiver)(void *args, void *context);
@@ -62,6 +63,7 @@ namespace crs
     FnPluginUserInterfaceUpdateComponentItems ui_update_component_items;
     FnPluginUserInterfaceIsComponentChecked ui_is_component_checked;
     FnPluginUserInterfaceRegisterDropDownChangeHandler ui_register_dropdown_change_handler;
+    FnPluginUserInterfaceDropDownSetSelected ui_dropdown_set_selected;
     FnPluginUserInterfaceSetVisible ui_set_visible;
 
     FnPluginEventBusRegister event_bus_register;

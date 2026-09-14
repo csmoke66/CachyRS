@@ -80,6 +80,7 @@ namespace crs
     virtual void update_component_items(uint64_t component_id, const std::vector<std::string> &items) = 0;
     virtual bool is_component_checked(uint64_t component_id) = 0;
     virtual void register_dropdown_change_handler(uint64_t component_id, std::function<void(int32_t)> handler) = 0;
+    virtual void dropdown_set_selected(uint64_t component_id, int32_t index) = 0;
     virtual void set_component_visible(uint64_t component_id, bool visible) = 0;
 
   public:

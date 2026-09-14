@@ -615,6 +615,16 @@ namespace crs
     }
   }
 
+  void RmlUserInterface::dropdown_set_selected(uint64_t component_id, int32_t index)
+  {
+    auto kv = component_map.find(component_id);
+    if (kv != component_map.end())
+    {
+      auto select_element = dynamic_cast<Rml::ElementFormControlSelect *>(kv->second.element);
+      select_element->SetSelection(index);
+    }
+  }
+
   void RmlUserInterface::on_dropdown_component_changed(uint64_t component_id, int32_t idx)
   {
     auto kv = component_map.find(component_id);

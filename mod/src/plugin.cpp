@@ -91,6 +91,14 @@ namespace crs
     });
   }
 
+  static void plugin_api_user_interface_dropdown_set_selected(uint64_t component_id, int32_t index)
+  {
+    RS.ui_locked_nr([component_id, index]()
+    {
+      RS.ui->dropdown_set_selected(component_id, index);
+    });
+  }
+
   static void plugin_api_user_interface_set_visible(uint64_t component_id, bool visible)
   {
     RS.ui_locked_nr([component_id, visible]()
@@ -125,6 +133,7 @@ namespace crs
     api.ui_update_component_items = plugin_api_user_interface_update_component_items;
     api.ui_is_component_checked = plugin_api_user_interface_is_component_checked;
     api.ui_register_dropdown_change_handler = plugin_api_user_interface_register_dropdown_change_handler;
+    api.ui_dropdown_set_selected = plugin_api_user_interface_dropdown_set_selected;
     api.ui_set_visible = plugin_api_user_interface_set_visible;
 
     api.event_bus_register = reinterpret_cast<FnPluginEventBusRegister>(plugin_api_event_bus_register);

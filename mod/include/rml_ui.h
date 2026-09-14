@@ -320,6 +320,7 @@ namespace crs
     void update_component_items(uint64_t component_id, const std::vector<std::string> &items) override;
     bool is_component_checked(uint64_t component_id) override;
     void register_dropdown_change_handler(uint64_t component_id, std::function<void(int32_t)> handler) override;
+    void dropdown_set_selected(uint64_t component_id, int32_t index) override;
     void on_dropdown_component_changed(uint64_t component_id, int32_t idx);
     void set_component_visible(uint64_t component_id, bool visible) override;
   };
