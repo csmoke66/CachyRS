@@ -91,29 +91,28 @@ namespace crs
     }
     return "{unknown}";
   }
-  
+
   void MenuExecuteHook::print_action_handler(MenuActionContext *menu_action_context)
   {
     auto tmpl = menu_action_context->tmpl;
     auto args = menu_action_context->args.r;
 
     LOG(INFO, " -> menu execute");
-    LOG(INFO, "  -> off: " << std::hex << RS.pi.offset((void *)tmpl->handler)
-                               << std::dec
-                               << " type: " << static_cast<uint32_t>(tmpl->type)
-                               << " id:" << tmpl->id);
+    LOG(INFO, "  -> off: " << std::hex << RS.pi.offset(reinterpret_cast<void *>(tmpl->handler))
+                           << std::dec
+                           << " type: " << static_cast<uint32_t>(tmpl->type)
+                           << " id:" << tmpl->id);
 
-    LOG(INFO, std::format("Api::perform_menu_action({}, {{ {}, {}, {}, {} }})", 
-      get_action_handler_api(tmpl->handler),
-      args[0], args[1], args[2], args[3]
-    ));
+    LOG(INFO, std::format("Api::perform_menu_action({}, {{ {}, {}, {}, {} }})",
+                  get_action_handler_api(tmpl->handler),
+                  args[0], args[1], args[2], args[3]));
   }
 
   void MenuExecuteHook::handler(CpuState *cpu_state)
   {
     BaseHook::handler(cpu_state);
 
-    auto menu_action = (MenuAction *)CPU_SECOND_ARG(cpu_state);
+    auto menu_action = reinterpret_cast<MenuAction *>(CPU_SECOND_ARG(cpu_state));
     auto menu_action_context = menu_action->menu_action_context;
 
     auto pre_event = MenuActionEvent(MenuActionEvent::pre_id(), &menu_action_context->args, &menu_action_context->tmpl);

@@ -1,20 +1,23 @@
 #pragma once
-
 #include "reversed_fwd_decl.h"
+#include "reversed_manual_base.h"
+#include "reversed_util.h"
 
+#include <EGL/egl.h>
 #include <SDL2/SDL.h>
 
 typedef EGLBoolean (*FnEglSwapBuffers)(EGLDisplay, EGLSurface);
 typedef EGLDisplay (*FnEglGetDisplay)(NativeDisplayType);
-typedef void* (*FnEglGetProcAddress)(const char* name);
+typedef void *(*FnEglGetProcAddress)(const char *name);
 typedef EGLDisplay (*FnEGlGetPlatformDispaly)(uint32_t, void *, void *);
 typedef EGLBoolean (*FnEglInit)(EGLDisplay, EGLint *, EGLint *);
 typedef EGLSurface (*FnEglCreateWindowSurface)(EGLDisplay, EGLConfig, NativeWindowType, EGLint *);
 typedef EGLBoolean (*FnEglChooseConfig)(EGLDisplay, EGLint *, EGLConfig *, EGLint, EGLint *);
 
-typedef SDL_bool (*FnSdlGetWindowWMInfo)(SDL_Window *, SDL_SysWMinfo *);
+typedef SDL_bool (*FnSdlGetWindowWMInfo)(SDL_Window *, struct SDL_SysWMinfo *);
 typedef int (*FnSdlPollEvent)(SDL_Event *event);
 typedef SDL_Window *(*FnSdlCreateWindow)(const char *, int, int, int, int, uint32_t);
+typedef void (*FnSdlShowWindow)(void *);
 typedef SDL_GLContext (*FnSdlCreateContext)(SDL_Window *);
 typedef void (*FnSdlDeleteContext)(SDL_GLContext);
 
@@ -26,4 +29,4 @@ typedef void *(*FnRenderWidget)(Widget *, void *, JVector<WidgetChild> *, int, i
 typedef void *(*FnSetVarBit)(const WorldSettingCache *, const CacheBuffer<void, WorldSettingMask> *, const uint32_t *);
 typedef void (*FnAddMenuOption)(void *, const char *, uint8_t *, int32_t, void *, int32_t *, int32_t, int32_t, int32_t, int32_t, uint8_t, uint8_t, int32_t, uint8_t, uint8_t, void *, uint8_t, int32_t);
 typedef void *(*FnAddChatMessage)(void *, int, int, int, const char *, const char *, const char *, const char *, void *, const char *, void *);
-typedef void (*FnSendPacket)(void*, PacketContainer*);
+typedef void (*FnSendPacket)(void *, PacketContainer *);

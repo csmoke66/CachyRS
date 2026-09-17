@@ -1,6 +1,7 @@
 
 #include "updater.h"
 #include "pattern.h"
+#include <cstdlib>
 #include <cstring>
 
 std::vector<int> compile_ida_pattern(const char *pattern)
@@ -17,11 +18,11 @@ std::vector<int> compile_ida_pattern(const char *pattern)
     uint64_t length = 0;
     if (tmp)
     {
-      length = (uint64_t)tmp - (uint64_t)next - 1;
+      length = static_cast<uint64_t>(tmp - next - 1);
     }
     else
     {
-      length = strlen(next);
+      length = std::strlen(next);
     }
 
     char number[3] = { 0, 0, 0 };
@@ -31,13 +32,13 @@ std::vector<int> compile_ida_pattern(const char *pattern)
       number[1] = next[1];
     }
 
-    if (!strcmp(number, "?") || !strcmp(number, "??"))
+    if (std::strcmp(number, "?") == 0 || std::strcmp(number, "??") == 0)
     {
       compiled.push_back(-1);
     }
     else
     {
-      compiled.push_back(strtol(number, NULL, 16));
+      compiled.push_back(std::strtol(number, nullptr, 16));
     }
 
     next = tmp;

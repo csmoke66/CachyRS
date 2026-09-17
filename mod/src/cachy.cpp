@@ -110,7 +110,7 @@ namespace crs
 
   void CachyRS::init_dom()
   {
-    dom_node_stats = std::make_shared<StatsDomNode>(dom_tree, "item_containers", "stats");
+    dom_node_stats = std::make_shared<StatsDomNode>(dom_tree, "stats", "stats");
     dom_tree->add_dom_node(dom_node_stats);
 
     dom_node_item_containers = std::make_shared<ItemContainersDomNode>(dom_tree, "item_containers", "item_containers");
@@ -132,7 +132,7 @@ namespace crs
   {
     LOG(INFO, "Resolving hook handler in virtual table...");
     auto dummy = std::make_unique<DummyHook>();
-    auto vt = *(void ***)dummy.get();
+    auto vt = *reinterpret_cast<void ***>(dummy.get());
 
     // Our hooks rely on being able to call into a virtual object in order to have hook
     // specific contexts, to avoid global state being scattered everywhere for each hook.
@@ -148,7 +148,7 @@ namespace crs
     {
       if (!memcmp(vt[i], "\xcc\xcc\xcc", 3))
       {
-        vt_offset = (uint8_t)(i * sizeof(void *));
+        vt_offset = static_cast<uint8_t>(i * sizeof(void *));
         break;
       }
     }
@@ -171,9 +171,10 @@ namespace crs
     {
       hook_manager->iat("eglGetProcAddress", "eglGetProcAddress", unique_hook<EglGetProcAddressHook>());
     }
-    
+
     hook_manager->iat("sdl_get_window_wm_info", "SDL_GetWindowWMInfo", unique_hook<SdlGetWindowWMInfoHook>());
     hook_manager->iat("sdl_poll_event", "SDL_PollEvent", unique_hook<SdlPollEventHook>());
+    hook_manager->iat("sdl_show_window", "SDL_ShowWindow", unique_hook<SdlShowWindowHook>());
 
     LOG(INFO, "Placing x86 hooks...");
     hook_manager->x86("menu_execute", &get_globals()->menu_execute, unique_hook<MenuExecuteHook>());
@@ -196,20 +197,20 @@ namespace crs
 
   ThreadOwned<Globals *> CachyRS::get_globals() const
   {
-    if (!!hook_manager)
+    if (hook_manager)
     {
       auto hook = hook_manager->view_hook<BaseHook>("engine_tick");
-      if (!!hook)
+      if (hook)
       {
         auto tid = hook->thread_id();
         if (tid.has_value())
         {
-          return ThreadOwned<Globals *>(tid.value(), (Globals *)pi.game_base());
+          return ThreadOwned<Globals *>(tid.value(), reinterpret_cast<Globals *>(pi.game_base()));
         }
       }
     }
 
-    return ThreadOwned<Globals *>((Globals *)pi.game_base());
+    return ThreadOwned<Globals *>(reinterpret_cast<Globals *>(pi.game_base()));
   }
 
   bool CachyRS::project_to_screen(const Vec3<float> &scene, Vec2<float> *out) const
@@ -245,10 +246,10 @@ namespace crs
     return false;
   }
 
-  void CachyRS::init(bool no_graphics)
+  void CachyRS::init(bool disable_graphics)
   {
-    this->no_graphics = no_graphics;
-    
+    this->no_graphics = disable_graphics;
+
     LOG(DEBUG, "Initializing configuration directory at " << get_configuration_dir());
     std::filesystem::create_directories(std::filesystem::path(get_configuration_dir()));
 
@@ -270,23 +271,21 @@ namespace crs
 
     plugin_manager.add_load_callback([this](Plugin *plugin)
     {
-      ui_locked([this, plugin]()
+      ui_locked_nr([this, plugin]()
       {
         plugin->ui_tab_container_id = ui->allocate_tab(plugin->name);
-        return false;
       });
     });
 
     ui->add_reload_callback([this]()
     {
-      ui_locked([this]()
+      ui_locked_nr([this]()
       {
         for (auto &plugin : plugin_manager.view_plugins())
         {
           plugin->ui_tab_container_id = ui->allocate_tab(plugin->name);
           plugin->init(crs::InitType::refreshed, plugin.get());
         }
-        return false;
       });
     });
 
@@ -313,11 +312,11 @@ namespace crs
       dom_node_npcs->prune();
       dom_node_world_settings->prune();
 
-      dom_tree->build_dom_node(dom_node_stats);
-      dom_tree->build_dom_node(dom_node_item_containers);
-      dom_tree->build_dom_node(dom_node_players);
-      dom_tree->build_dom_node(dom_node_npcs);
-      dom_tree->build_dom_node(dom_node_world_settings);
+      dom_tree->build_dom_node(dom_node_stats.get());
+      dom_tree->build_dom_node(dom_node_item_containers.get());
+      dom_tree->build_dom_node(dom_node_players.get());
+      dom_tree->build_dom_node(dom_node_npcs.get());
+      dom_tree->build_dom_node(dom_node_world_settings.get());
     }
   }
 } // namespace crs

@@ -16,27 +16,27 @@ namespace crs
   {
     BaseHook::handler(cpu_state);
 
-    auto option_text = (const char *)CPU_SECOND_ARG(cpu_state);
-    auto templ = (MenuActionTemplate *)CPU_FIFTH_ARG(cpu_state);
+    auto option_text = reinterpret_cast<const char *>(CPU_SECOND_ARG(cpu_state));
+    auto templ = reinterpret_cast<MenuActionTemplate *>(CPU_FIFTH_ARG(cpu_state));
 
     trampoline(
-        (void *)CPU_FIRST_ARG(cpu_state),
+        reinterpret_cast<void *>(CPU_FIRST_ARG(cpu_state)),
         option_text,
-        (uint8_t *)CPU_THIRD_ARG(cpu_state),
-        (int32_t)CPU_FOURTH_ARG(cpu_state),
+        reinterpret_cast<uint8_t *>(CPU_THIRD_ARG(cpu_state)),
+        static_cast<int32_t>(CPU_FOURTH_ARG(cpu_state)),
         templ,
-        (int32_t *)CPU_SIXTH_ARG(cpu_state),
-        (int32_t)CPU_STACK_ARG(cpu_state, 0),
-        (int32_t)CPU_STACK_ARG(cpu_state, 1),
-        (int32_t)CPU_STACK_ARG(cpu_state, 2),
-        (int32_t)CPU_STACK_ARG(cpu_state, 3),
-        (uint8_t)CPU_STACK_ARG(cpu_state, 4),
-        (uint8_t)CPU_STACK_ARG(cpu_state, 5),
-        (int32_t)CPU_STACK_ARG(cpu_state, 6),
-        (uint8_t)CPU_STACK_ARG(cpu_state, 7),
-        (uint8_t)CPU_STACK_ARG(cpu_state, 8),
-        (void *)CPU_STACK_ARG(cpu_state, 9),
-        (uint8_t)CPU_STACK_ARG(cpu_state, 10),
-        (int32_t)CPU_STACK_ARG(cpu_state, 11));
+        reinterpret_cast<int32_t *>(CPU_SIXTH_ARG(cpu_state)),
+        static_cast<int32_t>(CPU_STACK_ARG(cpu_state, 0)),
+        static_cast<int32_t>(CPU_STACK_ARG(cpu_state, 1)),
+        static_cast<int32_t>(CPU_STACK_ARG(cpu_state, 2)),
+        static_cast<int32_t>(CPU_STACK_ARG(cpu_state, 3)),
+        static_cast<uint8_t>(CPU_STACK_ARG(cpu_state, 4)),
+        static_cast<uint8_t>(CPU_STACK_ARG(cpu_state, 5)),
+        static_cast<int32_t>(CPU_STACK_ARG(cpu_state, 6)),
+        static_cast<uint8_t>(CPU_STACK_ARG(cpu_state, 7)),
+        static_cast<uint8_t>(CPU_STACK_ARG(cpu_state, 8)),
+        reinterpret_cast<void *>(CPU_STACK_ARG(cpu_state, 9)),
+        static_cast<uint8_t>(CPU_STACK_ARG(cpu_state, 10)),
+        static_cast<int32_t>(CPU_STACK_ARG(cpu_state, 11)));
   }
 } // namespace crs

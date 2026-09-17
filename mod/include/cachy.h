@@ -27,7 +27,7 @@
 #include <fstream>
 #include <mutex>
 
-#include <stdarg.h>
+#include <cstdarg>
 
 namespace crs
 {
@@ -60,7 +60,7 @@ namespace crs
     Timer stats_timer;
 
   public:
-    std::recursive_mutex ui_mutex;
+    std::mutex ui_mutex;
 
   public:
     ProcessInterface pi;
@@ -75,7 +75,7 @@ namespace crs
     std::shared_ptr<WorldSettingsDomNode> dom_node_world_settings;
 
   public:
-    bool ui_visible = false;
+    std::atomic<bool> ui_visible{ false };
     DeveloperOverlay developer_overlay;
     std::shared_ptr<UserInterface> ui = nullptr;
     std::shared_ptr<DomTree> dom_tree = nullptr;
@@ -104,27 +104,58 @@ namespace crs
     bool project_to_screen(const Vec3<float> &scene, Vec2<float> *out) const;
 
   public:
-    void init(bool no_graphics = false);
+    void init(bool disable_graphics = false);
 
   public:
     void push_ui_state();
 
   public:
-    template <typename T>
-    auto ui_locked(T t)
+    // Overlay UI is mutated from the engine thread (PluginApi in plugin.cpp) and
+    // drawn on the render thread. The mutex is only for that shared render state.
+    // Re-entrancy is a thread_local depth count so Rml callbacks that re-enter
+    // PluginApi while swap-buffers already holds the lock stay cheap.
+    inline static thread_local int ui_lock_depth = 0;
+
+    struct UiLockDepth
     {
-      ui_mutex.lock();
-      auto x = t();
-      ui_mutex.unlock();
-      return x;
+      UiLockDepth()
+      {
+        ++CachyRS::ui_lock_depth;
+      }
+
+      ~UiLockDepth()
+      {
+        --CachyRS::ui_lock_depth;
+      }
+    };
+
+    template <typename T>
+    auto ui_locked(T fn)
+    {
+      if (CachyRS::ui_lock_depth > 0)
+      {
+        UiLockDepth depth;
+        return fn();
+      }
+
+      std::lock_guard lock(ui_mutex);
+      UiLockDepth depth;
+      return fn();
     }
 
     template <typename T>
-    auto ui_locked_nr(T t)
+    auto ui_locked_nr(T fn)
     {
-      ui_mutex.lock();
-      t();
-      ui_mutex.unlock();
+      if (CachyRS::ui_lock_depth > 0)
+      {
+        UiLockDepth depth;
+        fn();
+        return;
+      }
+
+      std::lock_guard lock(ui_mutex);
+      UiLockDepth depth;
+      fn();
     }
   };
 

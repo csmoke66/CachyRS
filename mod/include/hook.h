@@ -1,4 +1,5 @@
 #pragma once
+#include <atomic>
 #include <concepts>
 #include <cstdint>
 #include <map>
@@ -54,7 +55,7 @@ namespace crs
 #define CPU_FIFTH_ARG(C) C->r8
 #define CPU_SIXTH_ARG(C) C->r9
 // + 0x18 because the stack is offset by 0x18 to make room for XMM registers
-#define CPU_STACK_ARG(C, I) *((uint64_t *)(C->rsp + 0x18 + sizeof(uint64_t) + (sizeof(uint64_t) * I)))
+#define CPU_STACK_ARG(C, I) *reinterpret_cast<uint64_t *>(C->rsp + 0x18 + sizeof(uint64_t) + (sizeof(uint64_t) * I))
 #else
   UNSUPPORTED_OS();
 #endif
@@ -67,9 +68,7 @@ namespace crs
     std::atomic<uint64_t> call_count = 0;
 
   public:
-    virtual ~BaseHook()
-    {
-    }
+    virtual ~BaseHook() = default;
 
   public:
     virtual void handler(CpuState *cpu_state);
@@ -85,12 +84,12 @@ namespace crs
     T trampoline;
   };
 
-  typedef Hook<void *> GenericHook;
+  using GenericHook = Hook<void *>;
 
   class DummyHook : public BaseHook
   {
   public:
-    void handler(CpuState *cpu_state);
+    void handler(CpuState *cpu_state) override;
   };
 
   class HookManager
@@ -113,7 +112,7 @@ namespace crs
         return nullptr;
       }
 
-      return (const T *)hook->second.get();
+      return static_cast<const T *>(hook->second.get());
     }
 
   public:
@@ -125,7 +124,7 @@ namespace crs
   template <std::derived_from<BaseHook> T>
   FINLINE std::unique_ptr<GenericHook> unique_hook()
   {
-    return std::unique_ptr<GenericHook>((GenericHook *)new T());
+    return std::unique_ptr<GenericHook>(reinterpret_cast<GenericHook *>(new T()));
   }
 
   void asm_init();

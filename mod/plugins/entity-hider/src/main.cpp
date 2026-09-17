@@ -1,6 +1,3 @@
-#include "event_bus.h"
-#include "plugin.h"
-#include <format>
 #include <plugin_cpp.h>
 
 using namespace crs;
@@ -19,40 +16,33 @@ void Boot::init()
 {
   Api::on_tick([]()
   {
-    auto self = Api::raw_self();
-    for (auto player : Api::raw_players())
+    const auto hide_players = ui_players_hide_checkbox.is_checked();
+    const auto show_self = ui_players_show_self_checkbox.is_checked();
+    const auto show_friends = ui_players_show_friends_checkbox.is_checked();
+    const auto hide_npcs = ui_npcs_hide_checkbox.is_checked();
+
+    for (auto &player : Api::players())
     {
-      if (auto node = player->parent)
+      auto hidden = hide_players;
+      if (hidden)
       {
-        auto hidden = ui_players_hide_checkbox.is_checked();
-        if (hidden)
+        if (show_self && player.is_self())
         {
-          if (ui_players_show_self_checkbox.is_checked())
-          {
-            if (player == self)
-            {
-              hidden = false;
-            }
-          }
-
-          if (ui_players_show_friends_checkbox.is_checked())
-          {
-            if (Api::raw_is_friend(player))
-            {
-              hidden = false;
-            }
-          }
+          hidden = false;
         }
 
-        if (hidden)
+        if (show_friends && player.is_friend())
         {
-          node->flags &= ~WorldNodeFlag::has_entity;
-        }
-        else
-        {
-          node->flags |= WorldNodeFlag::has_entity;
+          hidden = false;
         }
       }
+
+      player.set_rendered(!hidden);
+    }
+
+    for (auto &npc : Api::npcs())
+    {
+      npc.set_rendered(!hide_npcs);
     }
   });
 }

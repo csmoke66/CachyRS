@@ -7,9 +7,9 @@ namespace crs
   {
     BaseHook::handler(cpu_state);
 
-    auto container = (PacketContainer *)CPU_SECOND_ARG(cpu_state);
+    auto container = reinterpret_cast<PacketContainer *>(CPU_SECOND_ARG(cpu_state));
 
-    trampoline(reinterpret_cast<void*>(CPU_FIRST_ARG(cpu_state)),
+    trampoline(reinterpret_cast<void *>(CPU_FIRST_ARG(cpu_state)),
         container);
   }
 } // namespace crs

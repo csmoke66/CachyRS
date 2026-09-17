@@ -3,7 +3,6 @@ project(relax-mode LANGUAGES CXX)
 
 add_library(relax-mode SHARED
     src/main.cpp
-    src/dropdown.cpp
     src/archaeology.cpp
 )
 
@@ -14,7 +13,6 @@ target_include_directories(relax-mode PUBLIC
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-target_link_libraries(relax-mode PRIVATE 
-    mod
+target_link_libraries(relax-mode PRIVATE
     plugin_cpp
 )

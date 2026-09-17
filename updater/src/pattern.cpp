@@ -3,9 +3,8 @@
 #include <cstring>
 #include <iostream>
 
-AlignmentValidator::AlignmentValidator(uint64_t alignment)
+AlignmentValidator::AlignmentValidator(uint64_t alignment) : alignment(alignment)
 {
-  this->alignment = alignment;
 }
 
 bool AlignmentValidator::validate(const uint64_t *t)
@@ -13,12 +12,11 @@ bool AlignmentValidator::validate(const uint64_t *t)
   return (*t % alignment) == 0;
 }
 
-ImmExtractor::ImmExtractor(uint64_t offset_to_data, uint64_t offset, size_t data_size, bool factor_in_rip)
+ImmExtractor::ImmExtractor(uint64_t offset_to_data, uint64_t offset, size_t data_size, bool factor_in_rip) : offset_to_data(offset_to_data),
+                                                                                                             offset(offset),
+                                                                                                             data_size(data_size),
+                                                                                                             factor_in_rip(factor_in_rip)
 {
-  this->offset_to_data = offset_to_data;
-  this->offset = offset;
-  this->data_size = data_size;
-  this->factor_in_rip = factor_in_rip;
 }
 
 uint64_t ImmExtractor::extract(const ElfInterface &elf, const uint8_t *data)
@@ -33,19 +31,19 @@ uint64_t ImmExtractor::extract(const ElfInterface &elf, const uint8_t *data)
 
   if (data_size == 1)
   {
-    v = *((int8_t *)(data_ptr));
+    v = *reinterpret_cast<const int8_t *>(data_ptr);
   }
   else if (data_size == 2)
   {
-    v = *((int16_t *)(data_ptr));
+    v = *reinterpret_cast<const int16_t *>(data_ptr);
   }
   else if (data_size == 4)
   {
-    v = *((int32_t *)(data_ptr));
+    v = *reinterpret_cast<const int32_t *>(data_ptr);
   }
   else if (data_size == 8)
   {
-    v = *((int64_t *)(data_ptr));
+    v = *reinterpret_cast<const int64_t *>(data_ptr);
   }
 
   if (factor_in_rip)
@@ -56,20 +54,18 @@ uint64_t ImmExtractor::extract(const ElfInterface &elf, const uint8_t *data)
   return v + offset;
 }
 
-DirectExtractor::DirectExtractor(uint64_t offset)
+DirectExtractor::DirectExtractor(uint64_t offset) : offset(offset)
 {
-  this->offset = offset;
 }
 
 uint64_t DirectExtractor::extract(const ElfInterface &elf, const uint8_t *data)
 {
-  return elf.ptr_to_va(elf.offset(data));
+  return elf.ptr_to_va(elf.offset(data)) + offset;
 }
 
-MenuActionHandlerExtractor::MenuActionHandlerExtractor(csh capstone_handle, uint64_t lea_offset)
+MenuActionHandlerExtractor::MenuActionHandlerExtractor(csh capstone_handle, uint64_t lea_offset) : capstone_handle(capstone_handle),
+                                                                                                   lea_offset(lea_offset)
 {
-  this->capstone_handle = capstone_handle;
-  this->lea_offset = lea_offset;
 }
 
 uint64_t MenuActionHandlerExtractor::extract(const ElfInterface &elf, const uint8_t *data)
@@ -82,7 +78,6 @@ uint64_t MenuActionHandlerExtractor::extract(const ElfInterface &elf, const uint
 
   uint64_t lea_count = 0;
 
-  size_t count;
   cs_insn *insn;
 
   auto ret = false;
@@ -96,7 +91,7 @@ uint64_t MenuActionHandlerExtractor::extract(const ElfInterface &elf, const uint
 
   while (!ret)
   {
-    count = cs_disasm(capstone_handle, (const uint8_t *)data, 0x15, (uint64_t)rva, 0, &insn);
+    cs_disasm(capstone_handle, data, 0x15, static_cast<uint64_t>(rva), 0, &insn);
 
     if (insn->id == X86_INS_LEA)
     {
@@ -129,17 +124,15 @@ uint64_t MenuActionHandlerExtractor::extract(const ElfInterface &elf, const uint
   return 0;
 }
 
-CallExtractor::CallExtractor(csh capstone_handle, uint64_t call_offset)
+CallExtractor::CallExtractor(csh capstone_handle, uint64_t call_offset) : capstone_handle(capstone_handle),
+                                                                          call_offset(call_offset)
 {
-  this->capstone_handle = capstone_handle;
-  this->call_offset = call_offset;
 }
 
 uint64_t CallExtractor::extract(const ElfInterface &elf, const uint8_t *data)
 {
   uint64_t call_count = 0;
 
-  size_t count;
   cs_insn *insn;
 
   auto ret = false;
@@ -148,18 +141,18 @@ uint64_t CallExtractor::extract(const ElfInterface &elf, const uint8_t *data)
     return 0;
   }
 
-  auto called_addr = data + *((int32_t *)(data + 1)) + 5;
+  auto called_addr = data + *reinterpret_cast<const int32_t *>(data + 1) + 5;
   auto rva = elf.ptr_to_va(elf.offset(called_addr));
   while (!ret)
   {
-    count = cs_disasm(capstone_handle, (const uint8_t *)called_addr, 0x15, (uint64_t)rva, 0, &insn);
+    cs_disasm(capstone_handle, called_addr, 0x15, static_cast<uint64_t>(rva), 0, &insn);
 
     if (insn->id == X86_INS_CALL)
     {
       if (call_count == call_offset)
       {
         auto x86 = &(insn->detail->x86);
-        return (uint64_t)x86->operands[0].imm;
+        return static_cast<uint64_t>(x86->operands[0].imm);
       }
 
       call_count += 1;
@@ -176,20 +169,16 @@ uint64_t CallExtractor::extract(const ElfInterface &elf, const uint8_t *data)
   return 0;
 }
 
-ConstructorSizeExtractor::ConstructorSizeExtractor(csh capstone_handle, x86_reg reg, uint32_t end)
+ConstructorSizeExtractor::ConstructorSizeExtractor(csh capstone_handle, x86_reg reg, uint32_t end) : capstone_handle(capstone_handle),
+                                                                                                     reg(reg),
+                                                                                                     end(end)
 {
-  this->capstone_handle = capstone_handle;
-  this->reg = reg;
-  this->end = end;
 }
 
 uint64_t ConstructorSizeExtractor::extract(const ElfInterface &elf, const uint8_t *data)
 {
   size_t count;
   cs_insn *insn;
-
-  size_t count_call_iat;
-  cs_insn *insn_call_iat;
 
   auto ret = false;
   uint64_t last_written = 0;
@@ -207,7 +196,7 @@ uint64_t ConstructorSizeExtractor::extract(const ElfInterface &elf, const uint8_
 
   while (!ret)
   {
-    count = cs_disasm(capstone_handle, (const uint8_t *)data, 0x15, rva, 1, &insn);
+    count = cs_disasm(capstone_handle, data, 0x15, rva, 1, &insn);
 
     auto x86 = &(insn->detail->x86);
     if (count == 1 && insn->id == X86_INS_MOV)
@@ -218,7 +207,7 @@ uint64_t ConstructorSizeExtractor::extract(const ElfInterface &elf, const uint8_
         auto mem = op.mem;
         if (mem.base == reg)
         {
-          if (mem.disp > last_written)
+          if (mem.disp > 0 && static_cast<uint64_t>(mem.disp) > last_written)
           {
             last_written = mem.disp;
             last_sz = op.size;
@@ -240,9 +229,8 @@ uint64_t ConstructorSizeExtractor::extract(const ElfInterface &elf, const uint8_
   return last_written + last_sz;
 }
 
-GenericExtractor::GenericExtractor(void *extractor)
+GenericExtractor::GenericExtractor(void *extractor) : nested(static_cast<Extractor<uint64_t> *>(extractor))
 {
-  this->nested = (Extractor<uint64_t> *)extractor;
 }
 
 uint64_t GenericExtractor::extract(const ElfInterface &elf, const uint8_t *data)
@@ -250,26 +238,24 @@ uint64_t GenericExtractor::extract(const ElfInterface &elf, const uint8_t *data)
   return nested->extract(elf, data);
 }
 
-DummyExtractor::DummyExtractor(uint64_t v)
+DummyExtractor::DummyExtractor(uint64_t v) : v(v)
 {
-  this->v = v;
 }
 
-uint64_t DummyExtractor::extract(const ElfInterface &elf, const uint8_t *data)
+uint64_t DummyExtractor::extract(const ElfInterface &, const uint8_t *)
 {
   return v;
 }
 
-Pattern::Pattern(std::string name, Type type, Extractor<uint64_t> *extractor)
+Pattern::Pattern(std::string name, Type type, Extractor<uint64_t> *extractor) : name(std::move(name)),
+                                                                                type(std::move(type)),
+                                                                                extractor(extractor)
 {
-  this->name = name;
-  this->type = type;
-  this->extractor = extractor;
 }
 
-DefaultPattern::DefaultPattern(std::string name, std::vector<int> pattern, Type type, Extractor<uint64_t> *extractor) : Pattern(name, type, extractor)
+DefaultPattern::DefaultPattern(std::string name, std::vector<int> pattern, Type type, Extractor<uint64_t> *extractor) : Pattern(std::move(name), std::move(type), extractor),
+                                                                                                                        pattern(std::move(pattern))
 {
-  this->pattern = pattern;
 }
 
 const uint8_t *DefaultPattern::find_result(uint8_t *text, Elf64_Shdr text_hdr)
@@ -288,7 +274,7 @@ DummyPattern::DummyPattern(std::string name, Type type, Extractor<uint64_t> *ext
 {
 }
 
-const uint8_t *DummyPattern::find_result(uint8_t *text, Elf64_Shdr text_hdr)
+const uint8_t *DummyPattern::find_result(uint8_t *, Elf64_Shdr)
 {
   return nullptr;
 }

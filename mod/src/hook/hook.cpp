@@ -3,20 +3,20 @@
 
 namespace crs
 {
-  void BaseHook::handler(CpuState *cpu_state)
+  void BaseHook::handler(CpuState *)
   {
     auto tid = std::this_thread::get_id();
-    if (this->last_thread_id.has_value() && tid != this->last_thread_id)
+    if (last_thread_id.has_value() && tid != last_thread_id)
     {
-      LOG(WARN, "Hook called on multiple threads (Initial: " << this->last_thread_id.value() << ", Current: " << tid << ")");
+      LOG(WARN, "Hook called on multiple threads (Initial: " << last_thread_id.value() << ", Current: " << tid << ")");
     }
 
-    this->last_thread_id = tid;
-    this->call_count += 1;
+    last_thread_id = tid;
+    call_count += 1;
   }
 
   std::optional<std::thread::id> BaseHook::thread_id() const
   {
-    return this->last_thread_id;
+    return last_thread_id;
   }
 } // namespace crs

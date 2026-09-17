@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdint>
 
 enum class WorldNodeFlag : uint16_t
 {

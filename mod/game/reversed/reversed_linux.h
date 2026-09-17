@@ -1,5 +1,9 @@
 #pragma once
+#include "reversed_util.h"
 
+#include <SDL2/SDL.h>
+
+static_assert(true);
 #pragma pack(push, 1)
 struct Linux005
 {

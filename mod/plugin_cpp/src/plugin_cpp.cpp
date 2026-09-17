@@ -1,15 +1,23 @@
 #include "plugin_cpp.h"
 
+#include <cstring>
+#include <iterator>
+
 namespace crs
 {
   static PluginApi api;
 
   static Plugin *plugin = nullptr;
+  static bool forced_on = false;
   static ApiCheckBox enabled_checkbox;
 
   static ApiEventList<std::function<void()>> tick_events;
   static ApiEventList<std::function<void(MenuActionEventArgs *)>> menu_action_events;
+  static ApiEventList<std::function<void(bool)>> menu_opened_events;
   static ApiEventList<std::function<void(uint32_t, uint32_t)>> world_setting_changed_events;
+  static ApiEventList<std::function<void(uint32_t, uint32_t, int32_t, int32_t, int32_t, int32_t, int32_t)>> item_changed_events;
+  static ApiEventList<std::function<void(const std::string &, const std::string &, const std::string &)>> new_chat_message_events;
+
   static std::map<uint64_t, std::shared_ptr<ApiDropDown>> ui_dropdowns;
 
   static MenuActionTemplate menu_action_override_template;
@@ -18,24 +26,45 @@ namespace crs
   static MenuActionArgs menu_action_override_args;
   static bool menu_action_override_bypass;
 
-  static void event_handler_engine_tick(EngineTickArgs *args, void *)
+  static bool is_enabled()
   {
-    if (enabled_checkbox.is_checked())
+    return forced_on || enabled_checkbox.is_checked();
+  }
+
+  bool Api::enabled()
+  {
+    return is_enabled();
+  }
+
+  static void event_handler_engine_tick(EngineTickArgs *, void *)
+  {
+    if (is_enabled())
     {
-      tick_events.iterate([args](auto &f)
+      tick_events.iterate([](auto &fn)
       {
-        f();
+        fn();
+      });
+    }
+  }
+
+  static void event_handler_menu_opened(MenuOpenedEventArgs *args, void *)
+  {
+    if (is_enabled())
+    {
+      menu_opened_events.iterate([args](auto &fn)
+      {
+        fn(args->opened);
       });
     }
   }
 
   static void event_handler_menu_action(MenuActionEventArgs *args, void *)
   {
-    if (enabled_checkbox.is_checked())
+    if (is_enabled())
     {
-      menu_action_events.iterate([args](auto &f)
+      menu_action_events.iterate([args](auto &fn)
       {
-        f(args);
+        fn(args);
       });
 
       if (has_menu_action_override)
@@ -53,38 +82,75 @@ namespace crs
 
   static void event_handler_world_setting_changed(WorldSettingChangedEventArgs *args, void *)
   {
-    if (enabled_checkbox.is_checked())
+    if (is_enabled())
     {
-      world_setting_changed_events.iterate([args](auto &f)
+      world_setting_changed_events.iterate([args](auto &fn)
       {
-        f(args->world_setting_id, args->value);
+        fn(args->world_setting_id, args->value);
       });
     }
   }
 
-  uint64_t ApiComponent::get_id()
+  static void event_handler_item_changed(ItemChangedArgs *args, void *)
   {
-    return this->id;
+    if (is_enabled())
+    {
+      item_changed_events.iterate([args](auto &fn)
+      {
+        fn(
+            args->id,
+            args->slot,
+            args->old_id,
+            args->old_amount,
+            args->new_id,
+            args->new_amount,
+            args->stack_delta);
+      });
+    }
+  }
+
+  static void event_handler_new_chat_message(NewChatMessageArgs *args, void *)
+  {
+    if (is_enabled())
+    {
+      new_chat_message_events.iterate([args](auto &fn)
+      {
+        fn(args->channel, args->sender, args->message);
+      });
+    }
+  }
+
+  uint64_t ApiComponent::get_id() const
+  {
+    return id;
   }
 
   void ApiComponent::set_visible(bool visible)
   {
-    crs::api.ui_set_visible(this->id, visible);
+    crs::api.ui_set_visible(id, visible);
   }
 
-  void Api::init(crs::InitType type, Plugin *plugin, std::function<void()> first_initializer, std::function<void()> initializer)
+  void Api::init(crs::InitType type, Plugin *loaded, std::function<void()> first_initializer, std::function<void()> initializer)
   {
-    crs::plugin = plugin;
-    crs::api = plugin->api;
+    crs::plugin = loaded;
+    crs::api = loaded->api;
     if (type == crs::InitType::loaded)
     {
-      api.event_bus_register(EngineTickEvent::specific_id().c_str(), (void *)event_handler_engine_tick, nullptr);
-      api.event_bus_register(MenuActionEvent::pre_id().c_str(), (void *)event_handler_menu_action, nullptr);
-      api.event_bus_register(WorldSettingChangedEvent::specific_id().c_str(), (void *)event_handler_world_setting_changed, nullptr);
+      api.event_bus_register(EngineTickEvent::specific_id(), reinterpret_cast<void *>(event_handler_engine_tick), nullptr);
+      api.event_bus_register(MenuActionEvent::pre_id(), reinterpret_cast<void *>(event_handler_menu_action), nullptr);
+      api.event_bus_register(MenuOpenedEvent::specific_id(), reinterpret_cast<void *>(event_handler_menu_opened), nullptr);
+      api.event_bus_register(WorldSettingChangedEvent::specific_id(), reinterpret_cast<void *>(event_handler_world_setting_changed), nullptr);
+      api.event_bus_register(ItemChangedEvent::specific_id(), reinterpret_cast<void *>(event_handler_item_changed), nullptr);
+      api.event_bus_register(NewChatMessageEvent::specific_id(), reinterpret_cast<void *>(event_handler_new_chat_message), nullptr);
       first_initializer();
     }
 
     initializer();
+  }
+
+  void Api::force_on()
+  {
+    crs::forced_on = true;
   }
 
   uint64_t Api::root_plugin_component_id()
@@ -138,7 +204,7 @@ namespace crs
     return add_checkbox(plugin->ui_tab_container_id, text);
   }
 
-  static void dropdown_change_handler(uint64_t id, int32_t selected, uint64_t component_id)
+  static void dropdown_change_handler(uint64_t id, int32_t selected, void *)
   {
     auto component = crs::ui_dropdowns.find(id);
     if (component != crs::ui_dropdowns.end())
@@ -159,9 +225,7 @@ namespace crs
     auto id = api.ui_allocate_component(crs::PluginComponentType::dropdown, parent_id);
     api.ui_update_component_items(id, converted.data(), converted.size());
 
-    api.ui_register_dropdown_change_handler(id,
-        reinterpret_cast<FnPluginUserInterfaceDropDownChangeHandler>(dropdown_change_handler),
-        reinterpret_cast<void *>(id));
+    api.ui_register_dropdown_change_handler(id, dropdown_change_handler, reinterpret_cast<void *>(id));
 
     auto dropdown = std::make_shared<ApiDropDown>(api, id);
     crs::ui_dropdowns[id] = dropdown;
@@ -181,7 +245,13 @@ namespace crs
 
   Engine *Api::raw_engine()
   {
-    return api.get_globals()->engine;
+    auto globals = raw_globals();
+    if (!globals)
+    {
+      return nullptr;
+    }
+
+    return globals->engine;
   }
 
   PlayerUpdateCache *Api::raw_player_update_cache()
@@ -227,7 +297,7 @@ namespace crs
     }
 
     auto idx = lp->entity_list_index;
-    if (idx < 0 || idx >= player_update_cache->updates.size())
+    if (idx < 0 || static_cast<size_t>(idx) >= player_update_cache->updates.size())
     {
       return nullptr;
     }
@@ -246,6 +316,7 @@ namespace crs
     std::vector<Player *> players;
     if (auto cache = raw_player_update_cache())
     {
+      players.reserve(static_cast<size_t>(cache->updates.size()));
       for (auto it = cache->updates.begin; it != cache->updates.end; it++)
       {
         if (auto update = *it)
@@ -266,7 +337,8 @@ namespace crs
     std::vector<Npc *> npcs;
     if (auto cache = raw_npc_update_cache())
     {
-      for (auto i = 0; i < cache->size; i++)
+      npcs.reserve(static_cast<size_t>(cache->size));
+      for (uint64_t i = 0; i < cache->size; i++)
       {
         if (auto update = cache->npcs[i])
         {
@@ -281,7 +353,7 @@ namespace crs
     return npcs;
   }
 
-  crs::SocialCache *Api::raw_social_cache()
+  SocialCache *Api::raw_social_cache()
   {
     auto engine = Api::raw_engine();
     if (!engine)
@@ -292,8 +364,13 @@ namespace crs
     return engine->social_cache;
   }
 
-  bool Api::raw_is_friend(const crs::Player *player)
+  bool Api::raw_is_friend(const Player *player)
   {
+    if (!player)
+    {
+      return false;
+    }
+
     auto cache = Api::raw_social_cache();
     if (!cache)
     {
@@ -333,6 +410,23 @@ namespace crs
     return engine->widget_cache;
   }
 
+  LocalPlayerVariables *Api::raw_local_player_variables()
+  {
+    auto engine = Api::raw_engine();
+    if (!engine)
+    {
+      return nullptr;
+    }
+
+    auto vc = engine->variable_cache;
+    if (!vc)
+    {
+      return nullptr;
+    }
+
+    return vc->local_player_variables;
+  }
+
   std::optional<ApiPlayer> Api::self()
   {
     auto rs = Api::raw_self();
@@ -344,30 +438,50 @@ namespace crs
     return ApiPlayer(rs);
   }
 
-  std::vector<ApiPlayer> Api::players(std::function<bool(ApiPlayer &)> conditional)
+  std::vector<ApiPlayer> Api::players(std::function<bool(const ApiPlayer &)> conditional)
   {
     std::vector<ApiPlayer> players;
-    for (auto player : Api::raw_players())
+    if (auto cache = raw_player_update_cache())
     {
-      auto api = ApiPlayer(player);
-      if (conditional(api))
+      players.reserve(static_cast<size_t>(cache->updates.size()));
+      for (auto it = cache->updates.begin; it != cache->updates.end; it++)
       {
-        players.push_back(api);
+        if (auto update = *it)
+        {
+          if (auto player = update->player)
+          {
+            ApiPlayer wrapped(player);
+            if (conditional(wrapped))
+            {
+              players.push_back(wrapped);
+            }
+          }
+        }
       }
     }
 
     return players;
   }
 
-  std::vector<ApiNpc> Api::npcs(std::function<bool(ApiNpc &)> conditional)
+  std::vector<ApiNpc> Api::npcs(std::function<bool(const ApiNpc &)> conditional)
   {
     std::vector<ApiNpc> npcs;
-    for (auto npc : Api::raw_npcs())
+    if (auto cache = raw_npc_update_cache())
     {
-      auto api = ApiNpc(npc);
-      if (conditional(api))
+      npcs.reserve(static_cast<size_t>(cache->size));
+      for (uint64_t i = 0; i < cache->size; i++)
       {
-        npcs.push_back(api);
+        if (auto update = cache->npcs[i])
+        {
+          if (auto npc = update->npc)
+          {
+            ApiNpc wrapped(npc);
+            if (conditional(wrapped))
+            {
+              npcs.push_back(wrapped);
+            }
+          }
+        }
       }
     }
 
@@ -377,9 +491,8 @@ namespace crs
   uint32_t Api::get_world_setting(uint32_t id)
   {
     auto cache = Api::raw_world_setting_cache();
-    if (!cache)
+    if (!cache || !cache->vars || cache->count == 0)
     {
-      Api::log("raw_world_setting_cache is NULL");
       return 0;
     }
 
@@ -395,7 +508,6 @@ namespace crs
       c = c->body.next;
     }
 
-    Api::log(std::format("Failed to find world setting with id '{}'", id));
     return 0;
   }
 
@@ -430,7 +542,7 @@ namespace crs
           slot += 1;
         }
 
-        return ApiItemContainer(i->items.size(), items);
+        return ApiItemContainer(id, i->items.size(), items);
       }
     }
 
@@ -439,7 +551,7 @@ namespace crs
 
   std::optional<ApiItemContainer> Api::get_inventory()
   {
-    return Api::get_item_container(93, 1473, 5);
+    return Api::get_item_container(Containers::inventory, InventoryWidget::parent, InventoryWidget::child);
   }
 
   bool Api::has_selected_item()
@@ -482,19 +594,24 @@ namespace crs
     };
 
     auto globals = Api::raw_globals();
+    if (!globals)
+    {
+      return nullptr;
+    }
+
     if (type == MenuActionType::walk)
     {
       return reinterpret_cast<FnMenuActionHandler>(&globals->menu_action_handler_walk);
     }
-    else if (type == MenuActionType::obj)
+    else if (type == MenuActionType::obj && idx < std::size(obj_offsets))
     {
       return reinterpret_cast<FnMenuActionHandler>(reinterpret_cast<char *>(globals) + obj_offsets[idx]);
     }
-    else if (type == MenuActionType::npc)
+    else if (type == MenuActionType::npc && idx < std::size(npc_offsets))
     {
       return reinterpret_cast<FnMenuActionHandler>(reinterpret_cast<char *>(globals) + npc_offsets[idx]);
     }
-    else if (type == MenuActionType::widget)
+    else if (type == MenuActionType::widget && idx < std::size(widget_offsets))
     {
       return reinterpret_cast<FnMenuActionHandler>(reinterpret_cast<char *>(globals) + widget_offsets[idx]);
     }
@@ -504,6 +621,11 @@ namespace crs
 
   void Api::perform_menu_action(FnMenuActionHandler handler, const MenuActionArgs &args)
   {
+    if (!handler)
+    {
+      return;
+    }
+
     MenuActionTemplate templ;
     templ.engine = Api::raw_engine();
     templ.handler = handler;
@@ -515,7 +637,6 @@ namespace crs
     MenuAction am_ctx;
     am_ctx.menu_action_context = &ctx;
 
-    Api::log(std::format("test {} {} {} {}", ctx.args.r[0], ctx.args.r[1], ctx.args.r[2], ctx.args.r[3]));
     handler(&templ, &am_ctx);
   }
 
@@ -524,7 +645,7 @@ namespace crs
     MenuActionArgs args;
     args.args_widget.option_idx = 0;
     args.args_widget.sub_idx = slot;
-    args.args_widget.widget_id = ((uint32_t)parent_widget << 16) | child_widget;
+    args.args_widget.widget_id = (static_cast<uint32_t>(parent_widget) << 16) | child_widget;
     args.args_widget.always_1 = 1;
 
     perform_menu_action(Api::get_menu_action_handler(MenuActionType::widget, 1), args);
@@ -548,9 +669,34 @@ namespace crs
     return crs::menu_action_events.reg(f);
   }
 
+  uint64_t Api::on_menu_opened(std::function<void(bool)> f)
+  {
+    return crs::menu_opened_events.reg(f);
+  }
+
   uint64_t Api::on_world_setting_changed(std::function<void(uint32_t, uint32_t)> f)
   {
     return crs::world_setting_changed_events.reg(f);
+  }
+
+  uint64_t Api::on_item_changed(std::function<void(uint32_t, uint32_t, int32_t, int32_t, int32_t, int32_t, int32_t)> f)
+  {
+    return crs::item_changed_events.reg(f);
+  }
+
+  uint64_t Api::on_new_chat_message(std::function<void(const std::string &, const std::string &, const std::string &)> f)
+  {
+    return crs::new_chat_message_events.reg(f);
+  }
+
+  void Api::expose(const std::string &name, void *function)
+  {
+    crs::api.expose_function(name.c_str(), reinterpret_cast<FnPluginExposedFunction>(function), nullptr);
+  }
+
+  void *Api::exposed(const std::string &name)
+  {
+    return reinterpret_cast<void *>(crs::api.get_exposed_function(name.c_str()));
   }
 
   void Api::log(const std::string &s)
@@ -563,8 +709,13 @@ PLUGIN_API
 const char *plugin_get_name()
 {
   static char plugin_name_cached[256];
-  strcpy(plugin_name_cached, crs::Boot::name().c_str());
+  std::strcpy(plugin_name_cached, crs::Boot::name().c_str());
   return plugin_name_cached;
+}
+
+static void plugin_toggle(bool active)
+{
+  crs::enabled_checkbox.set_checked(active);
 }
 
 PLUGIN_API
@@ -573,6 +724,7 @@ void plugin_init(crs::InitType type, crs::Plugin *plugin)
   crs::Api::init(type, plugin, []()
   {
     crs::Boot::init();
+    crs::Api::expose(crs::Boot::name() + "_toggle", reinterpret_cast<void *>(plugin_toggle));
   }, []()
   {
     crs::enabled_checkbox = crs::Api::add_checkbox("Enabled");

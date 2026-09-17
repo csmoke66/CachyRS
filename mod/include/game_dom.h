@@ -19,9 +19,6 @@ namespace crs
   class PlayerDomNode : public ValueDomNode<const Entity *>
   {
   public:
-    bool seen = true;
-
-  public:
     PlayerDomNode(std::shared_ptr<DomTree> tree, const std::string &id, const std::string &type);
   };
 
@@ -36,9 +33,6 @@ namespace crs
 
   class NpcDomNode : public ValueDomNode<const Entity *>
   {
-  public:
-    bool seen = true;
-
   public:
     NpcDomNode(std::shared_ptr<DomTree> tree, const std::string &id, const std::string &type);
   };
@@ -55,19 +49,11 @@ namespace crs
   class ItemDomNode : public ValueDomNode<Item>
   {
   public:
-    Item item;
-    bool seen = true;
-
-  public:
     ItemDomNode(std::shared_ptr<DomTree> tree, const std::string &id, const std::string &type);
   };
 
   class ItemContainerDomNode : public TypedChildrenDomNode<ItemDomNode>
   {
-  public:
-    uint32_t id;
-    bool seen = true;
-
   public:
     ItemContainerDomNode(std::shared_ptr<DomTree> tree, const std::string &id, const std::string &type);
 
@@ -87,7 +73,7 @@ namespace crs
   class WorldSettingDomNode : public DomNode
   {
   public:
-    bool seen = true;
+    UInt32DomValue *value = nullptr;
 
   public:
     WorldSettingDomNode(std::shared_ptr<DomTree> tree, const std::string &id, const std::string &type);
@@ -104,9 +90,6 @@ namespace crs
 
   class StatDomNode : public DomNode
   {
-  public:
-    bool seen = true;
-
   public:
     StatDomNode(std::shared_ptr<DomTree> tree, const std::string &id, const std::string &type);
   };

@@ -3,7 +3,6 @@ Standard: Latest
 
 BreakBeforeBraces: Custom
 BraceWrapping:
-  AfterRequiresExpression: true
   AfterNamespace: true
   AfterCaseLabel: true
   AfterClass: true
@@ -11,14 +10,11 @@ BraceWrapping:
   AfterEnum: true
   AfterStruct: true
   AfterUnion: true
-  AfterExportBlock: true
   AfterExternBlock: true
-  AfterBraceBlock: true
   BeforeElse: true
   BeforeLambdaBody: true
   BeforeCatch: true
   BeforeWhile: true
-  BeforeInitializationList: true
   SplitEmptyFunction: true
   SplitEmptyRecord: true
   SplitEmptyNamespace: true
@@ -28,7 +24,6 @@ AllowShortLambdasOnASingleLine: None
 LambdaBodyIndentation: OuterScope
 AlignAfterOpenBracket: DontAlign
 Cpp11BracedListStyle: false
-BreakBeforeLambdaBody: true
 NamespaceIndentation: All
 
 ColumnLimit: 0

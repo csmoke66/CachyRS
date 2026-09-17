@@ -6,24 +6,23 @@ namespace crs
       Rml::Element **current_tab,
       Rml::Element **current_content,
       Rml::Element *tab,
-      Rml::Element *content)
+      Rml::Element *content) : current_tab(current_tab),
+                               current_content(current_content),
+                               tab(tab),
+                               content(content)
   {
-    this->current_tab = current_tab;
-    this->current_content = current_content;
-    this->tab = tab;
-    this->content = content;
   }
 
-  void SwitchTabEventHandler::ProcessEvent(Rml::Event &event)
+  void SwitchTabEventHandler::ProcessEvent(Rml::Event &)
   {
-    if (auto ct = *current_tab)
+    if (auto current = *current_tab)
     {
-      ct->SetClass("selected", false);
+      current->SetClass("selected", false);
     }
 
-    if (auto cc = *current_content)
+    if (auto current = *current_content)
     {
-      cc->SetProperty("display", "none");
+      current->SetProperty("display", "none");
     }
 
     tab->SetClass("selected", true);
@@ -33,29 +32,26 @@ namespace crs
     *current_content = content;
   }
 
-  VerifyEventHandler::VerifyEventHandler(RmlUserInterface *rml_ui)
+  VerifyEventHandler::VerifyEventHandler(RmlUserInterface *rml_ui) : rml_ui(rml_ui)
   {
-    this->rml_ui = rml_ui;
   }
 
-  void VerifyEventHandler::ProcessEvent(Rml::Event &event)
+  void VerifyEventHandler::ProcessEvent(Rml::Event &)
   {
     rml_ui->request_verify();
   }
 
-  RefreshEventHandler::RefreshEventHandler(RmlUserInterface *rml_ui)
+  RefreshEventHandler::RefreshEventHandler(RmlUserInterface *rml_ui) : rml_ui(rml_ui)
   {
-    this->rml_ui = rml_ui;
   }
 
-  void RefreshEventHandler::ProcessEvent(Rml::Event &event)
+  void RefreshEventHandler::ProcessEvent(Rml::Event &)
   {
     rml_ui->reload();
   }
 
-  ToggleFeatureEventListener::ToggleFeatureEventListener(bool *val)
+  ToggleFeatureEventListener::ToggleFeatureEventListener(bool *val) : val(val)
   {
-    this->val = val;
   }
 
   void ToggleFeatureEventListener::ProcessEvent(Rml::Event &event)
@@ -64,16 +60,13 @@ namespace crs
     *val = checkbox->HasAttribute("checked");
   }
 
-  DomNodeEventListener::DomNodeEventListener(RmlUserInterface *parent, std::shared_ptr<DomNode> node)
+  DomNodeEventListener::DomNodeEventListener(RmlUserInterface *parent, std::shared_ptr<DomNode> node) : parent(parent),
+                                                                                                        node(std::move(node))
   {
-    this->parent = parent;
-    this->node = node;
   }
 
   void DomNodeEventListener::ProcessEvent(Rml::Event &event)
   {
-    auto rmlui_node = parent->get_rml_dom_node(node);
-    auto wrapper = rmlui_node->wrapper_element;
     if (event.GetId() == Rml::EventId::Click)
     {
       event.StopPropagation();
@@ -86,9 +79,8 @@ namespace crs
     }
   }
 
-  ToggleDomNodeEventListener::ToggleDomNodeEventListener(Rml::Element *element)
+  ToggleDomNodeEventListener::ToggleDomNodeEventListener(Rml::Element *element) : element(element)
   {
-    this->element = element;
   }
 
   void ToggleDomNodeEventListener::ProcessEvent(Rml::Event &event)
@@ -105,10 +97,8 @@ namespace crs
     }
   }
 
-  DragWindowEventListener::DragWindowEventListener(Rml::Element *element, Rml::Element *window)
+  DragWindowEventListener::DragWindowEventListener(Rml::Element *, Rml::Element *window) : window(window)
   {
-    this->element = element;
-    this->window = window;
   }
 
   void DragWindowEventListener::ProcessEvent(Rml::Event &event)
@@ -140,15 +130,19 @@ namespace crs
     }
   }
 
-  DropDownChangedEventListener::DropDownChangedEventListener(RmlUserInterface *parent, uint64_t component_id)
+  DropDownChangedEventListener::DropDownChangedEventListener(RmlUserInterface *parent, uint64_t component_id) : parent(parent),
+                                                                                                                component_id(component_id)
   {
-    this->parent = parent;
-    this->component_id = component_id;
   }
 
   void DropDownChangedEventListener::ProcessEvent(Rml::Event &event)
   {
-    auto select_element = dynamic_cast<Rml::ElementFormControlSelect *>(event.GetTargetElement());
-    parent->on_dropdown_component_changed(component_id, select_element->GetSelection());
+    auto *select = dynamic_cast<Rml::ElementFormControlSelect *>(event.GetTargetElement());
+    if (!select)
+    {
+      return;
+    }
+
+    parent->on_dropdown_component_changed(component_id, select->GetSelection());
   }
 } // namespace crs

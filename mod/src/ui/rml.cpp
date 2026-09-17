@@ -12,7 +12,7 @@
 
 namespace crs
 {
-  bool CachySystemInterface::LogMessage(Rml::Log::Type type, const Rml::String &message)
+  bool CachySystemInterface::LogMessage(Rml::Log::Type, const Rml::String &message)
   {
     LOG(UI, message);
     return true;
@@ -55,10 +55,10 @@ namespace crs
     root_dom_node = std::make_shared<DomNode>(shared_from_this(), "root", "root");
   }
 
-  void RmlUserInterface::init(const std::string &version, const std::string &config_folder, SDL_Window *window, int width, int height)
+  void RmlUserInterface::init(const std::string &app_version, const std::string &config_dir, SDL_Window *window, int width, int height)
   {
-    this->version = version;
-    this->config_folder = config_folder;
+    this->version = app_version;
+    this->config_folder = config_dir;
     this->sdl_window = window;
 
     if (!Backend::Initialize(window, width, height))
@@ -91,7 +91,7 @@ namespace crs
   Rml::ElementDocument *RmlUserInterface::load_document(const std::string &path)
   {
     auto document = context->LoadDocument(path);
-    if (!!document)
+    if (document)
     {
       auto title = document->GetElementById("title-bar");
 
@@ -176,7 +176,7 @@ namespace crs
                                                                   &selected_tab_button, &selected_content,
                                                                   debug_tab_button, debug_content));
 
-      auto dom_node_ext = get_rml_dom_node(root_dom_node);
+      auto dom_node_ext = get_rml_dom_node(root_dom_node.get());
       dom_node_ext->element = debug_content->GetElementById("dom-tree");
 
       auto verify_button = root_document->GetElementById("verify_button");
@@ -188,7 +188,7 @@ namespace crs
       root_document->Show();
     }
 
-    for (auto &f : this->reload_callbacks)
+    for (auto &f : reload_callbacks)
     {
       f();
     }
@@ -196,169 +196,292 @@ namespace crs
 
   void RmlUserInterface::add_reload_callback(std::function<void()> function)
   {
-    this->reload_callbacks.push_back(function);
+    reload_callbacks.push_back(std::move(function));
+  }
+
+  void RmlUserInterface::release_keyboard_focus()
+  {
+    overlay_has_keyboard_focus = false;
+
+    if (!context)
+    {
+      return;
+    }
+
+    if (auto *focused = context->GetFocusElement())
+    {
+      if (auto *document = focused->GetOwnerDocument())
+      {
+        document->Focus();
+      }
+      else
+      {
+        focused->Blur();
+      }
+    }
   }
 
   void RmlUserInterface::process(SDL_Event *event)
   {
-    wants_input_last = !Backend::ProcessEvents(context, event);
+    const bool is_key = event->type == SDL_KEYDOWN || event->type == SDL_KEYUP || event->type == SDL_TEXTINPUT;
+    if (is_key && !overlay_has_keyboard_focus)
+    {
+      wants_input_last.store(false, std::memory_order_relaxed);
+      return;
+    }
+
+    wants_input_last.store(!Backend::ProcessEvents(context, event), std::memory_order_relaxed);
+
+    if (event->type == SDL_MOUSEBUTTONDOWN && context)
+    {
+      if (context->IsMouseInteracting())
+      {
+        overlay_has_keyboard_focus = true;
+      }
+      else
+      {
+        release_keyboard_focus();
+      }
+    }
   }
 
   bool RmlUserInterface::wants_input()
   {
-    return wants_input_last;
+    return wants_input_last.load(std::memory_order_relaxed);
   }
 
-  RmlDomNode *RmlUserInterface::get_rml_dom_node(std::shared_ptr<DomNode> node)
+  RmlDomNode *RmlUserInterface::get_rml_dom_node(DomNode *node)
   {
-    auto f = dom_nodes.find(node);
-    if (f != dom_nodes.end())
+    auto [it, inserted] = dom_nodes.try_emplace(node);
+    return &it->second;
+  }
+
+  RmlDomNode *RmlUserInterface::find_rml_dom_node(DomNode *node)
+  {
+    auto it = dom_nodes.find(node);
+    if (it == dom_nodes.end())
     {
-      return &f->second;
+      return nullptr;
     }
 
-    dom_nodes[node] = RmlDomNode();
-    return &dom_nodes[node];
+    return &it->second;
+  }
+
+  RmlComponent *RmlUserInterface::find_component(uint64_t component_id)
+  {
+    auto it = component_map.find(component_id);
+    return it == component_map.end() ? nullptr : &it->second;
+  }
+
+  static bool element_display_none(Rml::Element *element)
+  {
+    if (!element)
+    {
+      return false;
+    }
+
+    auto property = element->GetLocalProperty(Rml::PropertyId::Display);
+    if (!property)
+    {
+      return false;
+    }
+
+    return property->Get<Rml::String>() == "none";
+  }
+
+  static bool element_below_viewport(Rml::Element *element)
+  {
+    if (!element)
+    {
+      return false;
+    }
+
+    auto context = element->GetContext();
+    if (!context)
+    {
+      return false;
+    }
+
+    auto pos = element->GetAbsoluteOffset(Rml::BoxArea::Border);
+    return pos.y > static_cast<float>(context->GetDimensions().y);
   }
 
   void RmlUserInterface::set_listener(std::unique_ptr<DomTreeListener> listener)
   {
-    this->dom_tree_listener = std::move(listener);
+    dom_tree_listener = std::move(listener);
   }
 
-  bool RmlUserInterface::build_dom_node(std::shared_ptr<DomNode> node, int depth)
+  bool RmlUserInterface::build_dom_node(DomNode *node, int depth)
   {
     auto dom_node_ext = get_rml_dom_node(node);
     auto rendered = !dom_node_ext->wrapper_element || is_rendered(dom_node_ext->wrapper_element);
     node->visible = rendered;
 
-    if (rendered)
+    if (!rendered)
     {
-      if (!node->is_built)
+      return false;
+    }
+
+    if (!node->is_built)
+    {
+      auto element = root_document->CreateElement("div");
+      element->SetProperty("decorator", "screen-tracker");
+
+      std::string inner_rml;
+      inner_rml += std::format("<div><span class=\"dom-node\">&lt;</span><span class=\"dom-node-type\">{}</span>", node->type);
+
+      std::vector<DomValue *> to_render;
+      for (auto &value : node->values)
       {
-        auto element = root_document->CreateElement("div");
-
-        // This creates an instance of VisibilityTrackerDecorator, which allows us
-        // to efficiently handle exposing if the div is being rendered on the screen.
-        element->SetProperty("decorator", "screen-tracker");
-
-        std::string inner_rml;
-        inner_rml += std::format("<div><span class=\"dom-node\">&lt;</span><span class=\"dom-node-type\">{}</span>", node->type);
-
-        auto &values = node->values;
-        std::vector<DomValue *> to_render;
-        for (auto &value : values)
+        if (!value->hidden)
         {
-          if (!value->hidden)
-          {
-            to_render.push_back(value.get());
-          }
+          to_render.push_back(value.get());
         }
+      }
 
-        if (!to_render.empty())
+      if (!to_render.empty())
+      {
+        inner_rml += "<span>&nbsp;</span>";
+      }
+
+      for (size_t i = 0; i < to_render.size(); i++)
+      {
+        inner_rml += std::format("<span class=\"dom-node-key\">{}</span><span class=\"dom-node\">=</span><span class=\"dom-node-value\" id=\"{}\">&quot;{}&quot;</span>", to_render[i]->name, to_render[i]->id, to_render[i]->to_string());
+        if (i + 1 != to_render.size())
         {
           inner_rml += "<span>&nbsp;</span>";
         }
-
-        for (auto i = 0; i < to_render.size(); i++)
-        {
-          auto is_last = (i == to_render.size() - 1);
-          inner_rml += std::format("<span class=\"dom-node-key\">{}</span><span class=\"dom-node\">=</span><span class=\"dom-node-value\" id=\"{}\">&quot;{}&quot;</span>", to_render[i]->name, to_render[i]->id, to_render[i]->to_string());
-          if (!is_last)
-          {
-            inner_rml += "<span>&nbsp;</span>";
-          }
-        }
-        inner_rml += std::format("<span class=\"dom-node\" id=\"{}\">&gt;</span></div>", node->id);
-        inner_rml += std::format("<div><span class=\"dom-node\">&lt;/</span><span class=\"dom-node-type\">{}</span><span class=\"dom-node\">&gt;</span></div>", node->type);
-
-        element->SetInnerRML(inner_rml);
-        element->SetClass("dom-row", true);
-
-        auto anchor = element->GetElementById(node->id);
-        auto parent_node_ext = get_rml_dom_node(node->parent);
-
-        // We map these in our DOM node extension to avoid costly lookups whenever the node
-        // is dirty and requires value updating.
-        for (auto &value : node->values)
-        {
-          dom_node_ext->dom_values[value->id] = { element->GetElementById(value->id) };
-        }
-
-        dom_node_ext->wrapper_element = parent_node_ext->element->AppendChild(std::move(element));
-        dom_node_ext->element = anchor;
-
-        auto dom_node_event_listener = new DomNodeEventListener(this, node);
-
-        dom_node_ext->wrapper_element->AddEventListener(Rml::EventId::Click, dom_node_event_listener);
-        dom_node_ext->wrapper_element->AddEventListener(Rml::EventId::Mouseover, dom_node_event_listener);
-        dom_node_ext->wrapper_element->AddEventListener(Rml::EventId::Mouseout, dom_node_event_listener);
-        dom_node_ext->wrapper_element->AddEventListener(Rml::EventId::Keydown, dom_node_event_listener);
-        dom_node_ext->wrapper_element->AddEventListener(Rml::EventId::Keyup, dom_node_event_listener);
-        dom_node_ext->wrapper_element->AddEventListener(Rml::EventId::Dblclick, dom_node_event_listener);
-        dom_node_ext->wrapper_element->AddEventListener(Rml::EventId::Dblclick, new ToggleDomNodeEventListener(dom_node_ext->element));
-
-        node->is_built = true;
       }
-      else if (node->dirty)
+      inner_rml += std::format("<span class=\"dom-node\" id=\"{}\">&gt;</span></div>", node->id);
+      inner_rml += std::format("<div><span class=\"dom-node\">&lt;/</span><span class=\"dom-node-type\">{}</span><span class=\"dom-node\">&gt;</span></div>", node->type);
+
+      element->SetInnerRML(inner_rml);
+      element->SetClass("dom-row", true);
+
+      auto anchor = element->GetElementById(node->id);
+      auto parent_node_ext = get_rml_dom_node(node->parent.get());
+
+      for (auto &value : node->values)
       {
-        auto element = dom_node_ext->wrapper_element;
-
-        auto display = element->GetProperty(Rml::PropertyId::Display)->Get<Rml::String>();
-        auto visibility = element->GetProperty(Rml::PropertyId::Visibility)->Get<Rml::String>();
-
-        auto context = element->GetContext();
-        auto dimensions = context ? context->GetDimensions() : Rml::Vector2i{};
-
-        // If a node is dirty, the visible values need to be updated.
-        for (auto &value : node->values)
-        {
-          if (!value->hidden && value->dirty)
-          {
-            auto dom_value = dom_node_ext->dom_values.find(value->id);
-            if (dom_value != dom_node_ext->dom_values.end())
-            {
-              dom_value->second.element->SetInnerRML(value->to_string());
-            }
-
-            value->dirty = false;
-          }
-        }
-
-        node->dirty = false;
+        dom_node_ext->dom_values[value->id] = { element->GetElementById(value->id) };
       }
 
-      for (auto c : node->children)
-      {
-        c.second->parent = node;
+      dom_node_ext->wrapper_element = parent_node_ext->element->AppendChild(std::move(element));
+      dom_node_ext->element = anchor;
 
-        // We assume all children are in order. If one child is not visible,
-        // the ones under it are not either.
-        if (!build_dom_node(c.second, depth + 1))
+      auto dom_node_event_listener = new DomNodeEventListener(this, node->shared_from_this());
+      dom_node_ext->wrapper_element->AddEventListener(Rml::EventId::Click, dom_node_event_listener);
+      dom_node_ext->wrapper_element->AddEventListener(Rml::EventId::Mouseover, dom_node_event_listener);
+      dom_node_ext->wrapper_element->AddEventListener(Rml::EventId::Mouseout, dom_node_event_listener);
+      dom_node_ext->wrapper_element->AddEventListener(Rml::EventId::Keydown, dom_node_event_listener);
+      dom_node_ext->wrapper_element->AddEventListener(Rml::EventId::Keyup, dom_node_event_listener);
+      dom_node_ext->wrapper_element->AddEventListener(Rml::EventId::Dblclick, dom_node_event_listener);
+      dom_node_ext->wrapper_element->AddEventListener(Rml::EventId::Dblclick, new ToggleDomNodeEventListener(dom_node_ext->element));
+
+      node->is_built = true;
+      node->dirty = false;
+    }
+    else if (node->dirty)
+    {
+      for (auto &value : node->values)
+      {
+        if (value->hidden || !value->dirty)
         {
-          break;
+          continue;
+        }
+
+        auto dom_value = dom_node_ext->dom_values.find(value->id);
+        if (dom_value != dom_node_ext->dom_values.end() && dom_value->second.element)
+        {
+          dom_value->second.element->SetInnerRML(std::format("&quot;{}&quot;", value->to_string()));
+        }
+
+        value->dirty = false;
+      }
+
+      node->dirty = false;
+    }
+
+    if (element_display_none(dom_node_ext->element))
+    {
+      return true;
+    }
+
+    auto below_fold = false;
+    auto built_new = 0;
+    constexpr auto max_new_rows = 64;
+    for (auto &child : node->child_order)
+    {
+      if (auto child_ext = find_rml_dom_node(child.get()))
+      {
+        if (child->is_built && child_ext->wrapper_element && !is_rendered(child_ext->wrapper_element))
+        {
+          child->visible = false;
+          if (element_below_viewport(child_ext->wrapper_element))
+          {
+            below_fold = true;
+          }
+          continue;
+        }
+      }
+
+      if (!child->is_built && (below_fold || built_new >= max_new_rows))
+      {
+        continue;
+      }
+
+      auto was_built = child->is_built;
+      build_dom_node(child.get(), depth + 1);
+      if (!was_built && child->is_built)
+      {
+        built_new += 1;
+      }
+
+      if (auto child_ext = find_rml_dom_node(child.get()))
+      {
+        if (child_ext->wrapper_element && element_below_viewport(child_ext->wrapper_element))
+        {
+          below_fold = true;
         }
       }
     }
 
-    return rendered;
+    return true;
   }
 
   void RmlUserInterface::add_dom_node(std::shared_ptr<DomNode> node)
   {
-    node->parent = root_dom_node;
-    root_dom_node->children[node->id] = node;
+    root_dom_node->add_child(node);
   }
 
-  void RmlUserInterface::remove_dom_node(std::shared_ptr<DomNode> node)
+  void RmlUserInterface::detach_dom_node(DomNode *node, bool remove_element)
   {
-    auto dom_node_ext = get_rml_dom_node(node);
-    if (dom_node_ext->wrapper_element)
+    for (auto &child : node->child_order)
     {
-      auto parent = dom_node_ext->wrapper_element->GetParentNode();
-      parent->RemoveChild(dom_node_ext->wrapper_element);
-      dom_nodes.erase(node);
+      detach_dom_node(child.get(), false);
     }
+
+    auto it = dom_nodes.find(node);
+    if (it != dom_nodes.end())
+    {
+      if (remove_element && it->second.wrapper_element)
+      {
+        if (auto parent = it->second.wrapper_element->GetParentNode())
+        {
+          parent->RemoveChild(it->second.wrapper_element);
+        }
+      }
+
+      dom_nodes.erase(it);
+    }
+
+    node->is_built = false;
+    node->dirty = true;
+  }
+
+  void RmlUserInterface::remove_dom_node(DomNode *node)
+  {
+    detach_dom_node(node, true);
   }
 
   void RmlUserInterface::inspect_dom_node(std::shared_ptr<DomNode> node)
@@ -399,7 +522,7 @@ namespace crs
       if (element->HasAttribute("render_frame"))
       {
         auto frame = element->GetAttribute("render_frame")->Get<uint64_t>();
-        rendered = (frame == this->render_frame);
+        rendered = (frame == render_frame);
       }
     }
     return rendered;
@@ -407,7 +530,7 @@ namespace crs
 
   void RmlUserInterface::render()
   {
-    this->render_frame += 1;
+    render_frame += 1;
 
     auto hovered = get_dom_parent(context->GetHoverElement());
     if (hovered != last_hovered)
@@ -434,222 +557,240 @@ namespace crs
 
   uint64_t RmlUserInterface::get_render_frame()
   {
-    return this->render_frame;
+    return render_frame;
   }
 
   uint64_t RmlUserInterface::allocate_tab(const std::string &name)
   {
     auto id = component_allocation++;
 
-    auto container_u = root_document->CreateElement("div");
-    container_u->SetClass("sidebar-content", true);
-    container_u->SetProperty("display", "none");
-    auto container = plugins_content->AppendChild(std::move(container_u));
+    auto container_el = root_document->CreateElement("div");
+    container_el->SetClass("sidebar-content", true);
+    container_el->SetProperty("display", "none");
+    auto container = plugins_content->AppendChild(std::move(container_el));
 
-    auto button_u = root_document->CreateElement("button");
-    button_u->SetInnerRML(name);
-    button_u->SetClass("sidebar-tab-button", true);
-    auto button = plugins_buttons->AppendChild(std::move(button_u));
+    auto button_el = root_document->CreateElement("button");
+    button_el->SetInnerRML(name);
+    button_el->SetClass("sidebar-tab-button", true);
+    auto button = plugins_buttons->AppendChild(std::move(button_el));
 
     button->AddEventListener(Rml::EventId::Click, new SwitchTabEventHandler(
                                                       &selected_plugin_tab_button, &selected_plugin_content,
                                                       button, container));
 
-    component_map[id] = RmlComponent{ ComponentType::container, container };
+    component_map[id] = RmlComponent{ .type = ComponentType::container, .element = container, .dropdown = {} };
     return id;
   }
 
   uint64_t RmlUserInterface::allocate_component(ComponentType type, uint64_t parent_id)
   {
     auto id = component_allocation++;
-    auto parent = component_map.find(parent_id);
-    auto has_parent = parent != component_map.end();
-    auto parent_element = (has_parent ? parent->second.element : nullptr);
+    auto *parent = find_component(parent_id);
+    auto *parent_element = parent ? parent->element : nullptr;
     if (!parent_element)
     {
       LOG(ERROR, "Cannot allocate component with no parent");
       return 0;
     }
 
+    auto *document = parent_element->GetOwnerDocument();
     RmlComponent component;
+    auto append = [&](Rml::ElementPtr created)
+    {
+      component.element = parent_element->AppendChild(std::move(created));
+    };
+
     if (type == ComponentType::container)
     {
-      auto document = parent_element->GetOwnerDocument();
-
-      auto u_element = document->CreateElement("div");
-      component.element = parent_element->AppendChild(std::move(u_element));
+      append(document->CreateElement("div"));
     }
     else if (type == ComponentType::label)
     {
-      auto document = parent_element->GetOwnerDocument();
-
-      auto u_element = document->CreateElement("div");
-      u_element->SetInnerRML(std::format("<span id=\"text_{}\">N/A</span>", id));
-      component.element = parent_element->AppendChild(std::move(u_element));
+      auto element = document->CreateElement("div");
+      element->SetInnerRML(std::format("<span id=\"text_{}\">N/A</span>", id));
+      append(std::move(element));
     }
     else if (type == ComponentType::hr)
     {
-      auto document = parent_element->GetOwnerDocument();
-
-      auto u_element = document->CreateElement("div");
-      u_element->SetClass("hr-custom", true);
-      component.element = parent_element->AppendChild(std::move(u_element));
+      auto element = document->CreateElement("div");
+      element->SetClass("hr-custom", true);
+      append(std::move(element));
     }
     else if (type == ComponentType::line)
     {
-      auto document = parent_element->GetOwnerDocument();
-
-      auto u_element = document->CreateElement("div");
-      u_element->SetClass("hr-empty", true);
-      component.element = parent_element->AppendChild(std::move(u_element));
+      auto element = document->CreateElement("div");
+      element->SetClass("hr-empty", true);
+      append(std::move(element));
     }
     else if (type == ComponentType::button)
     {
-      auto document = parent_element->GetOwnerDocument();
-
-      auto u_element = document->CreateElement("button");
-      u_element->SetId(std::format("{}", id));
-      u_element->SetInnerRML("N/A");
-      component.element = parent_element->AppendChild(std::move(u_element));
+      auto element = document->CreateElement("button");
+      element->SetId(std::format("{}", id));
+      element->SetInnerRML("N/A");
+      append(std::move(element));
     }
     else if (type == ComponentType::checkbox)
     {
-      auto document = parent_element->GetOwnerDocument();
-
-      auto u_element = document->CreateElement("div");
-      u_element->SetInnerRML(std::format("<label class=\"checkbox-row\"><input type=\"checkbox\" id=\"input_{}\"/><span id=\"text_{}\">N/A</span></label>", id, id));
-      component.element = parent_element->AppendChild(std::move(u_element));
+      auto element = document->CreateElement("div");
+      element->SetInnerRML(std::format("<label class=\"checkbox-row\"><input type=\"checkbox\" id=\"input_{}\"/><span id=\"text_{}\">N/A</span></label>", id, id));
+      append(std::move(element));
     }
     else if (type == ComponentType::dropdown)
     {
-      auto document = parent_element->GetOwnerDocument();
-
-      auto u_element = document->CreateElement("select");
-      u_element->SetId(std::format("{}", id));
-      u_element->AddEventListener(Rml::EventId::Change, new DropDownChangedEventListener(this, id));
-
-      component.element = parent_element->AppendChild(std::move(u_element));
+      auto element = document->CreateElement("select");
+      element->SetId(std::format("{}", id));
+      element->AddEventListener(Rml::EventId::Change, new DropDownChangedEventListener(this, id));
+      append(std::move(element));
       component.dropdown.change_handlers = std::vector<std::function<void(int)>>();
     }
 
-    if (!!component.element)
-    {
-      component_map[id] = component;
-      return id;
-    }
-    else
+    if (!component.element)
     {
       return 0;
     }
+
+    component_map[id] = component;
+    return id;
   }
 
-  void RmlUserInterface::update_component_text(uint64_t component_id, std::string text)
+  void RmlUserInterface::update_component_text(uint64_t component_id, const std::string &text)
   {
-    auto kv = component_map.find(component_id);
-    if (kv != component_map.end())
+    auto *component = find_component(component_id);
+    if (!component)
     {
-      auto element = kv->second.element;
-      LOG(INFO, "Update text " << component_id << " " << text << " " << element->GetInnerRML());
+      return;
+    }
 
-      auto child = element->GetElementById(std::format("text_{}", component_id));
-      if (!child)
-      {
-        child = element->GetElementById(std::format("title_{}", component_id));
-      }
+    auto *element = component->element;
+    LOG(DEBUG, "Update text " << component_id << " " << text << " " << element->GetInnerRML());
 
-      if (!!child)
-      {
-        child->SetInnerRML(text);
-      }
+    auto *child = element->GetElementById(std::format("text_{}", component_id));
+    if (!child)
+    {
+      child = element->GetElementById(std::format("title_{}", component_id));
+    }
+
+    if (child)
+    {
+      child->SetInnerRML(text);
     }
   }
 
   void RmlUserInterface::update_component_items(uint64_t component_id, const std::vector<std::string> &items)
   {
-    auto kv = component_map.find(component_id);
-    if (kv != component_map.end())
+    auto *component = find_component(component_id);
+    if (!component)
     {
-      auto element = kv->second.element;
-      auto select_element = dynamic_cast<Rml::ElementFormControlSelect *>(element);
-      if (!select_element)
-      {
-        LOG(ERROR, "Invalid element: " << element);
-        return;
-      }
+      return;
+    }
 
-      LOG(DEBUG, "Removing children");
-      select_element->RemoveAll();
+    auto *select = dynamic_cast<Rml::ElementFormControlSelect *>(component->element);
+    if (!select)
+    {
+      LOG(ERROR, "Invalid element: " << component->element);
+      return;
+    }
 
-      LOG(DEBUG, "Adding options");
-      auto idx = 0;
-      for (auto &item : items)
-      {
-        LOG(DEBUG, item);
-        select_element->Add(item, std::format("{}", idx++));
-      }
+    LOG(DEBUG, "Removing children");
+    select->RemoveAll();
+
+    LOG(DEBUG, "Adding options");
+    auto idx = 0;
+    for (auto &item : items)
+    {
+      LOG(DEBUG, item);
+      select->Add(item, std::format("{}", idx++));
     }
   }
 
-  bool RmlUserInterface::is_component_checked(uint64_t component_id)
+  bool RmlUserInterface::is_component_active(uint64_t component_id)
   {
-    auto kv = component_map.find(component_id);
-    if (kv != component_map.end())
+    auto *component = find_component(component_id);
+    if (!component)
     {
-      auto element = kv->second.element;
-      auto child = element->GetElementById(std::format("input_{}", component_id));
-      if (!!child)
-      {
-        return child->HasAttribute("checked");
-      }
+      return false;
     }
 
-    return false;
+    auto *child = component->element->GetElementById(std::format("input_{}", component_id));
+    return child && child->HasAttribute("checked");
+  }
+
+  void RmlUserInterface::set_component_active(uint64_t component_id, bool active)
+  {
+    auto *component = find_component(component_id);
+    if (!component)
+    {
+      return;
+    }
+
+    auto *child = component->element->GetElementById(std::format("input_{}", component_id));
+    if (!child)
+    {
+      return;
+    }
+
+    if (active)
+    {
+      child->SetAttribute("checked", true);
+    }
+    else
+    {
+      child->RemoveAttribute("checked");
+    }
   }
 
   void RmlUserInterface::register_dropdown_change_handler(uint64_t component_id, std::function<void(int32_t)> handler)
   {
-    auto kv = component_map.find(component_id);
-    if (kv != component_map.end())
+    if (auto *component = find_component(component_id))
     {
-      kv->second.dropdown.change_handlers.push_back(handler);
+      component->dropdown.change_handlers.push_back(handler);
     }
   }
 
   void RmlUserInterface::dropdown_set_selected(uint64_t component_id, int32_t index)
   {
-    auto kv = component_map.find(component_id);
-    if (kv != component_map.end())
+    auto *component = find_component(component_id);
+    if (!component)
     {
-      auto select_element = dynamic_cast<Rml::ElementFormControlSelect *>(kv->second.element);
-      select_element->SetSelection(index);
+      return;
+    }
+
+    auto *select = dynamic_cast<Rml::ElementFormControlSelect *>(component->element);
+    if (select)
+    {
+      select->SetSelection(index);
     }
   }
 
-  void RmlUserInterface::on_dropdown_component_changed(uint64_t component_id, int32_t idx)
+  void RmlUserInterface::on_dropdown_component_changed(uint64_t component_id, int32_t index)
   {
-    auto kv = component_map.find(component_id);
-    if (kv != component_map.end())
+    auto *component = find_component(component_id);
+    if (!component)
     {
-      for (auto &f : kv->second.dropdown.change_handlers)
-      {
-        f(idx);
-      }
+      return;
+    }
+
+    for (auto &handler : component->dropdown.change_handlers)
+    {
+      handler(index);
     }
   }
 
   void RmlUserInterface::set_component_visible(uint64_t component_id, bool visible)
   {
-    auto kv = component_map.find(component_id);
-    if (kv != component_map.end())
+    auto *component = find_component(component_id);
+    if (!component)
     {
-      if (visible)
-      {
-        kv->second.element->RemoveProperty("display");
-      }
-      else
-      {
-        kv->second.element->SetProperty("display", "none");
-      }
+      return;
+    }
+
+    if (visible)
+    {
+      component->element->RemoveProperty("display");
+    }
+    else
+    {
+      component->element->SetProperty("display", "none");
     }
   }
 } // namespace crs

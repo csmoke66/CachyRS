@@ -9,20 +9,22 @@ UNSUPPORTED_OS();
 
 #include "cachy.h"
 
+#include <cstring>
+
 namespace crs
 {
 #ifdef __linux__
   void *allocate_executable_memory(void *data, size_t size)
   {
     auto page_size = sysconf(_SC_PAGESIZE);
-    auto mem = mmap(NULL, page_size, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+    auto mem = mmap(nullptr, page_size, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
     if (mem == MAP_FAILED)
     {
       LOG(ERROR, "Failed to allocate memory");
       return nullptr;
     }
 
-    memcpy(mem, data, size);
+    std::memcpy(mem, data, size);
     if (mprotect(mem, page_size, PROT_READ | PROT_EXEC) == -1)
     {
       LOG(ERROR, "Failed make memory executable");
@@ -40,9 +42,9 @@ namespace crs
   {
     auto page = reinterpret_cast<Elf64_Addr>(target) & ~(getpagesize() - 1);
 
-    mprotect((void *)page, getpagesize(), prot | PROT_WRITE);
-    memcpy(target, data, size);
-    mprotect((void *)page, getpagesize(), prot);
+    mprotect(reinterpret_cast<void *>(page), getpagesize(), prot | PROT_WRITE);
+    std::memcpy(target, data, size);
+    mprotect(reinterpret_cast<void *>(page), getpagesize(), prot);
   }
 #else
   UNSUPPORTED_OS();

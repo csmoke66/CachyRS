@@ -2,11 +2,11 @@
 #include <chrono>
 #include <thread>
 
-typedef std::chrono::system_clock TimerClock;
+using TimerClock = std::chrono::system_clock;
 class Timer
 {
 private:
- TimerClock::time_point last_time = TimerClock::now();
+  TimerClock::time_point last_time = TimerClock::now();
 
 public:
   template <typename _Rep, typename _Period>
@@ -24,7 +24,7 @@ public:
   }
 };
 
-typedef std::chrono::steady_clock StopwatchClock;
+using StopwatchClock = std::chrono::steady_clock;
 class Stopwatch
 {
 private:

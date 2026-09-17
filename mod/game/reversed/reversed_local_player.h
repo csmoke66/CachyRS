@@ -1,5 +1,7 @@
 #pragma once
+#include "reversed_util.h"
 
+static_assert(true);
 #pragma pack(push, 1)
 struct LocalPlayer
 {

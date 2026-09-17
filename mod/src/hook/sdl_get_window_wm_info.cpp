@@ -21,6 +21,6 @@ namespace crs
         reinterpret_cast<SDL_Window *>(CPU_FIRST_ARG(cpu_state)),
         reinterpret_cast<SDL_SysWMinfo *>(CPU_SECOND_ARG(cpu_state))));
 
-    this->info = *(SDL_SysWMinfo *)CPU_SECOND_ARG(cpu_state);
+    info = *reinterpret_cast<SDL_SysWMinfo *>(CPU_SECOND_ARG(cpu_state));
   }
 } // namespace crs

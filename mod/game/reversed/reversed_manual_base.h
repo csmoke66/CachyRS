@@ -1,5 +1,10 @@
 #pragma once
+#include "reversed_util.h"
 
+#include <cstdint>
+#include <string>
+
+static_assert(true);
 #pragma pack(push, 1)
 struct Item
 {
@@ -10,7 +15,8 @@ struct Item
   // 0xc
 
   Item();
-  Item(const Item &o);
+  Item(const Item &o) = default;
+  Item &operator=(const Item &o) = default;
 };
 
 template <typename T>
@@ -60,13 +66,13 @@ struct JVector
   T *max;
   // 0x18
 
-  FINLINE size_t size() const
+  __attribute__((always_inline)) inline size_t size() const
   {
     auto raw_distance = (uint64_t)end - (uint64_t)begin;
     return raw_distance / sizeof(T);
   }
 
-  FINLINE bool is_valid(size_t idx) const
+  __attribute__((always_inline)) inline bool is_valid(size_t idx) const
   {
     if (begin == end)
     {
@@ -123,10 +129,7 @@ public:
     }
   }
 
-  FINLINE std::string str() const
-  {
-    return std::string(c_str());
-  }
+  FINLINE std::string str() const { return std::string(c_str()); }
 };
 static_assert(sizeof(JString) == 0x18, INVALID_SIZE);
 

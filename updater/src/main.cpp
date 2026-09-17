@@ -468,19 +468,19 @@ int main()
   cs_option(capstone_handle, CS_OPT_DETAIL, CS_OPT_ON);
 
   auto data = read_file("rs2client");
-  auto ehdr = (Elf64_Ehdr *)(data.data());
-  auto shdrs = (Elf64_Shdr *)(data.data() + ehdr->e_shoff);
-  auto shstrtab = (const char *)(data.data() + shdrs[ehdr->e_shstrndx].sh_offset);
+  auto ehdr = reinterpret_cast<Elf64_Ehdr *>(data.data());
+  auto shdrs = reinterpret_cast<Elf64_Shdr *>(data.data() + ehdr->e_shoff);
+  auto shstrtab = reinterpret_cast<const char *>(data.data() + shdrs[ehdr->e_shstrndx].sh_offset);
 
-  uint8_t *text;
-  Elf64_Shdr text_hdr;
+  uint8_t *text = nullptr;
+  Elf64_Shdr text_hdr{};
 
   for (int i = 0; i < ehdr->e_shnum; i++)
   {
     auto &sh = shdrs[i];
     auto name = shstrtab + sh.sh_name;
 
-    if (strcmp(name, ".text") == 0)
+    if (std::strcmp(name, ".text") == 0)
     {
       text_hdr = sh;
       text = data.data() + sh.sh_offset;
@@ -488,7 +488,7 @@ int main()
     }
   }
 
-  auto elf_interface = ElfInterface((Elf64_Addr)data.data());
+  auto elf_interface = ElfInterface(reinterpret_cast<Elf64_Addr>(data.data()));
   elf_interface.init_base();
   elf_interface.init();
 

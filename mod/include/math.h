@@ -24,9 +24,9 @@ namespace crs
 
     Vec2<T> to_vec2_xz()
     {
-      return { x, z};
+      return { x, z };
     }
-    
+
     bool operator==(const Vec3<T> &other) const = default;
   };
 

@@ -1,4 +1,5 @@
 #include "cachy.h"
+#include "dom_sync.h"
 #include "game_dom.h"
 #include "not_cachy.h"
 
@@ -14,79 +15,41 @@ namespace crs
 
   void StatsDomNode::update()
   {
-    iterate_typed_children([this](StatDomNode *node)
+    auto cache = NRS.variable_cache();
+    if (!cache)
     {
-      node->seen = false;
-      return false;
-    });
+      return;
+    }
 
-    auto ws = NRS.variable_cache();
-    if (auto lpv = ws->local_player_variables)
+    begin_sync();
+
+    if (auto lpv = cache->local_player_variables)
     {
-      for (auto i = 0; i < lpv->stat_count; i++)
+      if (lpv->stats)
       {
-        auto stat = lpv->stats[i];
-
-        auto id = std::format("stat_{}", i);
-        auto child = find_typed_child(id);
-        if (!child)
+        for (auto i = 0u; i < lpv->stat_count; i++)
         {
-          auto new_dom_node = std::make_shared<StatDomNode>(tree, id, "stat");
-          new_dom_node->add_value(std::make_unique<UInt32DomValue>("id", i));
-
-          auto current_level_node = std::make_unique<UInt32DomValue>("current level", stat.current_level);
-          current_level_node->mark_hidden();
-          new_dom_node->add_value(std::move(current_level_node));
-
-          auto max_level_node = std::make_unique<UInt32DomValue>("max level", stat.max_level);
-          max_level_node->mark_hidden();
-          new_dom_node->add_value(std::move(max_level_node));
-
-          auto experience_node = std::make_unique<UInt32DomValue>("experience", stat.experience);
-          experience_node->mark_hidden();
-          new_dom_node->add_value(std::move(experience_node));
-
-          new_dom_node->parent = shared_from_this();
-          children[id] = new_dom_node;
-        }
-        else
-        {
-          auto current_level_node = child->find_value<UInt32DomValue>("current level");
-          auto max_level_node = child->find_value<UInt32DomValue>("max level");
-          auto experience_node = child->find_value<UInt32DomValue>("experience");
-
-          if (current_level_node->val != stat.current_level)
+          auto stat = lpv->stats[i];
+          auto key = static_cast<uintptr_t>(i);
+          if (auto child = touch_typed_key(key))
           {
-            current_level_node->val = stat.current_level;
-            current_level_node->mark_dirty();
-
-            child->mark_dirty();
+            child->set_value<UInt32DomValue>("current level", stat.current_level);
+            child->set_value<UInt32DomValue>("max level", stat.max_level);
+            child->set_value<UInt32DomValue>("experience", stat.experience);
           }
-
-          if (max_level_node->val != stat.max_level)
+          else
           {
-            max_level_node->val = stat.max_level;
-            max_level_node->mark_dirty();
-
-            child->mark_dirty();
+            auto node = std::make_shared<StatDomNode>(tree, make_numeric_id("stat_", i), "stat");
+            node->add_value(std::make_unique<UInt32DomValue>("id", i));
+            add_hidden_uint32(*node, "current level", stat.current_level);
+            add_hidden_uint32(*node, "max level", stat.max_level);
+            add_hidden_uint32(*node, "experience", stat.experience);
+            add_keyed_child(key, node);
           }
-
-          if (experience_node->val != stat.experience)
-          {
-            experience_node->val = stat.experience;
-            experience_node->mark_dirty();
-
-            child->mark_dirty();
-          }
-          child->seen = true;
         }
       }
     }
 
-    iterate_typed_children([this](StatDomNode *node)
-    {
-      auto remove = !node->seen;
-      return remove;
-    });
+    end_sync();
   }
 } // namespace crs

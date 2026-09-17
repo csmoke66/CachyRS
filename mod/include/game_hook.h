@@ -5,15 +5,20 @@
 
 #include <SDL2/SDL_syswm.h>
 #include <dlfcn.h>
+#include <map>
+#include <unordered_map>
 
 namespace crs
 {
+  class RenderWidgetHook;
+  class SdlPollEventHook;
+
   class MenuExecuteHook : public Hook<FnMenuExecute>
   {
   private:
     std::string get_action_handler_name(FnMenuActionHandler handler);
     std::string get_action_handler_api(FnMenuActionHandler handler);
-    void print_action_handler(MenuActionContext* menu_action_context);
+    void print_action_handler(MenuActionContext *menu_action_context);
 
   public:
     void handler(CpuState *cpu_state) override;
@@ -86,6 +91,12 @@ namespace crs
     void handler(CpuState *cpu_state) override;
   };
 
+  class SdlShowWindowHook : public Hook<FnSdlShowWindow>
+  {
+  public:
+    void handler(CpuState *cpu_state) override;
+  };
+
   class SdlCreateContextHook : public Hook<FnSdlCreateContext>
   {
   public:
@@ -114,19 +125,19 @@ namespace crs
 
   private:
     bool plugins_loaded = false;
-    std::map<uint32_t, ItemContainerCache> cached_containers;
+    std::unordered_map<uint32_t, ItemContainerCache> cached_containers;
 
   private:
+    [[clang::optnone, gnu::noinline]]
     void verify();
 
   private:
     void tick_ui(Engine *engine);
-    void tick_imgui(Engine *engine);
+    void tick_imgui();
     void tick_stats();
 
   private:
     void watch_item_changes(Engine *engine);
-    void watch_widget_changes(Engine *engine);
 
   public:
     void handler(CpuState *cpu_state) override;

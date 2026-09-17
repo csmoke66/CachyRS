@@ -7,7 +7,7 @@
 
 #include "ownership.h"
 
-#define PLUGIN_API __attribute((visibility("default"))) extern "C"
+#define PLUGIN_API __attribute__((visibility("default"))) extern "C"
 
 namespace crs
 {
@@ -30,28 +30,29 @@ namespace crs
 
   struct Plugin;
 
-  typedef const char *(*FnPluginGetName)();
-  typedef void (*FnPluginInit)(InitType type, Plugin *plugin);
-  typedef void (*FnPluginLog)(const char *message);
-  typedef void (*FnPluginExposedFunction)(void *context);
+  using FnPluginGetName = const char *(*)();
+  using FnPluginInit = void (*)(InitType type, Plugin *plugin);
+  using FnPluginLog = void (*)(const char *message);
+  using FnPluginExposedFunction = void (*)(void *context);
 
-  typedef void (*FnPluginUserInterfaceDropDownChangeHandler)(uint64_t id, int32_t selected, void *user_data);
+  using FnPluginUserInterfaceDropDownChangeHandler = void (*)(uint64_t id, int32_t selected, void *user_data);
 
-  typedef ThreadOwned<Globals *> (*FnPluginGetGlobals)();
+  using FnPluginGetGlobals = ThreadOwned<Globals *> (*)();
 
-  typedef uint64_t (*FnPluginUserInterfaceAllocateComponent)(PluginComponentType type, uint64_t parent_id);
-  typedef void (*FnPluginUserInterfaceUpdateComponentText)(uint64_t component_id, const char *text);
-  typedef void (*FnPluginUserInterfaceUpdateComponentItems)(uint64_t component_id, const char **items, size_t item_count);
-  typedef bool (*FnPluginUserInterfaceIsComponentChecked)(uint64_t component_id);
-  typedef void (*FnPluginUserInterfaceRegisterDropDownChangeHandler)(uint64_t component_id, FnPluginUserInterfaceDropDownChangeHandler handler, void *user_data);
-  typedef void (*FnPluginUserInterfaceDropDownSetSelected)(uint64_t component_id, int32_t index);
-  typedef void (*FnPluginUserInterfaceSetVisible)(uint64_t component_id, bool visible);
+  using FnPluginUserInterfaceAllocateComponent = uint64_t (*)(PluginComponentType type, uint64_t parent_id);
+  using FnPluginUserInterfaceUpdateComponentText = void (*)(uint64_t component_id, const char *text);
+  using FnPluginUserInterfaceUpdateComponentItems = void (*)(uint64_t component_id, const char **items, size_t item_count);
+  using FnPluginUserInterfaceIsComponentActive = bool (*)(uint64_t component_id);
+  using FnPluginUserInterfaceRegisterDropDownChangeHandler = void (*)(uint64_t component_id, FnPluginUserInterfaceDropDownChangeHandler handler, void *user_data);
+  using FnPluginUserInterfaceDropDownSetSelected = void (*)(uint64_t component_id, int32_t index);
+  using FnPluginUserInterfaceSetVisible = void (*)(uint64_t component_id, bool visible);
+  using FnPluginUserInterfaceSetActive = void (*)(uint64_t component_id, bool active);
 
-  typedef void (*FnPluginEventBusReceiver)(void *args, void *context);
-  typedef void (*FnPluginEventBusRegister)(const char *id, void *receiver, void *context);
+  using FnPluginEventBusReceiver = void (*)(void *args, void *context);
+  using FnPluginEventBusRegister = void (*)(const char *id, void *receiver, void *context);
 
-  typedef void (*FnPluginExposeFunction)(const char* name, FnPluginExposedFunction fn, void *context);
-  typedef FnPluginExposedFunction (*FnPluginGetExposedFunction)(const char* name);
+  using FnPluginExposeFunction = void (*)(const char *name, FnPluginExposedFunction fn, void *context);
+  using FnPluginGetExposedFunction = FnPluginExposedFunction (*)(const char *name);
 
   struct PluginApi
   {
@@ -61,7 +62,8 @@ namespace crs
     FnPluginUserInterfaceAllocateComponent ui_allocate_component;
     FnPluginUserInterfaceUpdateComponentText ui_update_component_text;
     FnPluginUserInterfaceUpdateComponentItems ui_update_component_items;
-    FnPluginUserInterfaceIsComponentChecked ui_is_component_checked;
+    FnPluginUserInterfaceIsComponentActive ui_is_component_active;
+    FnPluginUserInterfaceSetActive ui_set_component_active;
     FnPluginUserInterfaceRegisterDropDownChangeHandler ui_register_dropdown_change_handler;
     FnPluginUserInterfaceDropDownSetSelected ui_dropdown_set_selected;
     FnPluginUserInterfaceSetVisible ui_set_visible;
@@ -86,7 +88,7 @@ namespace crs
   class PluginManager
   {
   private:
-    std::vector<::std::unique_ptr<Plugin>> plugins;
+    std::vector<std::unique_ptr<Plugin>> plugins;
     PluginApi api;
 
   private:

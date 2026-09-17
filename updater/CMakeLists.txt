@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 project(updater LANGUAGES CXX)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_executable(updater
     src/elf.cpp
@@ -17,3 +18,5 @@ target_include_directories(updater PRIVATE include)
 target_link_libraries(updater
     PkgConfig::capstone
 )
+
+cachyrs_warnings(updater)

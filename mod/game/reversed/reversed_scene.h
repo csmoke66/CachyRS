@@ -1,4 +1,14 @@
 #pragma once
+#include "math.h"
+#include "reversed_enum.h"
+#include "reversed_fwd_decl.h"
+#include "reversed_manual_base.h"
+#include "reversed_util.h"
+
+using crs::Vec3;
+
+struct Entity;
+struct Scene003;
 
 #pragma pack(push, 1)
 struct TerrainHeightData

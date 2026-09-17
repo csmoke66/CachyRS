@@ -29,22 +29,21 @@ namespace crs
     std::vector<Component *> children;
 
   public:
-    Component(uint64_t id)
+    Component(uint64_t id) : id(id)
     {
-      this->id = id;
     }
 
   public:
-    Component *get_child(size_t id)
+    Component *get_child(size_t child_id)
     {
-      if (this->id == id)
+      if (this->id == child_id)
       {
         return this;
       }
 
       for (auto c : children)
       {
-        if (auto cc = c->get_child(id))
+        if (auto cc = c->get_child(child_id))
         {
           return cc;
         }
@@ -58,7 +57,7 @@ namespace crs
   {
   private:
     bool wants_verify = false;
-    
+
   public:
     virtual ~UserInterface();
 
@@ -76,9 +75,10 @@ namespace crs
   public:
     virtual uint64_t allocate_tab(const std::string &name) = 0;
     virtual uint64_t allocate_component(ComponentType type, uint64_t parent_id) = 0;
-    virtual void update_component_text(uint64_t component_id, std::string text) = 0;
+    virtual void update_component_text(uint64_t component_id, const std::string &text) = 0;
     virtual void update_component_items(uint64_t component_id, const std::vector<std::string> &items) = 0;
-    virtual bool is_component_checked(uint64_t component_id) = 0;
+    virtual bool is_component_active(uint64_t component_id) = 0;
+    virtual void set_component_active(uint64_t component_id, bool active) = 0;
     virtual void register_dropdown_change_handler(uint64_t component_id, std::function<void(int32_t)> handler) = 0;
     virtual void dropdown_set_selected(uint64_t component_id, int32_t index) = 0;
     virtual void set_component_visible(uint64_t component_id, bool visible) = 0;

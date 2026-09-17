@@ -1,6 +1,12 @@
 #pragma once
 
-// manual
+struct Globals;
+struct Engine;
+struct Scene003;
+struct Entity;
+class NamedEntity;
+class Player;
+class Npc;
 struct Linux005;
 struct Linux004;
 struct Linux003;
@@ -19,7 +25,7 @@ template <typename T, typename B>
 struct CacheBuffer;
 class CacheIndexInner;
 struct CacheIndex;
-struct Cache001;
+class Cache001;
 struct LocalPlayer;
 struct PlayerUpdate;
 struct PlayerUpdateCache;
@@ -30,16 +36,18 @@ struct ItemContainer;
 struct ItemCache;
 struct EntityStatus;
 struct WorldSettingFull;
-struct WorldSettingCache;
+struct WorldSetting;
+struct WorldSettingMask;
+class WorldSettingCache;
 struct WidgetCache;
+class Widget;
 class ContainerWidget;
+struct WidgetChild;
 struct Model;
 struct Terrain;
 struct MovementQueue;
 struct SocialCache;
 struct Menu;
-class VariableCache;
-
-// generated
-struct Entity;
-struct Scene003;
+struct VariableCache;
+struct Packet;
+struct PacketContainer;

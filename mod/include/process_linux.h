@@ -1,10 +1,10 @@
 #pragma once
 #ifdef __linux__
+#include "process.h"
 #include "util.h"
+#include <elf.h>
 #include <string>
 #include <vector>
-
-#include <elf.h>
 
 namespace crs
 {

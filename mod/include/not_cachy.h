@@ -48,12 +48,12 @@ namespace crs
     {
       if (auto entity = node->entity)
       {
-        fn((NamedEntity *)entity);
+        fn(static_cast<NamedEntity *>(entity));
       }
 
-      for (auto c = node->children.begin; c != node->children.end; c++)
+      for (auto child = node->children.begin; child != node->children.end; child++)
       {
-        iterate_entities(*c, fn);
+        iterate_entities(*child, fn);
       }
     }
   }
@@ -81,11 +81,11 @@ namespace crs
   {
     if (auto update_cache = NRS.npc_update_cache())
     {
-      for (auto i = 0; i < update_cache->size; i++)
+      for (uint64_t i = 0; i < update_cache->size; i++)
       {
-        if (auto p = update_cache->npcs[i])
+        if (auto update = update_cache->npcs[i])
         {
-          if (auto npc = p->npc)
+          if (auto npc = update->npc)
           {
             fn(npc);
           }

@@ -8,6 +8,9 @@
 
 #include <capstone.h>
 
+#include <cstring>
+#include <vector>
+
 namespace crs
 {
 #pragma pack(push, 1)
@@ -208,12 +211,10 @@ namespace crs
   {
     size_t hook_size = 0;
 
-    size_t count;
-    cs_insn *insn;
-
     while (hook_size < sizeof(JmpRax))
     {
-      count = cs_disasm(capstone_handle,
+      cs_insn *insn;
+      cs_disasm(capstone_handle,
           reinterpret_cast<const uint8_t *>(target) + hook_size, 0x15,
           reinterpret_cast<uint64_t>(target) + hook_size, 0, &insn);
 
@@ -228,15 +229,14 @@ namespace crs
     JmpRax prologue_code;
     prologue_code.rax = reinterpret_cast<uint64_t>(call_hook_handler);
 
-    auto epilogue_rw = malloc(hook_size + sizeof(JmpRax));
-    memcpy(epilogue_rw, target, hook_size);
+    std::vector<uint8_t> epilogue_rw(hook_size + sizeof(JmpRax));
+    std::memcpy(epilogue_rw.data(), target, hook_size);
 
-    auto epilogue_code = reinterpret_cast<JmpRax *>(reinterpret_cast<char *>(epilogue_rw) + hook_size);
+    auto epilogue_code = reinterpret_cast<JmpRax *>(epilogue_rw.data() + hook_size);
     *epilogue_code = JmpRax();
     epilogue_code->rax = reinterpret_cast<uint64_t>(target) + hook_size;
 
-    auto epilogue = allocate_executable_memory(epilogue_rw, hook_size + sizeof(JmpRax));
-    free(epilogue_rw);
+    auto epilogue = allocate_executable_memory(epilogue_rw.data(), epilogue_rw.size());
 
     hook->trampoline = epilogue;
 
@@ -250,7 +250,7 @@ namespace crs
     call_hook_handler_code.vt_offset = vt_offset;
     auto call_hook_handler = allocate_executable_memory(&call_hook_handler_code, sizeof(call_hook_handler_code));
 
-    hook->trampoline = *((uint64_t **)target);
+    hook->trampoline = *reinterpret_cast<uint64_t **>(target);
 
     patch_non_writable_memory(target, &call_hook_handler, sizeof(call_hook_handler), PROT_READ);
   }

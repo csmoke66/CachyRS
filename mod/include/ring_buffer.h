@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <array>
 #include <atomic>
 #include <cstdint>
 
@@ -45,7 +46,7 @@ namespace crs
       for (auto i = 0; i < size(); i++)
       {
         auto bit = 1ull << i;
-        if (!!(bitmap_t & bit))
+        if ((bitmap_t & bit) != 0)
         {
           sorted[sorted_size++] = buffer[i];
         }

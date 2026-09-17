@@ -3,3 +3,5 @@ lib/*
 .obsidian/*
 bin/*
 test/*
+compile_commands.json
+.cache/

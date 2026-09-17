@@ -1,22 +1,24 @@
 #include "cachy.h"
-#include <iostream>
-#include <thread>
 
+#include <cstdint>
+#include <cstdio>
+#include <cstdlib>
 #include <dlfcn.h>
-#include <pci/pci.h>
+#include <errno.h>
+#include <string_view>
 
 static void redirect_output()
 {
-  freopen("/tmp/cachy-rs-stdout.txt", "w", stdout);
-  freopen("/tmp/cachy-rs-stderr.txt", "a", stderr);
+  std::freopen("/tmp/cachy-rs-stdout.txt", "w", stdout);
+  std::freopen("/tmp/cachy-rs-stderr.txt", "a", stderr);
 }
 
 static bool is_nvidia_wayland()
 {
   void *nvml = dlopen("libnvidia-ml.so.1", RTLD_LAZY | RTLD_LOCAL);
-  auto nvml_init = nvml ? (uint32_t (*)())dlsym(nvml, "nvmlInit_v2") : nullptr;
+  auto nvml_init = nvml ? reinterpret_cast<uint32_t (*)()>(dlsym(nvml, "nvmlInit_v2")) : nullptr;
 
-  return nvml_init && nvml_init() == 0 && !!getenv("WAYLAND_DISPLAY");
+  return nvml_init && nvml_init() == 0 && std::getenv("WAYLAND_DISPLAY") != nullptr;
 }
 
 extern "C" int __libc_start_main(
@@ -28,13 +30,13 @@ extern "C" int __libc_start_main(
     void (*rtld_fini)(void),
     void *stack_end)
 {
-  auto real_libc_start_main = (decltype(__libc_start_main) *)dlsym(RTLD_NEXT, "__libc_start_main");
+  auto real_libc_start_main = reinterpret_cast<decltype(__libc_start_main) *>(dlsym(RTLD_NEXT, "__libc_start_main"));
 
-  if (std::string(program_invocation_short_name) == "rs2client")
+  if (std::string_view(program_invocation_short_name) == "rs2client")
   {
     redirect_output();
 
-    auto no_graphics = getenv("NO_GRAPHICS") != nullptr;
+    auto no_graphics = std::getenv("NO_GRAPHICS") != nullptr;
     if (no_graphics)
     {
       setenv("VK_DRIVER_FILES", "/usr/share/vulkan/icd.d/lvp_icd.x86_64.json", 1);
@@ -43,6 +45,8 @@ extern "C" int __libc_start_main(
     else if (is_nvidia_wayland())
     {
       setenv("MESA_LOADER_DRIVER_OVERRIDE", "zink", 1);
+      setenv("mesa_glthread", "false", 1);
+      setenv("GALLIUM_THREAD", "0", 1);
     }
 
     crs::RS.init(no_graphics);

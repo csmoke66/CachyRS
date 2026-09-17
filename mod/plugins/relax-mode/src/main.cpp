@@ -21,8 +21,6 @@ static ApiContainer ui_archaeology_site_sift;
 static ApiContainer ui_archaeology_site_kharid_et;
 static std::shared_ptr<ApiDropDown> ui_archaeology_site_kharid_et_spot;
 
-static MenuActionTemplate our_template;
-
 std::string Boot::name()
 {
   return "Relax Mode";
@@ -65,8 +63,7 @@ void Boot::init()
     {
       if (ui_mode_content_changer->is_selected(relax_mode_test))
       {
-        Api::override_current_menu_action(Api::get_menu_action_handler(MenuActionType::walk),
-            { 0, 0xd13, 0xc7c, 0x6d200001 });
+        Api::override_walk(0xd13, 0xc7c);
       }
       else if (ui_mode_content_changer->is_selected(relax_mode_archaeology))
       {

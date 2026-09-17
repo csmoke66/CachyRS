@@ -1,7 +1,7 @@
 #include "ui.h"
 
 #include <atomic>
-#include <map>
+#include <unordered_map>
 #include <vector>
 
 #include <RmlUi/Core.h>
@@ -154,7 +154,6 @@ namespace crs
   class DragWindowEventListener : public OwnedEventListener
   {
   private:
-    Rml::Element *element;
     Rml::Element *window;
     int drag_offset_x = 0;
     int drag_offset_y = 0;
@@ -234,7 +233,8 @@ namespace crs
     SDL_Window *sdl_window;
 
   private:
-    bool wants_input_last = false;
+    std::atomic<bool> wants_input_last{ false };
+    bool overlay_has_keyboard_focus = false;
 
   private:
     CachySystemInterface system_interface;
@@ -265,12 +265,12 @@ namespace crs
   public:
     std::unique_ptr<DomTreeListener> dom_tree_listener;
     std::shared_ptr<DomNode> root_dom_node;
-    std::map<std::shared_ptr<DomNode>, RmlDomNode> dom_nodes;
+    std::unordered_map<DomNode *, RmlDomNode> dom_nodes;
 
   private:
     std::atomic<uint64_t> component_allocation = 1;
-    std::map<uint64_t, Rml::ElementDocument *> document_map;
-    std::map<uint64_t, RmlComponent> component_map;
+    std::unordered_map<uint64_t, Rml::ElementDocument *> document_map;
+    std::unordered_map<uint64_t, RmlComponent> component_map;
 
   private:
     std::vector<std::function<void()>> reload_callbacks;
@@ -283,11 +283,10 @@ namespace crs
     ~RmlUserInterface();
 
   private:
-    bool player_overlay_on = false;
-
-  private:
     void load_fonts();
     Rml::ElementDocument *load_document(const std::string &path);
+    void release_keyboard_focus();
+    RmlComponent *find_component(uint64_t component_id);
 
   public:
     void pre_init();
@@ -301,10 +300,12 @@ namespace crs
 
   public:
     void set_listener(std::unique_ptr<DomTreeListener> listener) override;
-    RmlDomNode *get_rml_dom_node(std::shared_ptr<DomNode> node);
-    bool build_dom_node(std::shared_ptr<DomNode> node, int depth = 0) override;
+    RmlDomNode *get_rml_dom_node(DomNode *node);
+    RmlDomNode *find_rml_dom_node(DomNode *node);
+    bool build_dom_node(DomNode *node, int depth = 0) override;
     void add_dom_node(std::shared_ptr<DomNode> node) override;
-    void remove_dom_node(std::shared_ptr<DomNode> node) override;
+    void remove_dom_node(DomNode *node) override;
+    void detach_dom_node(DomNode *node, bool remove_element);
     Rml::Element *get_dom_parent(Rml::Element *element);
     void inspect_dom_node(std::shared_ptr<DomNode> node);
 
@@ -316,12 +317,13 @@ namespace crs
   public:
     uint64_t allocate_tab(const std::string &name) override;
     uint64_t allocate_component(ComponentType type, uint64_t parent_id) override;
-    void update_component_text(uint64_t component_id, std::string text) override;
+    void update_component_text(uint64_t component_id, const std::string &text) override;
     void update_component_items(uint64_t component_id, const std::vector<std::string> &items) override;
-    bool is_component_checked(uint64_t component_id) override;
+    bool is_component_active(uint64_t component_id) override;
+    void set_component_active(uint64_t component_id, bool active) override;
     void register_dropdown_change_handler(uint64_t component_id, std::function<void(int32_t)> handler) override;
     void dropdown_set_selected(uint64_t component_id, int32_t index) override;
-    void on_dropdown_component_changed(uint64_t component_id, int32_t idx);
+    void on_dropdown_component_changed(uint64_t component_id, int32_t index);
     void set_component_visible(uint64_t component_id, bool visible) override;
   };
 } // namespace crs

@@ -20,7 +20,6 @@ namespace crs
 
         if (auto parent = entity->parent)
         {
-          Vec2<float> screen_pos;
           if (RS.project_to_screen(parent->pos_a, &screen_pos))
           {
             draw_list->AddCircle(ImVec2(screen_pos.x, screen_pos.y), 3.f, IM_COL32(255, 0, 0, 170));
@@ -45,22 +44,20 @@ namespace crs
     });
   }
 
-  void DeveloperOverlay::render_npc_overlay(ImDrawList *draw_list, WorldNode *root)
+  void DeveloperOverlay::render_npc_overlay(ImDrawList *, WorldNode *)
   {
   }
 
-  void DeveloperOverlay::render_object_overlay(ImDrawList *draw_list, WorldNode *root)
+  void DeveloperOverlay::render_object_overlay(ImDrawList *, WorldNode *)
   {
   }
 
-  void DeveloperOverlay::render_ground_item_overlay(ImDrawList *draw_list, WorldNode *root)
+  void DeveloperOverlay::render_ground_item_overlay(ImDrawList *, WorldNode *)
   {
   }
 
-  void DeveloperOverlay::render_widget_picker(ImDrawList *draw_list, Engine *engine, Widget *widget, int x, int y)
+  void DeveloperOverlay::render_widget_picker(ImDrawList *, Engine *, Widget *, int, int)
   {
-    auto bg = ImGui::GetBackgroundDrawList();
-
     // TODO FIXME bad performance
     // auto tag = get_memory_tag<RenderedWidget>(widget);
     // if ((engine->time - tag->time) < 10)
@@ -139,7 +136,6 @@ namespace crs
       return;
     }
 
-    auto widget_cache = dref<const WidgetCache *>(engine, { off(Engine, widget_cache) });
     auto draw_list = ImGui::GetBackgroundDrawList();
 
     if (engine->state == GameState::in_game)

@@ -14,7 +14,7 @@ namespace crs
     EngineTickArgs args;
 
   public:
-    static constexpr std::string specific_id()
+    static constexpr const char *specific_id()
     {
       return "on_engine_tick";
     }
@@ -37,7 +37,7 @@ namespace crs
     MenuOpenedEventArgs args;
 
   public:
-    static constexpr std::string specific_id()
+    static constexpr const char *specific_id()
     {
       return "on_menu_opened";
     }
@@ -62,18 +62,18 @@ namespace crs
     MenuActionEventArgs args;
 
   public:
-    static constexpr std::string pre_id()
+    static constexpr const char *pre_id()
     {
       return "on_menu_action_pre";
     }
 
-    static constexpr std::string post_id()
+    static constexpr const char *post_id()
     {
       return "on_menu_action_post";
     }
 
   public:
-    MenuActionEvent(const std::string &id, MenuActionArgs *args, MenuActionTemplate **action_template);
+    MenuActionEvent(std::string_view id, MenuActionArgs *args, MenuActionTemplate **action_template);
 
   public:
     void *get_args() override;
@@ -91,7 +91,7 @@ namespace crs
     WorldSettingChangedEventArgs args;
 
   public:
-    static constexpr std::string specific_id()
+    static constexpr const char *specific_id()
     {
       return "on_set_varbit";
     }
@@ -120,7 +120,7 @@ namespace crs
     ItemChangedArgs args;
 
   public:
-    static constexpr std::string specific_id()
+    static constexpr const char *specific_id()
     {
       return "on_set_item_container";
     }
@@ -145,13 +145,13 @@ namespace crs
     NewChatMessageArgs args;
 
   public:
-    static constexpr std::string specific_id()
+    static constexpr const char *specific_id()
     {
       return "on_new_chat_message";
     }
 
   public:
-    NewChatMessageEvent(const std::string& channel, const std::string& sender, const std::string& message);
+    NewChatMessageEvent(const std::string &channel, const std::string &sender, const std::string &message);
 
   public:
     void *get_args() override;

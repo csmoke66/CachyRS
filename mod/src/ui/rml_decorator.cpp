@@ -2,12 +2,12 @@
 
 namespace crs
 {
-  Rml::DecoratorDataHandle VisibilityTrackerDecorator::GenerateElementData(Rml::Element *element, Rml::BoxArea element_data) const
+  Rml::DecoratorDataHandle VisibilityTrackerDecorator::GenerateElementData(Rml::Element *, Rml::BoxArea) const
   {
     return 1;
   }
 
-  void VisibilityTrackerDecorator::ReleaseElementData(Rml::DecoratorDataHandle element_data) const
+  void VisibilityTrackerDecorator::ReleaseElementData(Rml::DecoratorDataHandle) const
   {
   }
 
@@ -33,7 +33,7 @@ namespace crs
     return !is_outside;
   }
 
-  void VisibilityTrackerDecorator::RenderElement(Rml::Element *element, Rml::DecoratorDataHandle element_data) const
+  void VisibilityTrackerDecorator::RenderElement(Rml::Element *element, Rml::DecoratorDataHandle) const
   {
     if (IsElementOnScreen(element, element->GetContext()))
     {
@@ -46,9 +46,9 @@ namespace crs
   }
 
   Rml::SharedPtr<Rml::Decorator> VisibilityTrackerInstancer::InstanceDecorator(
-      const Rml::String &name,
-      const Rml::PropertyDictionary &properties,
-      const Rml::DecoratorInstancerInterface &instancer_interface)
+      const Rml::String &,
+      const Rml::PropertyDictionary &,
+      const Rml::DecoratorInstancerInterface &)
   {
     auto r = Rml::MakeShared<VisibilityTrackerDecorator>();
     r->parent = parent;

@@ -1,13 +1,12 @@
 #include "elf_interface.h"
 
-ElfInterface::ElfInterface(Elf64_Addr data)
+ElfInterface::ElfInterface(Elf64_Addr data) : elf_data(data)
 {
-  this->elf_data = data;
 }
 
 Elf64_Addr ElfInterface::offset(const void *a) const
 {
-  return (Elf64_Addr)a - elf_data;
+  return reinterpret_cast<Elf64_Addr>(a) - elf_data;
 }
 
 const std::vector<ImportedFunction> &ElfInterface::import_view() const
@@ -19,7 +18,7 @@ bool ElfInterface::find_import(const std::string &symbol, ImportedFunction *out)
 {
   for (auto &i : imports)
   {
-    if (!i.name.compare(symbol))
+    if (i.name == symbol)
     {
       *out = i;
       return true;
@@ -32,14 +31,14 @@ bool ElfInterface::find_import(const std::string &symbol, ImportedFunction *out)
 
 void ElfInterface::init_base()
 {
-  ehdr = (Elf64_Ehdr *)(elf_data);
-  phdrs = (Elf64_Phdr *)(elf_data + ehdr->e_phoff);
+  ehdr = reinterpret_cast<Elf64_Ehdr *>(elf_data);
+  phdrs = reinterpret_cast<Elf64_Phdr *>(elf_data + ehdr->e_phoff);
 
   for (int i = 0; i < ehdr->e_phnum; i++)
   {
     if (phdrs[i].p_type == PT_DYNAMIC)
     {
-      dynamic = (Elf64_Dyn *)(elf_data + phdrs[i].p_offset);
+      dynamic = reinterpret_cast<Elf64_Dyn *>(elf_data + phdrs[i].p_offset);
       break;
     }
   }
@@ -92,15 +91,15 @@ void ElfInterface::init()
     switch (dyn->d_tag)
     {
     case DT_SYMTAB:
-      sym_table = (Elf64_Sym *)va_to_ptr(dyn->d_un.d_ptr);
+      sym_table = reinterpret_cast<Elf64_Sym *>(va_to_ptr(dyn->d_un.d_ptr));
       break;
 
     case DT_STRTAB:
-      str_table = (char *)va_to_ptr(dyn->d_un.d_ptr);
+      str_table = reinterpret_cast<char *>(va_to_ptr(dyn->d_un.d_ptr));
       break;
 
     case DT_JMPREL:
-      reloc_table = (Elf64_Rela *)va_to_ptr(dyn->d_un.d_ptr);
+      reloc_table = reinterpret_cast<Elf64_Rela *>(va_to_ptr(dyn->d_un.d_ptr));
       break;
 
     case DT_PLTRELSZ:
@@ -110,7 +109,7 @@ void ElfInterface::init()
   }
 
   auto count = rel_table_sz / sizeof(Elf64_Rela);
-  for (auto i = 0; i < count; i++)
+  for (size_t i = 0; i < count; i++)
   {
     auto rela = reloc_table[i];
     auto sym_idx = ELF64_R_SYM(rela.r_info);
@@ -118,6 +117,6 @@ void ElfInterface::init()
     auto name = &str_table[sym.st_name];
     imports.push_back(ImportedFunction{
         std::string(name),
-        (uint64_t *)(rela.r_offset) });
+        reinterpret_cast<uint64_t *>(rela.r_offset) });
   }
 }

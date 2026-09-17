@@ -1,5 +1,9 @@
 #pragma once
+#include "reversed_fwd_decl.h"
+#include "reversed_manual_base.h"
+#include "reversed_util.h"
 
+static_assert(true);
 #pragma pack(push, 1)
 struct WorldSettingMask
 {

@@ -2,7 +2,6 @@
 
 #ifdef __linux__
 #include <climits>
-#include <limits.h>
 #include <link.h>
 #include <unistd.h>
 
@@ -30,7 +29,7 @@ namespace crs
   {
     for (auto &i : imports)
     {
-      if (!i.name.compare(symbol))
+      if (i.name == symbol)
       {
         *out = i;
         return true;
@@ -48,9 +47,9 @@ namespace crs
       Elf64_Addr base_address = 0;
     } data;
 
-    dl_iterate_phdr([](struct dl_phdr_info *info, size_t size, void *data_ptr) -> int
+    dl_iterate_phdr([](struct dl_phdr_info *info, size_t, void *data_ptr) -> int
     {
-      auto res = (CallbackData *)data_ptr;
+      auto res = static_cast<CallbackData *>(data_ptr);
 
       if (info->dlpi_name != nullptr && info->dlpi_name[0] == '\0')
       {
@@ -76,14 +75,14 @@ namespace crs
   {
     init_game_handle();
 
-    ehdr = (Elf64_Ehdr *)(game_handle);
-    phdrs = (Elf64_Phdr *)(game_handle + ehdr->e_phoff);
+    ehdr = reinterpret_cast<Elf64_Ehdr *>(game_handle);
+    phdrs = reinterpret_cast<Elf64_Phdr *>(game_handle + ehdr->e_phoff);
 
     for (int i = 0; i < ehdr->e_phnum; i++)
     {
       if (phdrs[i].p_type == PT_DYNAMIC)
       {
-        dynamic = (Elf64_Dyn *)(game_handle + phdrs[i].p_vaddr);
+        dynamic = reinterpret_cast<Elf64_Dyn *>(game_handle + phdrs[i].p_vaddr);
         break;
       }
     }
@@ -93,15 +92,15 @@ namespace crs
       switch (dyn->d_tag)
       {
       case DT_SYMTAB:
-        sym_table = (Elf64_Sym *)(dyn->d_un.d_ptr);
+        sym_table = reinterpret_cast<Elf64_Sym *>(dyn->d_un.d_ptr);
         break;
 
       case DT_STRTAB:
-        str_table = (char *)(dyn->d_un.d_ptr);
+        str_table = reinterpret_cast<char *>(dyn->d_un.d_ptr);
         break;
 
       case DT_JMPREL:
-        reloc_table = (Elf64_Rela *)(dyn->d_un.d_ptr);
+        reloc_table = reinterpret_cast<Elf64_Rela *>(dyn->d_un.d_ptr);
         break;
 
       case DT_PLTRELSZ:
@@ -111,7 +110,7 @@ namespace crs
     }
 
     auto count = rel_table_sz / sizeof(Elf64_Rela);
-    for (auto i = 0; i < count; i++)
+    for (size_t i = 0; i < count; i++)
     {
       auto rela = reloc_table[i];
       auto sym_idx = ELF64_R_SYM(rela.r_info);
@@ -119,7 +118,7 @@ namespace crs
       auto name = &str_table[sym.st_name];
       imports.push_back(ImportedFunction{
           std::string(name),
-          (uint64_t *)(game_handle + rela.r_offset) });
+          reinterpret_cast<uint64_t *>(game_handle + rela.r_offset) });
     }
   }
 } // namespace crs

@@ -1,0 +1,7 @@
+CompileFlags:
+  Add: [
+    "-ferror-limit=0",
+    "-D_REENTRANT"  # Common SDL2 required macro on Linux
+  ]
+  Compiler: clang++
+  QueryDriver: [ "/usr/bin/clang++", "/usr/bin/clang" ]

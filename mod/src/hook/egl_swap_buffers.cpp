@@ -63,7 +63,7 @@ namespace crs
       is_first_run = false;
     }
 
-    RS.ui_locked([this, width, height]()
+    RS.ui_locked_nr([this, width, height]()
     {
       if (cached_width != width || cached_height != height)
       {
@@ -87,6 +87,15 @@ namespace crs
         if (RS.ui_visible)
         {
           RS.ui->process(&event);
+        }
+
+        if (event.type == SDL_MOUSEBUTTONDOWN)
+        {
+          auto &io = ImGui::GetIO();
+          if (!io.WantCaptureMouse && !(RS.ui_visible && RS.ui->wants_input()))
+          {
+            ImGui::SetWindowFocus(nullptr);
+          }
         }
       });
 
@@ -112,8 +121,6 @@ namespace crs
           RS.stats.render_ui_stopwatch.stop();
         }
       }
-
-      return false;
     });
 
     cpu_state->rax = static_cast<uint64_t>(trampoline(dpy, surface));

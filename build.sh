@@ -11,7 +11,7 @@ fi
 cd build
 
 echo "==> Starting build..."
-cmake ..
+cmake .. -DCMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE:-Release}"
 make
 
 cd ..

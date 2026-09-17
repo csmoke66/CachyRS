@@ -1,4 +1,10 @@
 #pragma once
+#include "reversed_fwd_decl.h"
+#include "reversed_manual_base.h"
+#include "reversed_util.h"
+
+class Player;
+class Npc;
 
 #pragma pack(push, 1)
 struct PlayerUpdate

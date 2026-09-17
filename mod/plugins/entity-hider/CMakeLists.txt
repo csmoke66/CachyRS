@@ -12,7 +12,6 @@ target_include_directories(entity-hider PUBLIC
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-target_link_libraries(entity-hider PRIVATE 
-    mod
+target_link_libraries(entity-hider PRIVATE
     plugin_cpp
 )

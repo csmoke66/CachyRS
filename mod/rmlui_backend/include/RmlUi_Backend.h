@@ -7,7 +7,7 @@
 
 #include <SDL2/SDL.h>
 
-using KeyDownCallback = bool (*)(Rml::Context* context, Rml::Input::KeyIdentifier key, int key_modifier, float native_dp_ratio, bool priority);
+using KeyDownCallback = bool (*)(Rml::Context *context, Rml::Input::KeyIdentifier key, int key_modifier, float native_dp_ratio, bool priority);
 
 /**
     This interface serves as a basic abstraction over the various backends included with RmlUi. It is mainly intended as an example to get something
@@ -17,27 +17,28 @@ using KeyDownCallback = bool (*)(Rml::Context* context, Rml::Input::KeyIdentifie
     starting point and copy relevant parts into the main loop of your application. On the other hand, the underlying platform and renderer used by the
     backend are intended to be re-usable as is.
  */
-namespace Backend {
+namespace Backend
+{
 
-// Initializes the backend, including the custom system and render interfaces, and opens a window for rendering the RmlUi context.
-bool Initialize(SDL_Window* window, int width, int height);
-// Closes the window and release all resources owned by the backend, including the system and render interfaces.
-void Shutdown();
+  // Initializes the backend, including the custom system and render interfaces, and opens a window for rendering the RmlUi context.
+  bool Initialize(SDL_Window *window, int width, int height);
+  // Closes the window and release all resources owned by the backend, including the system and render interfaces.
+  void Shutdown();
 
-// Returns a pointer to the custom system interface which should be provided to RmlUi.
-Rml::SystemInterface* GetSystemInterface();
-// Returns a pointer to the custom render interface which should be provided to RmlUi.
-Rml::RenderInterface* GetRenderInterface();
+  // Returns a pointer to the custom system interface which should be provided to RmlUi.
+  Rml::SystemInterface *GetSystemInterface();
+  // Returns a pointer to the custom render interface which should be provided to RmlUi.
+  Rml::RenderInterface *GetRenderInterface();
 
-// Polls and processes events from the current platform, and applies any relevant events to the provided RmlUi context and the key down callback.
-// @return False to indicate that the application should be closed.
-bool ProcessEvents(Rml::Context* context, SDL_Event* ev, KeyDownCallback key_down_callback = nullptr, bool power_save = false);
-// Request application closure during the next event processing call.
-void RequestExit();
+  // Polls and processes events from the current platform, and applies any relevant events to the provided RmlUi context and the key down callback.
+  // @return False to indicate that the application should be closed.
+  bool ProcessEvents(Rml::Context *context, SDL_Event *ev, KeyDownCallback key_down_callback = nullptr, bool power_save = false);
+  // Request application closure during the next event processing call.
+  void RequestExit();
 
-// Prepares the render state to accept rendering commands from RmlUi, call before rendering the RmlUi context.
-void BeginFrame();
-// Presents the rendered frame to the screen, call after rendering the RmlUi context.
-void PresentFrame();
+  // Prepares the render state to accept rendering commands from RmlUi, call before rendering the RmlUi context.
+  void BeginFrame();
+  // Presents the rendered frame to the screen, call after rendering the RmlUi context.
+  void PresentFrame();
 
 } // namespace Backend

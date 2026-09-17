@@ -5,10 +5,13 @@
 #include <dlfcn.h>
 
 #include <filesystem>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 namespace crs
 {
-  static std::map<std::string, FnPluginExposedFunction> exposed_functions;
+  static std::unordered_map<std::string, FnPluginExposedFunction> exposed_functions;
 
   class CEventBusReceiver : public EventReceiver<Event>
   {
@@ -17,10 +20,9 @@ namespace crs
     void *context;
 
   public:
-    CEventBusReceiver(FnPluginEventBusReceiver receiver, void *context)
+    CEventBusReceiver(FnPluginEventBusReceiver receiver, void *context) : receiver(receiver),
+                                                                          context(context)
     {
-      this->receiver = receiver;
-      this->context = context;
     }
 
     void receive(Event *event) override
@@ -49,10 +51,10 @@ namespace crs
 
   static void plugin_api_user_interface_update_component_text(uint64_t component_id, const char *text)
   {
-    RS.ui_locked([component_id, text]()
+    std::string copy(text ? text : "");
+    RS.ui_locked_nr([component_id, &copy]()
     {
-      RS.ui->update_component_text(component_id, std::string(text));
-      return false;
+      RS.ui->update_component_text(component_id, copy);
     });
   }
 
@@ -60,23 +62,30 @@ namespace crs
   {
     std::vector<std::string> converted;
     converted.reserve(item_count);
-    for (auto i = 0; i < item_count; i++)
+    for (size_t i = 0; i < item_count; i++)
     {
       converted.push_back(items[i]);
     }
 
-    RS.ui_locked([component_id, &converted]()
+    RS.ui_locked_nr([component_id, &converted]()
     {
       RS.ui->update_component_items(component_id, converted);
-      return false;
     });
   }
 
-  static bool plugin_api_user_interface_is_component_checked(uint64_t component_id)
+  static bool plugin_api_user_interface_is_component_active(uint64_t component_id)
   {
     return RS.ui_locked([component_id]()
     {
-      return RS.ui->is_component_checked(component_id);
+      return RS.ui->is_component_active(component_id);
+    });
+  }
+
+  static void plugin_api_user_interface_set_component_active(uint64_t component_id, bool active)
+  {
+    return RS.ui_locked_nr([component_id, active]()
+    {
+      RS.ui->set_component_active(component_id, active);
     });
   }
 
@@ -109,11 +118,12 @@ namespace crs
 
   static void plugin_api_event_bus_register(const char *id, FnPluginEventBusReceiver receiver, void *context)
   {
-    RS.event_bus.add_receiver(std::string(id), new CEventBusReceiver(receiver, context));
+    RS.event_bus.add_receiver(id, new CEventBusReceiver(receiver, context));
   }
 
   static void plugin_api_expose_function(const char *name, FnPluginExposedFunction fn, void *context)
   {
+    (void)context;
     exposed_functions[name] = fn;
   }
 
@@ -131,7 +141,8 @@ namespace crs
     api.ui_allocate_component = plugin_api_user_interface_allocate_component;
     api.ui_update_component_text = plugin_api_user_interface_update_component_text;
     api.ui_update_component_items = plugin_api_user_interface_update_component_items;
-    api.ui_is_component_checked = plugin_api_user_interface_is_component_checked;
+    api.ui_is_component_active = plugin_api_user_interface_is_component_active;
+    api.ui_set_component_active = plugin_api_user_interface_set_component_active;
     api.ui_register_dropdown_change_handler = plugin_api_user_interface_register_dropdown_change_handler;
     api.ui_dropdown_set_selected = plugin_api_user_interface_dropdown_set_selected;
     api.ui_set_visible = plugin_api_user_interface_set_visible;
@@ -155,14 +166,14 @@ namespace crs
     auto handle = dlopen(path.c_str(), RTLD_NOW);
     if (!handle)
     {
-      LOG(ERROR, "Failed to load plugin at '" << path << "'");
+      auto error = dlerror();
+      LOG(ERROR, "Failed to load plugin at '" << path << "': " << (error ? error : "unknown dlopen error"));
       return;
     }
 
     auto get_name = reinterpret_cast<FnPluginGetName>(dlsym(handle, "plugin_get_name"));
     if (!get_name)
     {
-
       LOG(ERROR, "Plugin at '" << path << "' does not export 'plugin_get_name'");
       return;
     }
@@ -170,7 +181,6 @@ namespace crs
     auto init = reinterpret_cast<FnPluginInit>(dlsym(handle, "plugin_init"));
     if (!init)
     {
-
       LOG(ERROR, "Plugin at '" << path << "' does not export 'plugin_init'");
       return;
     }
@@ -219,6 +229,6 @@ namespace crs
 
   const std::vector<std::unique_ptr<Plugin>> &PluginManager::view_plugins() const
   {
-    return this->plugins;
+    return plugins;
   }
 } // namespace crs

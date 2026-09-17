@@ -1,4 +1,5 @@
 #include "cachy.h"
+#include "dom_sync.h"
 #include "game_dom.h"
 #include "not_cachy.h"
 
@@ -14,49 +15,50 @@ namespace crs
 
   void WorldSettingsDomNode::update()
   {
-    iterate_typed_children([this](WorldSettingDomNode *node)
-    {
-      node->seen = false;
-      return false;
-    });
-
     auto ws = NRS.world_setting_cache();
-    for (auto i = 0; i < ws->count; i++)
+    if (!ws || !ws->vars)
     {
-      auto c = ws->vars[i];
-      while (c)
+      return;
+    }
+
+    if (children_by_key.empty())
+    {
+      children_by_key.reserve(16384);
+      child_order.reserve(16384);
+      children.reserve(16384);
+    }
+
+    begin_sync();
+
+    for (auto i = 0u; i < ws->count; i++)
+    {
+      auto setting = ws->vars[i];
+      while (setting)
       {
-        if (!c->body.initialized)
+        if (!setting->body.initialized)
         {
-          auto id = std::format("world_setting_{}", c->id);
-          auto child = find_typed_child(id);
-          if (!child)
+          auto key = static_cast<uintptr_t>(setting->id);
+          if (auto child = touch_typed_key(key))
           {
-            auto new_dom_node = std::make_shared<WorldSettingDomNode>(tree, id, "world_setting");
-            new_dom_node->add_value(std::make_unique<UInt32DomValue>("id", i));
-
-            auto value_node = std::make_unique<UInt32DomValue>("value", c->body.value);
+            if (child->value)
             {
-              value_node->mark_hidden();
-              new_dom_node->add_value(std::move(value_node));
+              child->value->set(setting->body.value);
             }
-
-            new_dom_node->parent = shared_from_this();
-            children[id] = new_dom_node;
           }
           else
           {
-            child->seen = true;
+            auto node = std::make_shared<WorldSettingDomNode>(tree, make_numeric_id("world_setting_", setting->id), "world_setting");
+            node->add_value(std::make_unique<UInt32DomValue>("id", setting->id));
+            add_hidden_uint32(*node, "value", setting->body.value);
+            node->value = node->find_value<UInt32DomValue>("value");
+            add_keyed_child(key, node);
           }
         }
-        c = c->body.next;
+
+        setting = setting->body.next;
       }
     }
 
-    iterate_typed_children([this](WorldSettingDomNode *node)
-    {
-      auto remove = !node->seen;
-      return remove;
-    });
+    end_sync();
   }
 } // namespace crs

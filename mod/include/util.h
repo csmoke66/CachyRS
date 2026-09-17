@@ -24,9 +24,9 @@ namespace crs
         break;
       }
 
-      last = *((const void **)((const char *)last + a));
+      last = *reinterpret_cast<const void *const *>(static_cast<const char *>(last) + a);
     }
 
-    return (T)last;
+    return reinterpret_cast<T>(const_cast<void *>(last));
   }
 } // namespace crs

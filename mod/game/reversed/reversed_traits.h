@@ -1,4 +1,5 @@
 #pragma once
+#include "reversed_enum.h"
 #include <type_traits>
 
 inline constexpr WorldNodeFlag operator~(WorldNodeFlag lhs)

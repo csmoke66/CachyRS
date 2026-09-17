@@ -1,4 +1,5 @@
 #include "cachy.h"
+#include "dom_sync.h"
 #include "game_dom.h"
 #include "not_cachy.h"
 
@@ -18,51 +19,28 @@ namespace crs
 
   void ItemContainerDomNode::update(const std::string &parent_id, const ItemContainer &container)
   {
-    iterate_typed_children([this](ItemDomNode *node)
-    {
-      node->seen = false;
-      return false;
-    });
+    begin_sync();
 
-    auto slot = 0;
-    for (auto i = container.items.begin; i != container.items.end; i++)
+    auto slot = 0u;
+    for (auto item = container.items.begin; item != container.items.end; item++)
     {
-      auto id = parent_id + std::string("_") + std::format("{}", slot);
-      auto child = find_typed_child(id);
-      if (child)
+      auto key = static_cast<uintptr_t>(slot);
+      if (auto child = touch_typed_key(key))
       {
-        auto id_value = child->find_value<Int32DomValue>("id");
-        auto amount_value = child->find_value<Int32DomValue>("amount");
-
-        if (id_value->val != i->id || amount_value->val != i->amount)
-        {
-          id_value->val = i->id;
-          id_value->mark_dirty();
-
-          amount_value->val = i->amount;
-          amount_value->mark_dirty();
-
-          child->mark_dirty();
-        }
-
-        child->seen = true;
+        child->set_value<Int32DomValue>("id", item->id);
+        child->set_value<Int32DomValue>("amount", item->amount);
       }
       else
       {
-        auto new_dom_node = std::make_shared<ItemDomNode>(tree, id, "item");
-        new_dom_node->add_value(std::make_unique<Int32DomValue>("id", i->id));
-        new_dom_node->add_value(std::make_unique<Int32DomValue>("amount", i->amount));
-        
-        if (i->id != -1)
+        auto node = std::make_shared<ItemDomNode>(tree, make_numeric_id(parent_id + "_", slot), "item");
+        node->add_value(std::make_unique<Int32DomValue>("id", item->id));
+        node->add_value(std::make_unique<Int32DomValue>("amount", item->amount));
+        if (item->id != -1)
         {
-          auto cache = std::make_unique<PointerDomValue>("desc", NRS.get_cache_data<void>(CacheIndexOrdinal::items, i->id));
-          cache->mark_hidden();
-          new_dom_node->add_value(std::move(cache));
+          add_hidden_pointer(*node, "desc", NRS.get_cache_data<void>(CacheIndexOrdinal::items, item->id));
         }
 
-        new_dom_node->parent = shared_from_this();
-
-        children[id] = new_dom_node;
+        add_keyed_child(key, node);
         RS.stats.item_dom_nodes_created += 1;
         RS.stats.item_dom_nodes_created_recent += 1;
       }
@@ -70,15 +48,11 @@ namespace crs
       slot += 1;
     }
 
-    iterate_typed_children([this](ItemDomNode *node)
+    end_sync();
+    if (needs_prune)
     {
-      auto remove = !node->seen;
-      if (remove)
-      {
-        RS.stats.item_dom_nodes_removed_recent += 1;
-      }
-      return remove;
-    });
+      RS.stats.item_dom_nodes_removed_recent += count_deleted_children();
+    }
   }
 
   void ItemContainersDomNode::update()
@@ -89,49 +63,33 @@ namespace crs
       return;
     }
 
-    iterate_typed_children([this](ItemContainerDomNode *node)
-    {
-      node->seen = false;
-      return false;
-    });
+    begin_sync();
 
-    for (auto i = item_cache->containers.begin; i != item_cache->containers.end; i++)
+    for (auto container = item_cache->containers.begin; container != item_cache->containers.end; container++)
     {
-      auto id = std::string("item_container_") + std::format("{}", i->id);
-      auto child = find_typed_child(id);
-      if (child)
+      auto key = static_cast<uintptr_t>(container->id);
+      if (auto child = touch_typed_key(key))
       {
-        child->update(id, *i);
-        child->seen = true;
+        child->update(child->id, *container);
       }
       else
       {
-        auto new_dom_node = std::make_shared<ItemContainerDomNode>(tree, id, "item_container");
-
-        auto address_node = std::make_unique<PointerDomValue>("address", i);
-        {
-          address_node->mark_hidden();
-          new_dom_node->add_value(std::move(address_node));
-        }
-
-        new_dom_node->add_value(std::make_unique<UInt32DomValue>("id", i->id));
-        new_dom_node->parent = shared_from_this();
-
-        children[id] = new_dom_node;
+        auto id = make_numeric_id("item_container_", container->id);
+        auto node = std::make_shared<ItemContainerDomNode>(tree, id, "item_container");
+        add_hidden_pointer(*node, "address", container);
+        node->add_value(std::make_unique<UInt32DomValue>("id", container->id));
+        add_keyed_child(key, node);
+        node->update(id, *container);
 
         RS.stats.item_container_dom_nodes_created += 1;
         RS.stats.item_container_dom_nodes_created_recent += 1;
       }
     }
 
-    iterate_typed_children([this](ItemContainerDomNode *node)
+    end_sync();
+    if (needs_prune)
     {
-      auto remove = !node->seen;
-      if (remove)
-      {
-        RS.stats.item_container_dom_nodes_removed_recent += 1;
-      }
-      return remove;
-    });
+      RS.stats.item_container_dom_nodes_removed_recent += count_deleted_children();
+    }
   }
 } // namespace crs

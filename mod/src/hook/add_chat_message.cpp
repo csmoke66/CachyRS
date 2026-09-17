@@ -10,28 +10,28 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
+#include <cstring>
+
 namespace crs
 {
   void AddChatMessageHook::handler(CpuState *cpu_state)
   {
     BaseHook::handler(cpu_state);
 
-    auto name_1 = (JString *)CPU_FIFTH_ARG(cpu_state);
-    auto name_2 = (JString *)CPU_SIXTH_ARG(cpu_state);
-    auto name_3 = (JString *)CPU_STACK_ARG(cpu_state, 0);
-    auto message = (JString *)CPU_STACK_ARG(cpu_state, 1);
-    auto channel = (JString *)CPU_STACK_ARG(cpu_state, 3);
+    auto name_1 = reinterpret_cast<JString *>(CPU_FIFTH_ARG(cpu_state));
+    auto message = reinterpret_cast<JString *>(CPU_STACK_ARG(cpu_state, 1));
+    auto channel = reinterpret_cast<JString *>(CPU_STACK_ARG(cpu_state, 3));
 
-    if (!strcmp(message->c_str(), "Welcome to RuneScape."))
+    if (std::strcmp(message->c_str(), "Welcome to RuneScape.") == 0)
     {
-      strcpy((char *)strstr(message->c_str(), "RuneScape"), "CachyRS.");
+      std::strcpy(const_cast<char *>(std::strstr(message->c_str(), "RuneScape")), "CachyRS.");
     }
 
     auto event = NewChatMessageEvent(channel->str(), name_1->str(), message->str());
     RS.event_bus.dispatch(NewChatMessageEvent::specific_id(), &event);
 
     cpu_state->rax = reinterpret_cast<uint64_t>(trampoline(
-        (void *)CPU_FIRST_ARG(cpu_state),
+        reinterpret_cast<void *>(CPU_FIRST_ARG(cpu_state)),
         static_cast<int>(CPU_SECOND_ARG(cpu_state)),
         static_cast<int>(CPU_THIRD_ARG(cpu_state)),
         static_cast<int>(CPU_FOURTH_ARG(cpu_state)),

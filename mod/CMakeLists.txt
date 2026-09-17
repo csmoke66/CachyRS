@@ -49,6 +49,7 @@ add_library(mod SHARED
     src/hook/add_chat_message.cpp
     src/hook/send_packet.cpp
     src/hook/egl_get_proc_address.cpp
+    src/hook/sdl_show_window.cpp
 
     # keep this last, since we run our code in a static initializer
     # putting it last puts it last in the initialization list
@@ -108,3 +109,11 @@ target_link_libraries(mod PRIVATE
     rmlui_backend
     PkgConfig::capstone
 )
+
+cachyrs_warnings(mod)
+cachyrs_warnings(plugin_cpp)
+cachyrs_warnings(entity-hider)
+cachyrs_warnings(relax-mode)
+cachyrs_no_undefined(mod)
+cachyrs_no_undefined(entity-hider)
+cachyrs_no_undefined(relax-mode)

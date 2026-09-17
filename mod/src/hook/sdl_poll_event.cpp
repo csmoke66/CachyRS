@@ -17,7 +17,7 @@ namespace crs
 
     BaseHook::handler(cpu_state);
 
-    auto event = (SDL_Event *)CPU_FIRST_ARG(cpu_state);
+    auto event = reinterpret_cast<SDL_Event *>(CPU_FIRST_ARG(cpu_state));
     auto ret = trampoline(event);
     while (ret)
     {

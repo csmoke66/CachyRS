@@ -25,7 +25,7 @@ namespace crs
     template <typename T>
     T cast_function()
     {
-      return (T)real_function;
+      return reinterpret_cast<T>(real_function);
     }
   };
 

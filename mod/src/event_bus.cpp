@@ -3,9 +3,13 @@
 
 namespace crs
 {
-  Event::Event(const std::string &id)
+  Event::Event(std::string_view id) : id(id)
   {
-    this->id = id;
+  }
+
+  std::string_view Event::get_id() const
+  {
+    return id;
   }
 
   void *Event::get_args()
@@ -13,18 +17,15 @@ namespace crs
     return nullptr;
   }
 
-  EventBusLane::EventBusLane()
+  EventBusLane::EventBusLane() = default;
+
+  EventBusLane::EventBusLane(std::string id) : id(std::move(id))
   {
   }
 
-  EventBusLane::EventBusLane(const std::string &id)
+  std::string_view EventBusLane::get_id() const
   {
-    this->id = id;
-  }
-
-  EventBusLane::EventBusLane(const EventBusLane &o)
-  {
-    this->id = o.id;
+    return id;
   }
 
   void EventBusLane::add_receiver(EventReceiver<Event> *receiver)
@@ -34,13 +35,13 @@ namespace crs
 
   void EventBusLane::dispatch(Event *event)
   {
-    for (auto &er : event_receivers)
+    for (auto *er : event_receivers)
     {
       er->receive(event);
     }
   }
 
-  void EventBus::add_receiver(const std::string &id, EventReceiver<Event> *receiver)
+  void EventBus::add_receiver(std::string_view id, EventReceiver<Event> *receiver)
   {
     auto it = lanes.find(id);
     if (it != lanes.end())
@@ -49,12 +50,12 @@ namespace crs
     }
     else
     {
-      lanes[id] = EventBusLane(id);
-      lanes[id].add_receiver(receiver);
+      auto [lane_it, inserted] = lanes.emplace(std::string(id), EventBusLane(std::string(id)));
+      lane_it->second.add_receiver(receiver);
     }
   }
 
-  void EventBus::dispatch(const std::string &id, Event *event)
+  void EventBus::dispatch(std::string_view id, Event *event)
   {
     auto it = lanes.find(id);
     if (it != lanes.end())

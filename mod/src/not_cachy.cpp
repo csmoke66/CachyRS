@@ -117,7 +117,7 @@ namespace crs
     return &engine->world_settings;
   }
 
-  uint32_t NotCachyRS::mask_world_setting(const WorldSetting *setting, const WorldSettingMask *mask) const
+  uint32_t NotCachyRS::mask_world_setting(const WorldSetting *, const WorldSettingMask *) const
   {
     // TODO FIXME
     return 0;

@@ -15,6 +15,7 @@ class DataValidator
 {
 public:
   virtual bool validate(const T *t) = 0;
+  virtual ~DataValidator() = default;
 };
 
 class AlignmentValidator : public DataValidator<uint64_t>
@@ -40,6 +41,7 @@ private:
 
 public:
   virtual T extract(const ElfInterface &elf, const uint8_t *data) = 0;
+  virtual ~Extractor() = default;
 
   T extract_validated(const ElfInterface &elf, const uint8_t *data)
   {
@@ -48,7 +50,7 @@ public:
     {
       if (!dv->validate(&t))
       {
-        return (T)0;
+        return T{};
       }
     }
 
@@ -191,6 +193,7 @@ public:
 
 public:
   Pattern(std::string name, Type type, Extractor<uint64_t> *extractor);
+  virtual ~Pattern() = default;
 
 public:
   virtual const uint8_t *find_result(uint8_t *text, Elf64_Shdr text_hdr) = 0;
@@ -209,7 +212,7 @@ public:
   DefaultPattern(std::string name, std::vector<int> pattern, Type type, Extractor<uint64_t> *extractor);
 
 public:
-  virtual const uint8_t *find_result(uint8_t *text, Elf64_Shdr text_hdr);
+  const uint8_t *find_result(uint8_t *text, Elf64_Shdr text_hdr) override;
 };
 
 //
@@ -221,7 +224,7 @@ public:
   DummyPattern(std::string name, Type type, Extractor<uint64_t> *extractor);
 
 public:
-  virtual const uint8_t *find_result(uint8_t *text, Elf64_Shdr text_hdr);
+  const uint8_t *find_result(uint8_t *text, Elf64_Shdr text_hdr) override;
 };
 
 //
@@ -235,7 +238,6 @@ struct PatternObject
 
   bool is_class = false;
   bool has_parent = false;
-  std::string parent;
-
-  Pattern *size_pattern;
+  std::string parent{};
+  Pattern *size_pattern = nullptr;
 };

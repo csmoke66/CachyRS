@@ -3,10 +3,9 @@
 
 namespace crs
 {
-  HookManager::HookManager(ProcessInterface *pi, uint8_t vt_offset)
+  HookManager::HookManager(ProcessInterface *pi, uint8_t vt_offset) : pi(pi),
+                                                                      vt_offset(vt_offset)
   {
-    this->pi = pi;
-    this->vt_offset = vt_offset;
   }
 
   void HookManager::iat(const std::string &name, const std::string &symbol, std::unique_ptr<GenericHook> hook)
@@ -14,8 +13,8 @@ namespace crs
     ImportedFunction fn;
     if (pi->find_import(symbol, &fn))
     {
-      hook->trampoline = (void *)*fn.addr;
-      iat_hook(vt_offset, (void *)fn.addr, hook.get());
+      hook->trampoline = reinterpret_cast<void *>(*fn.addr);
+      iat_hook(vt_offset, fn.addr, hook.get());
 
       hooks[name] = std::move(hook);
     }
@@ -27,7 +26,7 @@ namespace crs
 
   void HookManager::ptr(const std::string &name, void *address, std::unique_ptr<GenericHook> hook)
   {
-    hook->trampoline = *(void **)address;
+    hook->trampoline = *reinterpret_cast<void **>(address);
     iat_hook(vt_offset, address, hook.get());
 
     hooks[name] = std::move(hook);
