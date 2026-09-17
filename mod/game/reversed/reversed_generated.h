@@ -32,6 +32,7 @@ struct SDL_SysWMinfo;
 #include "reversed_enum.h"
 #include "reversed_fn_decl.h"
 #include "reversed_fwd_decl.h"
+#include "reversed_item_cache.h"
 #include "reversed_linux.h"
 #include "reversed_local_player.h"
 #include "reversed_manual_base.h"
