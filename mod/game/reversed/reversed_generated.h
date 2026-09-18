@@ -211,12 +211,15 @@ struct Entity
   WorldNode *parent;
   PAD(0x0);
   EntityType type;
-  PAD(0x3f);
+  PAD(0x2f);
+  uint32_t plane;
+  PAD(0xc);
   Terrain *terrain;
 };
 static_assert(sizeof(Entity) == 0x68, INVALID_SIZE);
 static_assert(off(Entity, parent) == 0x18, INVALID_OFFSET);
 static_assert(off(Entity, type) == 0x20, INVALID_OFFSET);
+static_assert(off(Entity, plane) == 0x50, INVALID_OFFSET);
 static_assert(off(Entity, terrain) == 0x60, INVALID_OFFSET);
 
 class NamedEntity : public Entity
@@ -287,5 +290,3 @@ static_assert(off(NpcUpdateCache, size) == 0x18, INVALID_OFFSET);
 static_assert(off(NpcUpdateCache, valid_count) == 0xb0a0, INVALID_OFFSET);
 
 #pragma pack(pop)
-
-#pragma clang diagnostic pop

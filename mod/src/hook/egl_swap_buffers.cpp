@@ -89,12 +89,17 @@ namespace crs
           RS.ui->process(&event);
         }
 
-        if (event.type == SDL_MOUSEBUTTONDOWN)
         {
           auto &io = ImGui::GetIO();
-          if (!io.WantCaptureMouse && !(RS.ui_visible && RS.ui->wants_input()))
+          RS.imgui_want_capture_mouse.store(io.WantCaptureMouse, std::memory_order_relaxed);
+          RS.imgui_want_capture_keyboard.store(io.WantCaptureKeyboard, std::memory_order_relaxed);
+
+          if (event.type == SDL_MOUSEBUTTONDOWN)
           {
-            ImGui::SetWindowFocus(nullptr);
+            if (!io.WantCaptureMouse && !(RS.ui_visible && RS.ui->wants_input()))
+            {
+              ImGui::SetWindowFocus(nullptr);
+            }
           }
         }
       });

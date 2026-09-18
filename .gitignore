@@ -1,4 +1,5 @@
 build/*
+build-asan/*
 lib/*
 .obsidian/*
 bin/*

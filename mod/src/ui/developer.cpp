@@ -65,7 +65,7 @@ namespace crs
     //     if (widget->get_type() == WidgetType::container)
     //     {
     //         auto container = (ContainerWidget *)widget;
-    //         for (auto c = container->children.begin; c != container->children.end; c++)
+    //         for (auto c = container->children.begin(); c != container->children.end(); c++)
     //         {
     //             if (auto cw = c->widget)
     //             {
@@ -96,14 +96,14 @@ namespace crs
 
   void DeveloperOverlay::render_widget_picker(ImDrawList *draw_list, Engine *engine, WidgetCache *widget_cache)
   {
-    for (auto widget_001 = widget_cache->c.begin;
-        widget_001 != widget_cache->c.end;
+    for (auto widget_001 = widget_cache->c.begin();
+        widget_001 != widget_cache->c.end();
         widget_001++)
     {
       if (auto widget_002 = widget_001->widget_002)
       {
-        for (auto widget_003 = widget_002->widgets_003.begin;
-            widget_003 != widget_002->widgets_003.end;
+        for (auto widget_003 = widget_002->widgets_003.begin();
+            widget_003 != widget_002->widgets_003.end();
             widget_003++)
         {
           if (auto widget = widget_003->widget)

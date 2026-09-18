@@ -22,7 +22,7 @@ namespace crs
     begin_sync();
 
     auto slot = 0u;
-    for (auto item = container.items.begin; item != container.items.end; item++)
+    for (auto item = container.items.begin(); item != container.items.end(); item++)
     {
       auto key = static_cast<uintptr_t>(slot);
       if (auto child = touch_typed_key(key))
@@ -65,7 +65,7 @@ namespace crs
 
     begin_sync();
 
-    for (auto container = item_cache->containers.begin; container != item_cache->containers.end; container++)
+    for (auto container = item_cache->containers.begin(); container != item_cache->containers.end(); container++)
     {
       auto key = static_cast<uintptr_t>(container->id);
       if (auto child = touch_typed_key(key))

@@ -41,21 +41,29 @@ namespace crs
 
   extern NotCachyRS NRS;
 
+  constexpr int max_world_node_depth = 128;
+
   template <typename FN>
-  static void iterate_entities(WorldNode *node, FN fn)
+  static void iterate_entities_at(WorldNode *node, int depth, FN &fn)
   {
-    if (node)
+    if (node && depth <= max_world_node_depth)
     {
       if (auto entity = node->entity)
       {
         fn(static_cast<NamedEntity *>(entity));
       }
 
-      for (auto child = node->children.begin; child != node->children.end; child++)
+      for (auto child = node->children.begin(); child != node->children.end(); child++)
       {
-        iterate_entities(*child, fn);
+        iterate_entities_at(*child, depth + 1, fn);
       }
     }
+  }
+
+  template <typename FN>
+  static void iterate_entities(WorldNode *node, FN fn)
+  {
+    iterate_entities_at(node, 0, fn);
   }
 
   template <typename FN>
@@ -63,7 +71,7 @@ namespace crs
   {
     if (auto update_cache = NRS.player_update_cache())
     {
-      for (auto i = update_cache->updates.begin; i != update_cache->updates.end; i++)
+      for (auto i = update_cache->updates.begin(); i != update_cache->updates.end(); i++)
       {
         if (auto update = *(i))
         {

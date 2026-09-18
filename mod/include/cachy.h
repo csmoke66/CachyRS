@@ -41,6 +41,10 @@ namespace crs
     std::atomic<uint64_t> npc_dom_nodes_created_recent = 0;
     std::atomic<uint64_t> npc_dom_nodes_removed_recent = 0;
 
+    uint64_t object_dom_nodes_created = 0;
+    std::atomic<uint64_t> object_dom_nodes_created_recent = 0;
+    std::atomic<uint64_t> object_dom_nodes_removed_recent = 0;
+
     uint64_t item_container_dom_nodes_created = 0;
     std::atomic<uint64_t> item_container_dom_nodes_created_recent = 0;
     std::atomic<uint64_t> item_container_dom_nodes_removed_recent = 0;
@@ -72,10 +76,13 @@ namespace crs
     std::shared_ptr<ItemContainersDomNode> dom_node_item_containers;
     std::shared_ptr<PlayersDomNode> dom_node_players;
     std::shared_ptr<NpcsDomNode> dom_node_npcs;
+    std::shared_ptr<ObjectsDomNode> dom_node_objects;
     std::shared_ptr<WorldSettingsDomNode> dom_node_world_settings;
 
   public:
     std::atomic<bool> ui_visible{ false };
+    std::atomic<bool> imgui_want_capture_mouse{ false };
+    std::atomic<bool> imgui_want_capture_keyboard{ false };
     DeveloperOverlay developer_overlay;
     std::shared_ptr<UserInterface> ui = nullptr;
     std::shared_ptr<DomTree> dom_tree = nullptr;
@@ -110,10 +117,6 @@ namespace crs
     void push_ui_state();
 
   public:
-    // Overlay UI is mutated from the engine thread (PluginApi in plugin.cpp) and
-    // drawn on the render thread. The mutex is only for that shared render state.
-    // Re-entrancy is a thread_local depth count so Rml callbacks that re-enter
-    // PluginApi while swap-buffers already holds the lock stay cheap.
     inline static thread_local int ui_lock_depth = 0;
 
     struct UiLockDepth

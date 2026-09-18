@@ -47,10 +47,10 @@ namespace crs
         return;
       }
 
-      touch(status->bars.begin);
-      touch(status->bars.end);
-      touch(status->bars.max);
-      for (auto bar = status->bars.begin; bar != status->bars.end; bar++)
+      touch(status->bars.begin());
+      touch(status->bars.end());
+      touch(status->bars.max_ptr());
+      for (auto bar = status->bars.begin(); bar != status->bars.end(); bar++)
       {
         if (auto data = bar->data)
         {
@@ -72,12 +72,12 @@ namespace crs
         return;
       }
 
-      touch(queue->points.data);
-      touch(queue->points.size);
-      if (queue->points.data && queue->points.size > 0)
+      touch(queue->points.data());
+      touch(queue->points.size());
+      if (queue->points.data() && queue->points.size() > 0)
       {
-        touch(queue->points.data[0].scene_x);
-        touch(queue->points.data[0].scene_y);
+        touch(queue->points.data()[0].scene_x);
+        touch(queue->points.data()[0].scene_y);
       }
     }
 
@@ -95,12 +95,12 @@ namespace crs
       touch(entity->server_index);
       touch_jstring(entity->name);
       touch_vec3(entity->position);
-      touch(entity->animation_queue.begin);
-      touch(entity->animation_queue.end);
+      touch(entity->animation_queue.begin());
+      touch(entity->animation_queue.end());
       touch(entity->animation_queue.size());
-      if (entity->animation_queue.begin != entity->animation_queue.end)
+      if (entity->animation_queue.begin() != entity->animation_queue.end())
       {
-        touch(*entity->animation_queue.begin);
+        touch(*entity->animation_queue.front());
       }
 
       verify_movement(entity->movement_queue);
@@ -169,10 +169,10 @@ namespace crs
         return;
       }
 
-      touch(cache->updates.begin);
-      touch(cache->updates.end);
-      touch(cache->updates.max);
-      for (auto update = cache->updates.begin; update != cache->updates.end; update++)
+      touch(cache->updates.begin());
+      touch(cache->updates.end());
+      touch(cache->updates.max_ptr());
+      for (auto update = cache->updates.begin(); update != cache->updates.end(); update++)
       {
         if (auto entry = *update)
         {
@@ -216,15 +216,15 @@ namespace crs
         return;
       }
 
-      touch(cache->containers.begin);
-      touch(cache->containers.end);
-      touch(cache->containers.max);
-      for (auto container = cache->containers.begin; container != cache->containers.end; container++)
+      touch(cache->containers.begin());
+      touch(cache->containers.end());
+      touch(cache->containers.max_ptr());
+      for (auto container = cache->containers.begin(); container != cache->containers.end(); container++)
       {
         touch(container->id);
-        touch(container->items.begin);
-        touch(container->items.end);
-        for (auto item = container->items.begin; item != container->items.end; item++)
+        touch(container->items.begin());
+        touch(container->items.end());
+        for (auto item = container->items.begin(); item != container->items.end(); item++)
         {
           touch(item->id);
           touch(item->amount);
@@ -244,7 +244,8 @@ namespace crs
       for (uint32_t i = 0; i < cache->count; i++)
       {
         auto setting = cache->vars[i];
-        while (setting)
+        constexpr uint32_t max_chain = 4096;
+        for (uint32_t link = 0; setting && link < max_chain; link++)
         {
           touch(setting->id);
           touch(setting->body.value);
@@ -292,14 +293,14 @@ namespace crs
         return;
       }
 
-      for (auto friend_ = cache->friends.begin; friend_ != cache->friends.end; friend_++)
+      for (auto friend_ = cache->friends.begin(); friend_ != cache->friends.end(); friend_++)
       {
         touch_jstring(friend_->name);
         touch_jstring(friend_->previous_name);
         touch_jstring(friend_->world);
       }
 
-      for (auto ignored = cache->ignored.begin; ignored != cache->ignored.end; ignored++)
+      for (auto ignored = cache->ignored.begin(); ignored != cache->ignored.end(); ignored++)
       {
         touch_jstring(ignored->name);
         touch_jstring(ignored->previous_name);
@@ -315,9 +316,9 @@ namespace crs
       }
 
       touch(menu->is_open);
-      touch(menu->menu_options.begin);
-      touch(menu->menu_options.end);
-      for (auto option = menu->menu_options.begin; option != menu->menu_options.end; option++)
+      touch(menu->menu_options.begin());
+      touch(menu->menu_options.end());
+      for (auto option = menu->menu_options.begin(); option != menu->menu_options.end(); option++)
       {
         touch(option->tag);
         if (auto body = option->body)
@@ -344,9 +345,9 @@ namespace crs
       }
 
       touch(cache->widget_item_selected);
-      touch(cache->c.begin);
-      touch(cache->c.end);
-      for (auto widget_001 = cache->c.begin; widget_001 != cache->c.end; widget_001++)
+      touch(cache->c.begin());
+      touch(cache->c.end());
+      for (auto widget_001 = cache->c.begin(); widget_001 != cache->c.end(); widget_001++)
       {
         auto widget_002 = widget_001->widget_002;
         if (!widget_002)
@@ -355,7 +356,7 @@ namespace crs
         }
 
         touch(widget_002->id);
-        for (auto widget_003 = widget_002->widgets_003.begin; widget_003 != widget_002->widgets_003.end; widget_003++)
+        for (auto widget_003 = widget_002->widgets_003.begin(); widget_003 != widget_002->widgets_003.end(); widget_003++)
         {
           if (auto widget = widget_003->widget)
           {
@@ -392,7 +393,7 @@ namespace crs
         touch(entity->terrain);
       }
 
-      for (auto child = node->children.begin; child != node->children.end; child++)
+      for (auto child = node->children.begin(); child != node->children.end(); child++)
       {
         verify_world_node(*child, depth + 1);
       }
@@ -407,8 +408,8 @@ namespace crs
       }
 
       touch(scene_001->scene_index);
-      touch(scene_001->scene_002.begin);
-      touch(scene_001->scene_002.end);
+      touch(scene_001->scene_002.begin());
+      touch(scene_001->scene_002.end());
       auto scene_002 = scene_001->scene_002.reference(static_cast<size_t>(scene_001->scene_index));
       if (!scene_002)
       {
@@ -560,6 +561,10 @@ namespace crs
       RS.developer_overlay.render();
 
       ImGui::Render();
+
+      auto &io = ImGui::GetIO();
+      RS.imgui_want_capture_mouse.store(io.WantCaptureMouse, std::memory_order_relaxed);
+      RS.imgui_want_capture_keyboard.store(io.WantCaptureKeyboard, std::memory_order_relaxed);
     }
   }
 
@@ -579,6 +584,9 @@ namespace crs
       auto npc_dom_nodes_created_recent = RS.stats.npc_dom_nodes_created_recent.exchange(0, std::memory_order_acquire);
       auto npc_dom_nodes_removed_recent = RS.stats.npc_dom_nodes_removed_recent.exchange(0, std::memory_order_acquire);
 
+      auto object_dom_nodes_created_recent = RS.stats.object_dom_nodes_created_recent.exchange(0, std::memory_order_acquire);
+      auto object_dom_nodes_removed_recent = RS.stats.object_dom_nodes_removed_recent.exchange(0, std::memory_order_acquire);
+
       LOG(INFO, " -> Stats");
       LOG(INFO, " -> New Item Container DOM Nodes: " << RS.stats.item_container_dom_nodes_created << "/" << item_container_dom_nodes_created_recent << "/" << item_container_dom_nodes_removed_recent);
 
@@ -587,6 +595,8 @@ namespace crs
       LOG(INFO, " -> New Player DOM Nodes: " << RS.stats.player_dom_nodes_created << "/" << player_dom_nodes_created_recent << "/" << player_dom_nodes_removed_recent);
 
       LOG(INFO, " -> New NPC DOM Nodes: " << RS.stats.npc_dom_nodes_created << "/" << npc_dom_nodes_created_recent << "/" << npc_dom_nodes_removed_recent);
+
+      LOG(INFO, " -> New Object DOM Nodes: " << RS.stats.object_dom_nodes_created << "/" << object_dom_nodes_created_recent << "/" << object_dom_nodes_removed_recent);
 
       LOG(INFO, " -> Push UI State Time: " << RS.stats.push_ui_state_stopwatch.check_ms());
       LOG(INFO, " -> Render UI Time: " << RS.stats.render_ui_stopwatch.check_ms());
@@ -600,36 +610,45 @@ namespace crs
       return this->cached_containers.try_emplace(idx).first->second;
     };
 
+    std::vector<ItemChangedArgs> changes;
     if (auto cache = engine->item_cache)
     {
-      for (auto it = cache->containers.begin; it != cache->containers.end; it++)
+      for (auto it = cache->containers.begin(); it != cache->containers.end(); it++)
       {
-        auto &container = get_cached_container(it->id);
-        if (it->items.size() > container.items.size())
+        auto container_id = it->id;
+        std::vector<Item> snapshot(it->items.begin(), it->items.end());
+
+        auto &container = get_cached_container(container_id);
+        if (snapshot.size() > container.items.size())
         {
-          container.items.resize(it->items.size());
+          container.items.resize(snapshot.size());
         }
 
-        auto slot = 0u;
-        for (auto item_it = it->items.begin; item_it != it->items.end; item_it++, slot++)
+        for (size_t slot = 0; slot < snapshot.size(); slot++)
         {
           auto &container_item = container.items[slot];
-          if (container_item.id != item_it->id ||
-              container_item.amount != item_it->amount)
+          const auto &item = snapshot[slot];
+          if (container_item.id == item.id && container_item.amount == item.amount)
           {
-            auto delta = 0;
-            if (container_item.id == item_it->id || container_item.id == -1)
-            {
-              delta = item_it->amount - container_item.amount;
-            }
-
-            auto event = ItemChangedEvent(it->id, slot, container_item.id, container_item.amount, item_it->id, item_it->amount, delta);
-            RS.event_bus.dispatch(ItemChangedEvent::specific_id(), &event);
-
-            container_item = *item_it;
+            continue;
           }
+
+          auto delta = 0;
+          if (container_item.id == item.id || container_item.id == -1)
+          {
+            delta = item.amount - container_item.amount;
+          }
+
+          changes.push_back(ItemChangedArgs{ container_id, static_cast<uint32_t>(slot), container_item.id, container_item.amount, item.id, item.amount, delta });
+          container_item = item;
         }
       }
+    }
+
+    for (auto &change : changes)
+    {
+      auto event = ItemChangedEvent(change.id, change.slot, change.old_id, change.old_amount, change.new_id, change.new_amount, change.stack_delta);
+      RS.event_bus.dispatch(ItemChangedEvent::specific_id(), &event);
     }
   }
 

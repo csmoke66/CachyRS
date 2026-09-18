@@ -46,6 +46,21 @@ namespace crs
     void update() override;
   };
 
+  class ObjectDomNode : public ValueDomNode<const Entity *>
+  {
+  public:
+    ObjectDomNode(std::shared_ptr<DomTree> tree, const std::string &id, const std::string &type);
+  };
+
+  class ObjectsDomNode : public GameContainerNode<ObjectDomNode>
+  {
+  public:
+    ObjectsDomNode(std::shared_ptr<DomTree> tree, const std::string &id, const std::string &type);
+
+  public:
+    void update() override;
+  };
+
   class ItemDomNode : public ValueDomNode<Item>
   {
   public:

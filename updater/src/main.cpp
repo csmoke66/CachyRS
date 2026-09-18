@@ -333,6 +333,10 @@ std::vector<PatternObject> build_pattern_objects()
             { "EntityType", 1},
             new DummyExtractor(0x20)},
         new DummyPattern{
+            "plane",
+            { "uint32_t", 4},
+            new DummyExtractor(0x50)},
+        new DummyPattern{
             "terrain",
             { "Terrain*", 8},
             new DummyExtractor(0x60)},

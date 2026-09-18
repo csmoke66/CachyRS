@@ -16,6 +16,7 @@ add_library(mod SHARED
     src/dom/cachy.cpp
     src/dom/item_containers.cpp
     src/dom/npcs.cpp
+    src/dom/objects.cpp
     src/dom/players.cpp
     src/dom/world_settings.cpp
     src/dom/stats.cpp

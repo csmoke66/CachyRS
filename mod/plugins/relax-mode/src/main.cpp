@@ -26,6 +26,11 @@ std::string Boot::name()
   return "Relax Mode";
 }
 
+std::string Boot::version()
+{
+  return "1.0.0";
+}
+
 void Boot::init()
 {
   Api::on_menu_action([](MenuActionEventArgs *args)

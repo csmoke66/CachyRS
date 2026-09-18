@@ -122,6 +122,9 @@ namespace crs
     dom_node_npcs = std::make_shared<NpcsDomNode>(dom_tree, "npcs", "npcs");
     dom_tree->add_dom_node(dom_node_npcs);
 
+    dom_node_objects = std::make_shared<ObjectsDomNode>(dom_tree, "objects", "objects");
+    dom_tree->add_dom_node(dom_node_objects);
+
     dom_node_world_settings = std::make_shared<WorldSettingsDomNode>(dom_tree, "world_settings", "world_settings");
     dom_tree->add_dom_node(dom_node_world_settings);
 
@@ -273,7 +276,10 @@ namespace crs
     {
       ui_locked_nr([this, plugin]()
       {
-        plugin->ui_tab_container_id = ui->allocate_tab(plugin->name);
+        auto label = plugin->version && plugin->version[0]
+                         ? std::format("{} ({})", plugin->name ? plugin->name : "?", plugin->version)
+                         : std::string(plugin->name ? plugin->name : "?");
+        plugin->ui_tab_container_id = ui->allocate_tab(label);
       });
     });
 
@@ -283,7 +289,10 @@ namespace crs
       {
         for (auto &plugin : plugin_manager.view_plugins())
         {
-          plugin->ui_tab_container_id = ui->allocate_tab(plugin->name);
+          auto label = plugin->version && plugin->version[0]
+                           ? std::format("{} ({})", plugin->name ? plugin->name : "?", plugin->version)
+                           : std::string(plugin->name ? plugin->name : "?");
+          plugin->ui_tab_container_id = ui->allocate_tab(label);
           plugin->init(crs::InitType::refreshed, plugin.get());
         }
       });
@@ -310,12 +319,14 @@ namespace crs
       dom_node_item_containers->prune();
       dom_node_players->prune();
       dom_node_npcs->prune();
+      dom_node_objects->prune();
       dom_node_world_settings->prune();
 
       dom_tree->build_dom_node(dom_node_stats.get());
       dom_tree->build_dom_node(dom_node_item_containers.get());
       dom_tree->build_dom_node(dom_node_players.get());
       dom_tree->build_dom_node(dom_node_npcs.get());
+      dom_tree->build_dom_node(dom_node_objects.get());
       dom_tree->build_dom_node(dom_node_world_settings.get());
     }
   }

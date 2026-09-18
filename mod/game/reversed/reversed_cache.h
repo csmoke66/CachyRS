@@ -4,6 +4,36 @@
 
 static_assert(true);
 #pragma pack(push, 1)
+
+struct CacheString
+{
+  // 0x0
+  PAD(0x20);
+  // 0x20
+  JString* pointer_to_string;
+  // 0x28
+  JString string;
+  // 0x40
+};
+static_assert(sizeof(CacheString) == 0x40, INVALID_SIZE);
+
+struct ObjectCacheDesc
+{
+  PAD(0x8);
+  // 0x8
+  uint32_t id;
+  // 0xc
+  PAD(0x34);
+  // 0x40
+  JString* name;
+  // 0x48
+  PAD(0x18);
+  // 0x60
+  CacheString options[6];
+  // 0x1e0
+};
+static_assert(sizeof(ObjectCacheDesc) == 0x1e0, INVALID_SIZE);
+
 class Cache003
 {
 public:

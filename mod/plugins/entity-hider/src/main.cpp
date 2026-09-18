@@ -12,6 +12,11 @@ std::string Boot::name()
   return "Entity Hider";
 }
 
+std::string Boot::version()
+{
+  return "1.0.0";
+}
+
 void Boot::init()
 {
   Api::on_tick([]()

@@ -1,9 +1,14 @@
 #pragma once
 #include "reversed_manual_base.h"
 #include "reversed_util.h"
+#include "reversed_cache.h"
 
 static_assert(true);
 #pragma pack(push, 1)
+
+class Entity;
+struct ObjectCacheDesc;
+
 struct StatusBarConfig
 {
   // 0x0
@@ -68,4 +73,5 @@ struct MovementQueue
   JArray2<MovementPoint> points;
   // 0x38
 };
+
 #pragma pack(pop)

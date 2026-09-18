@@ -39,7 +39,7 @@ namespace crs
     template <typename FN>
     FINLINE void process(FN fn)
     {
-      auto bitmap_t = bitmap.exchange(0, std::memory_order_acq_rel);
+      auto bitmap_t = bitmap.load(std::memory_order_acquire);
 
       std::array<RingBufferElement, size()> sorted;
       size_t sorted_size = 0;
@@ -52,7 +52,8 @@ namespace crs
         }
       };
 
-      unprocessed.exchange(0, std::memory_order_release);
+      bitmap.fetch_and(~bitmap_t, std::memory_order_acq_rel);
+      unprocessed.fetch_sub(sorted_size, std::memory_order_release);
 
       std::sort(sorted.begin(), sorted.begin() + sorted_size, [](const RingBufferElement &a, const RingBufferElement &b)
       {
@@ -67,9 +68,10 @@ namespace crs
 
     FINLINE bool push(T t)
     {
-      auto unprocessed_t = unprocessed.fetch_add(1, std::memory_order_relaxed);
+      auto unprocessed_t = unprocessed.fetch_add(1, std::memory_order_acquire);
       if (unprocessed_t >= size())
       {
+        unprocessed.fetch_sub(1, std::memory_order_release);
         return false;
       }
 

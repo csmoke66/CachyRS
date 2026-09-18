@@ -7,6 +7,20 @@ endif()
 
 set(CACHYRS_ENABLE_LTO ON CACHE BOOL "Full link-time optimization")
 set(CACHYRS_NATIVE ON CACHE BOOL "Optimize for this CPU (-march=native)")
+set(CACHYRS_ASAN OFF CACHE BOOL "Build with AddressSanitizer (use with scripts/run-asan.sh)")
+set(CACHYRS_PLUGIN_API_VALIDATE OFF CACHE BOOL "Extra plugin API validation (pointer readability probes via write EFAULT)")
+
+if(CACHYRS_PLUGIN_API_VALIDATE)
+  message(STATUS "CACHYRS_PLUGIN_API_VALIDATE=ON — probing plugin API pointer readability")
+  add_compile_definitions(CACHYRS_PLUGIN_API_VALIDATE=1)
+endif()
+
+if(CACHYRS_ASAN)
+  message(STATUS "CACHYRS_ASAN=ON — disabling LTO; build RelWithDebInfo and LD_PRELOAD asan into rs2client")
+  set(CACHYRS_ENABLE_LTO OFF CACHE BOOL "Full link-time optimization" FORCE)
+  add_compile_options(-fsanitize=address -fno-omit-frame-pointer -g -O1)
+  add_link_options(-fsanitize=address)
+endif()
 
 # Shared objects default to allowing undefined imports, which then fail
 # silently when rs2client/dlopen can't resolve them. Fail the link instead.

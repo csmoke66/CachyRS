@@ -1,5 +1,4 @@
 #include "cachy.h"
-#include <imgui.h>
 
 namespace crs
 {
@@ -23,8 +22,9 @@ namespace crs
     {
       RS.event_ring_buffer.push(*event);
 
-      auto &io = ImGui::GetIO();
-      auto steal_processing = io.WantCaptureMouse || io.WantCaptureKeyboard || (RS.ui_visible && RS.ui->wants_input());
+      auto steal_processing = RS.imgui_want_capture_mouse.load(std::memory_order_relaxed) ||
+                              RS.imgui_want_capture_keyboard.load(std::memory_order_relaxed) ||
+                              (RS.ui_visible.load(std::memory_order_relaxed) && RS.ui->wants_input());
 
       if (!wants_event(event->type) || !steal_processing)
       {

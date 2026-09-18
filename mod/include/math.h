@@ -36,7 +36,7 @@ namespace crs
     Vec2<T> begin;
     Vec2<T> end;
 
-    bool is_within(Vec2<T> t, bool exclusive = false)
+    bool is_within(Vec2<T> t, bool exclusive = false) const
     {
       if (exclusive)
       {

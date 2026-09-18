@@ -36,6 +36,52 @@ namespace crs
     return out;
   }
 
+  inline std::string sanitize_dom_id(std::string_view value)
+  {
+    std::string out;
+    out.reserve(value.size());
+    for (char c : value)
+    {
+      if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_' || c == '-')
+      {
+        out.push_back(c);
+      }
+      else
+      {
+        out.push_back('_');
+      }
+    }
+    return out;
+  }
+
+  inline std::string escape_rml_text(std::string_view value)
+  {
+    std::string out;
+    out.reserve(value.size());
+    for (char c : value)
+    {
+      switch (c)
+      {
+      case '&':
+        out += "&amp;";
+        break;
+      case '<':
+        out += "&lt;";
+        break;
+      case '>':
+        out += "&gt;";
+        break;
+      case '"':
+        out += "&quot;";
+        break;
+      default:
+        out.push_back(c);
+        break;
+      }
+    }
+    return out;
+  }
+
   class DomValue
   {
   public:
@@ -179,7 +225,6 @@ namespace crs
   class DomNode : public std::enable_shared_from_this<DomNode>
   {
   public:
-    // Hot: walked for every child during sync / RML virtualization.
     uint32_t seen_gen = 0;
     uint32_t sync_gen = 0;
     uintptr_t key = 0;
@@ -189,6 +234,7 @@ namespace crs
     bool is_built = false;
     bool needs_prune = false;
     bool keyed = false;
+    bool values_dirty = false;
 
     std::string id;
     std::string type;
@@ -206,12 +252,14 @@ namespace crs
 
   private:
     DomNode *find_dom_node(DomNode *current, const std::string &node_id);
+    static void unlink_subtree(DomNode *node);
 
   public:
     DomNode *find_dom_node(const std::string &node_id);
 
   public:
     void add_value(std::unique_ptr<DomValue> value);
+    void remove_value(const std::string &name);
     void add_child(std::shared_ptr<DomNode> child);
     void add_keyed_child(uintptr_t child_key, std::shared_ptr<DomNode> child);
     std::shared_ptr<DomNode> touch_keyed(uintptr_t child_key);

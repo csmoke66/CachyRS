@@ -108,7 +108,6 @@ namespace crs
       int mouse_x = event.GetParameter<int>("mouse_x", 0);
       int mouse_y = event.GetParameter<int>("mouse_y", 0);
 
-      // Current element position.
       int left = window->GetAbsoluteLeft();
       int top = window->GetAbsoluteTop();
 
@@ -144,5 +143,39 @@ namespace crs
     }
 
     parent->on_dropdown_component_changed(component_id, select->GetSelection());
+  }
+
+  ButtonClickEventListener::ButtonClickEventListener(RmlUserInterface *parent, uint64_t component_id) : parent(parent),
+                                                                                                        component_id(component_id)
+  {
+  }
+
+  void ButtonClickEventListener::ProcessEvent(Rml::Event &event)
+  {
+    event.StopPropagation();
+    parent->on_button_component_clicked(component_id);
+  }
+
+  GraphMapEventListener::GraphMapEventListener(RmlUserInterface *parent, uint64_t component_id) : parent(parent),
+                                                                                                  component_id(component_id)
+  {
+  }
+
+  void GraphMapEventListener::ProcessEvent(Rml::Event &event)
+  {
+    parent->on_graph_map_event(component_id, event);
+  }
+
+  GraphMapContextButtonListener::GraphMapContextButtonListener(RmlUserInterface *parent, uint64_t component_id, uint32_t action)
+      : parent(parent),
+        component_id(component_id),
+        action(action)
+  {
+  }
+
+  void GraphMapContextButtonListener::ProcessEvent(Rml::Event &event)
+  {
+    event.StopPropagation();
+    parent->on_graph_map_context_action(component_id, action);
   }
 } // namespace crs

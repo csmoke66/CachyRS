@@ -35,9 +35,12 @@ namespace crs
 
   void EventBusLane::dispatch(Event *event)
   {
-    for (auto *er : event_receivers)
+    for (size_t i = 0; i < event_receivers.size(); i++)
     {
-      er->receive(event);
+      if (auto *er = event_receivers[i])
+      {
+        er->receive(event);
+      }
     }
   }
 

@@ -15,7 +15,7 @@ namespace crs
     auto engine = RS.get_globals()->engine;
     auto time = engine->time;
 
-    for (auto c = children->begin; c != children->end; c++)
+    for (auto c = children->begin(); c != children->end(); c++)
     {
       if (auto w = c->widget)
       {

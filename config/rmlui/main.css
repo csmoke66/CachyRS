@@ -2,6 +2,9 @@
     /* Add any custom properties your VisibilityTrackerInstancer looks for */
 }
 
+@decorator graph-map : graph-map {
+}
+
 body {
     --bg-color-primary: #353535;
     --bg-color-secondary: #42424271;
@@ -300,19 +303,68 @@ input[type="checkbox"]:checked {
 .plugins-wrapper {
     display: flex;
     flex-direction: row;
-    height: 300px;
+    height: 360px;
 }
 
 .sidebar-content {
     flex: 1;
+    height: 100%;
+    box-sizing: border-box;
+    overflow-y: auto;
+    overflow-x: hidden;
     background: #1b1b1b;
     padding: 12px;
 }
 
+.sidebar-content button {
+    display: block;
+    margin: 6dp 0;
+}
+
+.sidebar-content select {
+    display: block;
+    width: 100%;
+    margin: 6dp 0;
+}
+
+.sidebar-content div {
+    margin: 2dp 0;
+}
+
+.plugin-row {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4dp;
+    margin: 4dp 0;
+}
+
+.plugin-row button {
+    display: inline-block;
+    margin: 0;
+    width: auto;
+}
+
+.plugin-row select {
+    display: inline-block;
+    width: auto;
+    min-width: 90dp;
+    flex: 1;
+    margin: 0;
+}
+
+.plugin-row div {
+    margin: 0;
+}
+
 .sidebar {
     width: 180px;
+    height: 100%;
     display: flex;
     flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
 
     background: #252525;
 }
@@ -332,6 +384,76 @@ input[type="checkbox"]:checked {
     border-radius: 1px;
 
     box-shadow: none;
+}
+
+.graph-map {
+    display: block;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    background-color: #121212;
+    border: 1px #292929;
+    border-radius: 2px;
+    decorator: graph-map;
+}
+
+.graph-map-wrap {
+    display: block;
+    position: relative;
+    width: 260px;
+    height: 200px;
+    margin: 6dp 0 14dp 0;
+}
+
+.graph-map-labels {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 4;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.graph-map-id {
+    position: absolute;
+    font-size: 10dp;
+    line-height: 1;
+    color: #d8d8e4;
+    font-effect: shadow(1px 1px #000);
+    pointer-events: none;
+}
+
+.graph-map-id-selected {
+    color: #ffe678;
+}
+
+.graph-map-hover {
+    position: absolute;
+    z-index: 5;
+    padding: 2dp 4dp;
+    font-size: 11dp;
+    color: #fff;
+    background-color: #000c;
+    border: 1px #666;
+    pointer-events: none;
+}
+
+.graph-map-context {
+    position: absolute;
+    z-index: 6;
+    display: block;
+    padding: 4dp;
+    background-color: #1b1b1b;
+    border: 1px #444;
+    box-shadow: #000a 2px 2px 4px;
+}
+
+.graph-map-context button {
+    display: block;
+    width: 140dp;
+    margin: 2dp 0;
 }
 
 .hr-custom {

@@ -197,8 +197,23 @@ namespace crs
 
   void DomNode::add_value(std::unique_ptr<DomValue> value)
   {
-    value->id = std::format("{}_val_{}", id, value->name);
+    value->id = std::format("{}_val_{}", id, sanitize_dom_id(value->name));
     values.push_back(std::move(value));
+    values_dirty = true;
+    mark_dirty();
+  }
+
+  void DomNode::remove_value(const std::string &name)
+  {
+    auto erased = std::erase_if(values, [&name](const std::unique_ptr<DomValue> &value)
+    {
+      return value->name == name;
+    });
+    if (erased)
+    {
+      values_dirty = true;
+      mark_dirty();
+    }
   }
 
   void DomNode::add_child(std::shared_ptr<DomNode> child)
@@ -210,11 +225,51 @@ namespace crs
     if (inserted)
     {
       child_order.push_back(child);
+      return;
+    }
+
+    auto previous = it->second;
+    if (previous == child)
+    {
+      return;
+    }
+
+    it->second = child;
+
+    auto slot = std::find(child_order.begin(), child_order.end(), previous);
+    if (slot != child_order.end())
+    {
+      *slot = child;
     }
     else
     {
-      it->second = child;
+      child_order.push_back(child);
     }
+
+    if (previous->keyed)
+    {
+      auto keyed = children_by_key.find(previous->key);
+      if (keyed != children_by_key.end() && keyed->second == previous)
+      {
+        children_by_key.erase(keyed);
+      }
+    }
+
+    tree->remove_dom_node(previous.get());
+    unlink_subtree(previous.get());
+  }
+
+  void DomNode::unlink_subtree(DomNode *node)
+  {
+    for (auto &child : node->child_order)
+    {
+      unlink_subtree(child.get());
+    }
+
+    node->parent = nullptr;
+    node->children_by_key.clear();
+    node->children.clear();
+    node->child_order.clear();
   }
 
   void DomNode::add_keyed_child(uintptr_t child_key, std::shared_ptr<DomNode> child)
@@ -300,6 +355,7 @@ namespace crs
       }
       children.erase(child->id);
       tree->remove_dom_node(child.get());
+      unlink_subtree(child.get());
       return true;
     });
 

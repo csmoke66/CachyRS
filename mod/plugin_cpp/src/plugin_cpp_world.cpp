@@ -1,5 +1,7 @@
 #include "plugin_cpp.h"
+#include "plugin_cpp_detail.h"
 
+#include <cstring>
 #include <iterator>
 
 namespace crs
@@ -48,11 +50,11 @@ namespace crs
         return;
       }
 
-      for (auto widget_001 = cache->c.begin; widget_001 != cache->c.end; widget_001++)
+      for (auto widget_001 = cache->c.begin(); widget_001 != cache->c.end(); widget_001++)
       {
         if (auto widget_002 = widget_001->widget_002)
         {
-          for (auto widget_003 = widget_002->widgets_003.begin; widget_003 != widget_002->widgets_003.end; widget_003++)
+          for (auto widget_003 = widget_002->widgets_003.begin(); widget_003 != widget_002->widgets_003.end(); widget_003++)
           {
             if (auto widget = widget_003->widget)
             {
@@ -60,27 +62,6 @@ namespace crs
             }
           }
         }
-      }
-    }
-
-    void collect_entities(WorldNode *node, std::optional<EntityType> type, std::vector<ApiEntity> &out)
-    {
-      if (!node)
-      {
-        return;
-      }
-
-      if (auto entity = node->entity)
-      {
-        if (!type.has_value() || entity->type == *type)
-        {
-          out.push_back(ApiEntity(entity));
-        }
-      }
-
-      for (auto child = node->children.begin; child != node->children.end; child++)
-      {
-        collect_entities(*child, type, out);
       }
     }
 
@@ -196,6 +177,27 @@ namespace crs
     return game_state() == GameState::in_game;
   }
 
+  bool Api::logged_in()
+  {
+    auto state = game_state();
+    return state == GameState::lobby_screen || state == GameState::in_game;
+  }
+
+  bool Api::when_always()
+  {
+    return true;
+  }
+
+  bool Api::when_in_game()
+  {
+    return in_game();
+  }
+
+  bool Api::when_logged_in()
+  {
+    return logged_in();
+  }
+
   uint32_t Api::engine_time()
   {
     if (auto engine = raw_engine())
@@ -220,7 +222,13 @@ namespace crs
       return {};
     }
 
-    return lp->name;
+    size_t length = 0;
+    while (length < sizeof(lp->name) && lp->name[length] != '\0')
+    {
+      length++;
+    }
+
+    return std::string(lp->name, length);
   }
 
   uint32_t Api::run_energy()
@@ -294,7 +302,11 @@ namespace crs
   std::vector<ApiEntity> Api::scene_entities(std::optional<EntityType> type)
   {
     std::vector<ApiEntity> out;
-    collect_entities(raw_world_root(), type, out);
+    detail::for_each_entity(raw_world_root(), type, [&](Entity *entity)
+    {
+      out.emplace_back(entity);
+      return true;
+    });
     return out;
   }
 
@@ -312,7 +324,7 @@ namespace crs
       return out;
     }
 
-    for (auto friend_ = cache->friends.begin; friend_ != cache->friends.end; friend_++)
+    for (auto friend_ = cache->friends.begin(); friend_ != cache->friends.end(); friend_++)
     {
       FriendView view;
       view.name = friend_->name.str();
@@ -333,7 +345,7 @@ namespace crs
       return out;
     }
 
-    for (auto entry = cache->ignored.begin; entry != cache->ignored.end; entry++)
+    for (auto entry = cache->ignored.begin(); entry != cache->ignored.end(); entry++)
     {
       out.push_back(entry->name.str());
     }
@@ -549,6 +561,11 @@ namespace crs
   void Api::walk(uint32_t tile_x, uint32_t tile_y)
   {
     perform_menu_action(get_menu_action_handler(MenuActionType::walk), walk_args(tile_x, tile_y));
+  }
+
+  void Api::walk(Vec2<uint32_t> tile)
+  {
+    walk(tile.x, tile.y);
   }
 
   void Api::interact_object(uint32_t object_id, uint32_t tile_x, uint32_t tile_y, uint32_t option)
