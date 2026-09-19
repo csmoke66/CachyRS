@@ -26,6 +26,29 @@ namespace crs
     void *get_args() override;
   };
 
+  struct MenuTickArgs
+  {
+    Menu *menu;
+  };
+
+  class MenuTickEvent : public Event
+  {
+  public:
+    MenuTickArgs args;
+
+  public:
+    static constexpr const char *specific_id()
+    {
+      return "on_menu_tick";
+    }
+
+  public:
+    MenuTickEvent(Menu *menu);
+
+  public:
+    void *get_args() override;
+  };
+
   struct MenuOpenedEventArgs
   {
     bool opened;

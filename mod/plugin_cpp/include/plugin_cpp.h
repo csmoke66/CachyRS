@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <format>
 #include <functional>
+#include <initializer_list>
 #include <map>
 #include <memory>
 #include <optional>
@@ -369,9 +370,9 @@ namespace crs
 
   public:
     void set_view(uint32_t center_x, uint32_t center_y, uint32_t radius_tiles,
-                  uint32_t selected_id, const std::vector<GraphMapNodeView> &nodes,
-                  const std::vector<GraphMapEdgeView> &edges,
-                  const std::vector<GraphMapObjectView> &objects = {});
+        uint32_t selected_id, const std::vector<GraphMapNodeView> &nodes,
+        const std::vector<GraphMapEdgeView> &edges,
+        const std::vector<GraphMapObjectView> &objects = {});
     void set_primitives(const std::vector<GraphMapPrimitiveView> &primitives);
     void fire_select(uint32_t node_id);
     void fire_link(uint32_t from, uint32_t to);
@@ -517,6 +518,16 @@ namespace crs
     uint32_t height() const;
     std::optional<ApiWidget> parent() const;
     std::vector<ApiWidget> children() const;
+    std::optional<ApiWidget> child(uint16_t child_id) const;
+    bool visible() const;
+
+  public:
+    // Menu option indices are 1-based (matches MenuActionArgs::option_idx).
+    std::string option_text(uint32_t option_index) const;
+    std::vector<std::pair<uint32_t, std::string>> options() const;
+    std::optional<uint32_t> option_index(std::string_view option_name) const;
+    bool interact(uint32_t option_index = 1, int32_t slot = -1, uint32_t handler = 0) const;
+    bool interact(std::string_view option_name, int32_t slot = -1, uint32_t handler = 0) const;
   };
 
   class Boot
@@ -619,32 +630,32 @@ namespace crs
     {
       return true;
     },
-                                                  uint32_t max_dist = UINT32_MAX);
+        uint32_t max_dist = UINT32_MAX);
     static std::optional<ApiPlayer> closest_player(Vec2<uint32_t> from, std::function<bool(const ApiPlayer &)> conditional = [](const ApiPlayer &)
     {
       return true;
     },
-                                                  uint32_t max_dist = UINT32_MAX);
+        uint32_t max_dist = UINT32_MAX);
     static std::optional<ApiNpc> closest_npc(std::function<bool(const ApiNpc &)> conditional = [](const ApiNpc &)
     {
       return true;
     },
-                                              uint32_t max_dist = UINT32_MAX);
+        uint32_t max_dist = UINT32_MAX);
     static std::optional<ApiNpc> closest_npc(Vec2<uint32_t> from, std::function<bool(const ApiNpc &)> conditional = [](const ApiNpc &)
     {
       return true;
     },
-                                              uint32_t max_dist = UINT32_MAX);
+        uint32_t max_dist = UINT32_MAX);
     static std::optional<ApiObject> closest_object(std::function<bool(const ApiObject &)> conditional = [](const ApiObject &)
     {
       return true;
     },
-                                                  uint32_t max_dist = UINT32_MAX);
+        uint32_t max_dist = UINT32_MAX);
     static std::optional<ApiObject> closest_object(Vec2<uint32_t> from, std::function<bool(const ApiObject &)> conditional = [](const ApiObject &)
     {
       return true;
     },
-                                                  uint32_t max_dist = UINT32_MAX);
+        uint32_t max_dist = UINT32_MAX);
     static std::optional<ApiObject> closest_object_id(uint32_t object_id, uint32_t max_dist = UINT32_MAX);
     static std::optional<ApiObject> closest_object_id(Vec2<uint32_t> from, uint32_t object_id, uint32_t max_dist = UINT32_MAX);
 
@@ -665,6 +676,11 @@ namespace crs
 
     static bool menu_open();
     static std::optional<ApiWidget> widget(uint16_t parent, uint16_t child);
+    static std::optional<ApiWidget> widget(uint16_t parent, std::initializer_list<uint16_t> child_path);
+    static std::optional<ApiWidget> widget(uint16_t parent, const std::vector<uint16_t> &child_path);
+    static std::optional<ApiWidget> find_widget(uint16_t parent, std::function<bool(const ApiWidget &)> conditional);
+    static std::optional<ApiWidget> find_widget_by_option(uint16_t parent, std::string_view option_name);
+    static std::vector<ApiWidget> widgets(uint16_t parent);
     static std::optional<Vec2<int32_t>> window_size();
     static std::optional<Vec2<float>> world_to_screen(const Vec3<float> &scene);
 

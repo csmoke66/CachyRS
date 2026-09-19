@@ -2,24 +2,37 @@
 #include "reversed/reversed.h"
 
 #include <imgui.h>
+#include <vector>
+
+#include "ui.h"
 
 namespace crs
 {
   class RenderWidgetHook;
   class SdlPollEventHook;
 
+  struct HoveredWidgetNode
+  {
+    Widget *widget = nullptr;
+    std::vector<HoveredWidgetNode> children;
+  };
+
   class DeveloperOverlay
   {
   private:
     bool initialized = false;
+    bool widget_pick_armed = false;
+    WidgetPickMode widget_pick_mode = WidgetPickMode::all;
 
   public:
     bool player_overlay_on = false;
     const Entity *player_overlay_target = nullptr;
+    std::vector<HoveredWidgetNode> hovered_widget_tree;
+    std::vector<HoveredWidgetNode> picked_widget_tree;
 
   private:
-    const RenderWidgetHook *render_widget_hook;
-    const SdlPollEventHook *poll_event_hook;
+    RenderWidgetHook *render_widget_hook = nullptr;
+    SdlPollEventHook *poll_event_hook = nullptr;
 
   private:
     void render_player_overlay(ImDrawList *draw_list, WorldNode *root);
@@ -28,11 +41,15 @@ namespace crs
     void render_ground_item_overlay(ImDrawList *draw_list, WorldNode *root);
 
   private:
-    void render_widget_picker(ImDrawList *draw_list, Engine *engine, Widget *widget, int x, int y);
-    void render_widget_picker(ImDrawList *draw_list, Engine *engine, WidgetCache *widget_cache);
+    void render_widget_picker(ImDrawList *draw_list);
 
   public:
     void init();
+    void arm_widget_pick(WidgetPickMode mode = WidgetPickMode::all);
+    bool is_widget_pick_armed() const
+    {
+      return widget_pick_armed;
+    }
 
   public:
     void render();

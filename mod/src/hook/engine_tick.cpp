@@ -666,10 +666,15 @@ namespace crs
     }
 
     auto engine = reinterpret_cast<Engine *>(CPU_FIRST_ARG(cpu_state));
+    if (auto *rw = RS.hook_manager->view_hook<RenderWidgetHook>("render_widget"))
+    {
+      rw->remove_stale(engine->time > 10 ? engine->time - 10 : 0);
+    }
+
     RS.ui_locked_nr([this, engine]()
     {
-      tick_ui(engine);
       tick_imgui();
+      tick_ui(engine);
     });
 
     tick_stats();

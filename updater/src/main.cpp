@@ -63,6 +63,12 @@ std::vector<PatternObject> build_pattern_objects()
             {"char", 1},
             (new DirectExtractor(0x0))->
                 validator(new AlignmentValidator(0x10))},
+        new DefaultPattern{
+            "menu_tick",
+            compile_ida_pattern("E8 ? ? ? ? 48 8B 6B ? 4C 8B A5"),
+            {"char", 1},
+            (new ImmExtractor(0x1, 0x5, 4, true))->
+                validator(new AlignmentValidator(0x10))},
             
         new DefaultPattern{
             "menu_execute",
@@ -462,6 +468,71 @@ std::vector<PatternObject> build_pattern_objects()
 
                  
     }});
+
+    objects.push_back({"Widget", {
+        new DummyPattern{
+            "get_type",
+            { "WidgetType {}()", 1},
+            new DummyExtractor(0x10),
+        true},
+
+        new DummyPattern{
+            "parent",
+            { "Widget*", 8},
+            new DummyExtractor(0x28)},
+            
+        new DummyPattern{
+            "menu_options",
+            { "JVector<WidgetMenuOption>", 0x18},
+            new DummyExtractor(0xa0)},
+
+        new DefaultPattern{
+            "parent_id",
+            compile_ida_pattern("0F B7 70 ? 66 83 FE ? 74 ? 44 0F B7 C6"),
+            { "uint16_t", 2, },
+            (new ImmExtractor(0x3, 0x0, 1))->
+                validator(new AlignmentValidator(0x2))},
+        new DefaultPattern{
+            "child_id",
+            compile_ida_pattern("0F B7 70 ? 66 83 FE ? 74 ? 44 0F B7 C6"),
+            { "uint16_t", 2, },
+            (new ImmExtractor(0x3, 0x2, 1))->
+                validator(new AlignmentValidator(0x2))},
+
+        new DefaultPattern{
+            "x",
+            compile_ida_pattern("41 03 74 24"),
+            { "uint32_t", 4, },
+            (new ImmExtractor(0x4, 0x0, 1))->
+                validator(new AlignmentValidator(0x4))},
+        new DefaultPattern{
+            "y",
+            compile_ida_pattern("41 03 74 24"),
+            { "uint32_t", 4, },
+            (new ImmExtractor(0x4, 0x4, 1))->
+                validator(new AlignmentValidator(0x4))},
+        new DefaultPattern{
+            "width",
+            compile_ida_pattern("41 03 74 24"),
+            { "uint32_t", 4, },
+            (new ImmExtractor(0x4, 0x8, 1))->
+                validator(new AlignmentValidator(0x4))},
+        new DefaultPattern{
+            "height",
+            compile_ida_pattern("41 03 74 24"),
+            { "uint32_t", 4, },
+            (new ImmExtractor(0x4, 0xc, 1))->
+                validator(new AlignmentValidator(0x4))},
+    },
+true});
+
+    objects.push_back({"ContainerWidget", {
+        new DummyPattern{
+            "children",
+            { "JVector<WidgetChild>", 0x18},
+            new DummyExtractor(0x1b0)},
+    },
+    true, true, "Widget"});
 
   // clang-format on
   return objects;

@@ -40,10 +40,10 @@ namespace crs
           else
           {
             auto node = std::make_shared<StatDomNode>(tree, make_numeric_id("stat_", i), "stat");
-            node->add_value(std::make_unique<UInt32DomValue>("id", i));
-            add_hidden_uint32(*node, "current level", stat.current_level);
-            add_hidden_uint32(*node, "max level", stat.max_level);
-            add_hidden_uint32(*node, "experience", stat.experience);
+            add_inlined_uint32(*node, "id", i);
+            add_uint32(*node, "current level", stat.current_level);
+            add_uint32(*node, "max level", stat.max_level);
+            add_uint32(*node, "experience", stat.experience);
             add_keyed_child(key, node);
           }
         }

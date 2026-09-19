@@ -26,6 +26,16 @@ namespace crs
     return &args;
   }
 
+  MenuTickEvent::MenuTickEvent(Menu *menu) : Event(MenuTickEvent::specific_id()),
+                                             args{ .menu = menu }
+  {
+  }
+
+  void *MenuTickEvent::get_args()
+  {
+    return &args;
+  }
+
   MenuOpenedEvent::MenuOpenedEvent(bool opened) : Event(MenuOpenedEvent::specific_id()),
                                                   args{ .opened = opened }
   {

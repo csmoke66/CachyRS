@@ -53,7 +53,9 @@ namespace crs
     }
     require_ui(api);
     const bool exists = RS.ui_locked([component_id]()
-                                     { return RS.ui->has_component(component_id); });
+    {
+      return RS.ui->has_component(component_id);
+    });
     if (!exists)
     {
       v::soft_fail(api, "unknown component id", component_id);
@@ -69,7 +71,9 @@ namespace crs
       return false;
     }
     const bool ok = RS.ui_locked([component_id, type]()
-                                 { return RS.ui->component_is_type(component_id, type); });
+    {
+      return RS.ui->component_is_type(component_id, type);
+    });
     if (!ok)
     {
       v::soft_fail(api, "component id has wrong type", component_id);
@@ -112,14 +116,18 @@ namespace crs
     }
     require_ui(api);
     if (!RS.ui_locked([parent_id]()
-                      { return RS.ui->has_component(parent_id); }))
+    {
+      return RS.ui->has_component(parent_id);
+    }))
     {
       v::soft_fail(api, "unknown parent component id", parent_id);
       return 0;
     }
 
     return RS.ui_locked([type, parent_id]()
-                        { return RS.ui->allocate_component(static_cast<ComponentType>(type), parent_id); });
+    {
+      return RS.ui->allocate_component(static_cast<ComponentType>(type), parent_id);
+    });
   }
 
   static void plugin_api_user_interface_update_component_text(uint64_t component_id, const char *text)
@@ -137,7 +145,9 @@ namespace crs
 
     std::string copy(text ? text : "");
     RS.ui_locked_nr([component_id, &copy]()
-                    { RS.ui->update_component_text(component_id, copy); });
+    {
+      RS.ui->update_component_text(component_id, copy);
+    });
   }
 
   static void plugin_api_user_interface_update_component_items(uint64_t component_id, const char **items, size_t item_count)
@@ -171,7 +181,9 @@ namespace crs
     }
 
     RS.ui_locked_nr([component_id, &converted]()
-                    { RS.ui->update_component_items(component_id, converted); });
+    {
+      RS.ui->update_component_items(component_id, converted);
+    });
   }
 
   static bool plugin_api_user_interface_is_component_active(uint64_t component_id)
@@ -182,7 +194,9 @@ namespace crs
       return false;
     }
     return RS.ui_locked([component_id]()
-                        { return RS.ui->is_component_active(component_id); });
+    {
+      return RS.ui->is_component_active(component_id);
+    });
   }
 
   static void plugin_api_user_interface_set_component_active(uint64_t component_id, bool active)
@@ -193,7 +207,9 @@ namespace crs
       return;
     }
     RS.ui_locked_nr([component_id, active]()
-                    { RS.ui->set_component_active(component_id, active); });
+    {
+      RS.ui->set_component_active(component_id, active);
+    });
   }
 
   static void plugin_api_user_interface_register_dropdown_change_handler(uint64_t component_id, FnPluginUserInterfaceDropDownChangeHandler handler, void *user_data)
@@ -207,11 +223,12 @@ namespace crs
     v::opaque_cookie_sane(api, user_data);
 
     RS.ui_locked_nr([component_id, handler, user_data]()
-                    {
+    {
       RS.ui->register_dropdown_change_handler(component_id, [component_id, handler, user_data](int index)
       {
         handler(component_id, index, user_data);
-      }); });
+      });
+    });
   }
 
   static void plugin_api_user_interface_register_button_click_handler(uint64_t component_id, FnPluginUserInterfaceButtonClickHandler handler, void *user_data)
@@ -225,11 +242,12 @@ namespace crs
     v::opaque_cookie_sane(api, user_data);
 
     RS.ui_locked_nr([component_id, handler, user_data]()
-                    {
+    {
       RS.ui->register_button_click_handler(component_id, [component_id, handler, user_data]()
       {
         handler(component_id, user_data);
-      }); });
+      });
+    });
   }
 
   static void plugin_api_user_interface_dropdown_set_selected(uint64_t component_id, int32_t index)
@@ -245,7 +263,9 @@ namespace crs
       return;
     }
     RS.ui_locked_nr([component_id, index]()
-                    { RS.ui->dropdown_set_selected(component_id, index); });
+    {
+      RS.ui->dropdown_set_selected(component_id, index);
+    });
   }
 
   static void plugin_api_user_interface_set_visible(uint64_t component_id, bool visible)
@@ -256,13 +276,15 @@ namespace crs
       return;
     }
     RS.ui_locked_nr([component_id, visible]()
-                    { RS.ui->set_component_visible(component_id, visible); });
+    {
+      RS.ui->set_component_visible(component_id, visible);
+    });
   }
 
   static void plugin_api_user_interface_update_graph_map(uint64_t component_id, uint32_t center_x, uint32_t center_y, uint32_t radius_tiles,
-                                                         uint32_t selected_id, const PluginGraphMapNode *nodes, size_t node_count,
-                                                         const PluginGraphMapEdge *edges, size_t edge_count,
-                                                         const PluginGraphMapObject *objects, size_t object_count)
+      uint32_t selected_id, const PluginGraphMapNode *nodes, size_t node_count,
+      const PluginGraphMapEdge *edges, size_t edge_count,
+      const PluginGraphMapObject *objects, size_t object_count)
   {
     constexpr auto api = "ui_update_graph_map";
     if (!require_live_component_type(api, component_id, ComponentType::graph_map))
@@ -282,14 +304,14 @@ namespace crs
     converted_nodes.reserve(node_count);
     for (size_t i = 0; i < node_count; i++)
     {
-      converted_nodes.push_back(GraphMapNode{nodes[i].id, nodes[i].x, nodes[i].y, nodes[i].flags});
+      converted_nodes.push_back(GraphMapNode{ nodes[i].id, nodes[i].x, nodes[i].y, nodes[i].flags });
     }
 
     std::vector<GraphMapEdge> converted_edges;
     converted_edges.reserve(edge_count);
     for (size_t i = 0; i < edge_count; i++)
     {
-      converted_edges.push_back(GraphMapEdge{edges[i].from, edges[i].to, edges[i].kind});
+      converted_edges.push_back(GraphMapEdge{ edges[i].from, edges[i].to, edges[i].kind });
     }
 
     std::vector<GraphMapObject> converted_objects;
@@ -306,8 +328,10 @@ namespace crs
     }
 
     RS.ui_locked_nr([component_id, center_x, center_y, radius_tiles, selected_id, converted_nodes = std::move(converted_nodes),
-                     converted_edges = std::move(converted_edges), converted_objects = std::move(converted_objects)]() mutable
-                    { RS.ui->update_graph_map(component_id, center_x, center_y, radius_tiles, selected_id, converted_nodes, converted_edges, converted_objects); });
+                        converted_edges = std::move(converted_edges), converted_objects = std::move(converted_objects)]() mutable
+    {
+      RS.ui->update_graph_map(component_id, center_x, center_y, radius_tiles, selected_id, converted_nodes, converted_edges, converted_objects);
+    });
   }
 
   static void plugin_api_user_interface_update_graph_map_primitives(uint64_t component_id, const PluginGraphMapPrimitive *primitives, size_t primitive_count)
@@ -340,7 +364,9 @@ namespace crs
     }
 
     RS.ui_locked_nr([component_id, converted = std::move(converted)]() mutable
-                    { RS.ui->update_graph_map_primitives(component_id, converted); });
+    {
+      RS.ui->update_graph_map_primitives(component_id, converted);
+    });
   }
 
   static void plugin_api_user_interface_register_graph_map_select_handler(uint64_t component_id, FnPluginUserInterfaceGraphMapSelectHandler handler, void *user_data)
@@ -354,11 +380,12 @@ namespace crs
     v::opaque_cookie_sane(api, user_data);
 
     RS.ui_locked_nr([component_id, handler, user_data]()
-                    {
+    {
       RS.ui->register_graph_map_select_handler(component_id, [component_id, handler, user_data](uint32_t node_id)
       {
         handler(component_id, node_id, user_data);
-      }); });
+      });
+    });
   }
 
   static void plugin_api_user_interface_register_graph_map_link_handler(uint64_t component_id, FnPluginUserInterfaceGraphMapLinkHandler handler, void *user_data)
@@ -372,11 +399,12 @@ namespace crs
     v::opaque_cookie_sane(api, user_data);
 
     RS.ui_locked_nr([component_id, handler, user_data]()
-                    {
+    {
       RS.ui->register_graph_map_link_handler(component_id, [component_id, handler, user_data](uint32_t from, uint32_t to)
       {
         handler(component_id, from, to, user_data);
-      }); });
+      });
+    });
   }
 
   static void plugin_api_user_interface_register_graph_map_object_link_handler(uint64_t component_id, FnPluginUserInterfaceGraphMapObjectLinkHandler handler, void *user_data)
@@ -390,11 +418,12 @@ namespace crs
     v::opaque_cookie_sane(api, user_data);
 
     RS.ui_locked_nr([component_id, handler, user_data]()
-                    {
+    {
       RS.ui->register_graph_map_object_link_handler(component_id, [component_id, handler, user_data](uint32_t from, uint32_t object_id, uint32_t tile_x, uint32_t tile_y, uint32_t option)
       {
         handler(component_id, from, object_id, tile_x, tile_y, option, user_data);
-      }); });
+      });
+    });
   }
 
   static void plugin_api_user_interface_register_graph_map_background_handler(uint64_t component_id, FnPluginUserInterfaceGraphMapBackgroundHandler handler, void *user_data)
@@ -408,11 +437,12 @@ namespace crs
     v::opaque_cookie_sane(api, user_data);
 
     RS.ui_locked_nr([component_id, handler, user_data]()
-                    {
+    {
       RS.ui->register_graph_map_background_handler(component_id, [component_id, handler, user_data](uint32_t tile_x, uint32_t tile_y)
       {
         handler(component_id, tile_x, tile_y, user_data);
-      }); });
+      });
+    });
   }
 
   static void plugin_api_user_interface_register_graph_map_context_handler(uint64_t component_id, FnPluginUserInterfaceGraphMapContextHandler handler, void *user_data)
@@ -426,11 +456,12 @@ namespace crs
     v::opaque_cookie_sane(api, user_data);
 
     RS.ui_locked_nr([component_id, handler, user_data]()
-                    {
+    {
       RS.ui->register_graph_map_context_handler(component_id, [component_id, handler, user_data](uint32_t action, uint32_t tile_x, uint32_t tile_y, int32_t vertex_id)
       {
         handler(component_id, action, tile_x, tile_y, vertex_id, user_data);
-      }); });
+      });
+    });
   }
 
   static void plugin_api_user_interface_register_graph_map_zoom_handler(uint64_t component_id, FnPluginUserInterfaceGraphMapZoomHandler handler, void *user_data)
@@ -444,11 +475,12 @@ namespace crs
     v::opaque_cookie_sane(api, user_data);
 
     RS.ui_locked_nr([component_id, handler, user_data]()
-                    {
+    {
       RS.ui->register_graph_map_zoom_handler(component_id, [component_id, handler, user_data](uint32_t radius_tiles)
       {
         handler(component_id, radius_tiles, user_data);
-      }); });
+      });
+    });
   }
 
   static void plugin_api_event_bus_register(const char *id, FnPluginEventBusReceiver receiver, void *context)
@@ -481,6 +513,21 @@ namespace crs
   static bool plugin_api_ui_is_visible()
   {
     return RS.ui_visible.load(std::memory_order_relaxed);
+  }
+
+  static bool plugin_api_widget_is_visible(const void *widget)
+  {
+    if (!widget)
+    {
+      return false;
+    }
+
+    // Render-cache keys only — do not dereference the pointer.
+    if (auto *rw = RS.hook_manager->view_hook<RenderWidgetHook>("render_widget"))
+    {
+      return rw->is_visible(reinterpret_cast<const Widget *>(widget));
+    }
+    return false;
   }
 
   static void *plugin_api_resolve(const char *name)
@@ -538,6 +585,7 @@ namespace crs
     register_api("expose_function", reinterpret_cast<void *>(plugin_api_expose_function));
     register_api("get_exposed_function", reinterpret_cast<void *>(plugin_api_get_exposed_function));
     register_api("ui_is_visible", reinterpret_cast<void *>(plugin_api_ui_is_visible));
+    register_api("widget_is_visible", reinterpret_cast<void *>(plugin_api_widget_is_visible));
 
     api.version = VERSION_API;
     api.resolve = plugin_api_resolve;

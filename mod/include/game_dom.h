@@ -117,4 +117,19 @@ namespace crs
   public:
     void update() override;
   };
+
+  class HoveredWidgetDomNode : public DomNode
+  {
+  public:
+    HoveredWidgetDomNode(std::shared_ptr<DomTree> tree, const std::string &id, const std::string &type);
+  };
+
+  class HoveredWidgetsDomNode : public GameContainerNode<HoveredWidgetDomNode>
+  {
+  public:
+    HoveredWidgetsDomNode(std::shared_ptr<DomTree> tree, const std::string &id, const std::string &type);
+
+  public:
+    void update() override;
+  };
 } // namespace crs

@@ -12,7 +12,6 @@ add_library(mod SHARED
     src/event_bus.cpp
     src/game_events.cpp
     
-    src/dom/dom.cpp
     src/dom/cachy.cpp
     src/dom/item_containers.cpp
     src/dom/npcs.cpp
@@ -20,11 +19,8 @@ add_library(mod SHARED
     src/dom/players.cpp
     src/dom/world_settings.cpp
     src/dom/stats.cpp
+    src/dom/hovered_widgets.cpp
     
-    src/ui/ui.cpp
-    src/ui/rml.cpp
-    src/ui/rml_event.cpp
-    src/ui/rml_decorator.cpp
     src/ui/developer.cpp
     
     src/reversed.cpp
@@ -45,6 +41,7 @@ add_library(mod SHARED
     src/hook/sdl_poll_event.cpp
     src/hook/render_widget.cpp
     src/hook/engine_tick.cpp
+    src/hook/menu_tick.cpp
     src/hook/set_var_bit.cpp
     src/hook/add_menu_option.cpp
     src/hook/add_chat_message.cpp
@@ -95,6 +92,27 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(rmlui)
 
+# Game-independent Rml UI + DOM core (also used by ui-sandbox).
+add_library(crs_ui STATIC
+    src/ui/ui.cpp
+    src/ui/rml.cpp
+    src/ui/rml_event.cpp
+    src/ui/rml_decorator.cpp
+    src/ui_log.cpp
+    src/dom/dom.cpp
+)
+set_property(TARGET crs_ui PROPERTY POSITION_INDEPENDENT_CODE ON)
+target_include_directories(crs_ui PUBLIC
+    include
+    ${CMAKE_CURRENT_BINARY_DIR}/generated
+)
+target_link_libraries(crs_ui PUBLIC
+    rmlui
+    rmlui_backend
+    SDL2
+    SDL2_image
+)
+
 find_package(OpenGL REQUIRED COMPONENTS EGL)
 find_package(PkgConfig REQUIRED)
 
@@ -108,10 +126,12 @@ target_link_libraries(mod PRIVATE
     SDL2
     SDL2_image
     rmlui_backend
+    crs_ui
     PkgConfig::capstone
 )
 
 cachyrs_warnings(mod)
+cachyrs_warnings(crs_ui)
 cachyrs_warnings(plugin_cpp)
 cachyrs_warnings(entity-hider)
 cachyrs_warnings(relax-mode)

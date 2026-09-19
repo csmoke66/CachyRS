@@ -90,7 +90,9 @@ namespace crs
 
   public:
     bool dirty = true;
-    bool hidden = false;
+    // When true, the value is rendered inline on the tree opening tag.
+    // Inspector always shows every value regardless.
+    bool inlined = false;
 
   public:
     DomValue(const std::string &name);
@@ -98,7 +100,7 @@ namespace crs
 
   public:
     void mark_dirty();
-    void mark_hidden();
+    void mark_inlined();
 
   public:
     virtual std::string to_string() = 0;
@@ -288,7 +290,7 @@ namespace crs
 
       if (value->set(v))
       {
-        if (!value->hidden)
+        if (value->inlined)
         {
           mark_dirty();
         }

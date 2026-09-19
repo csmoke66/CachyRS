@@ -1,9 +1,12 @@
+#pragma once
 #include "ui.h"
 
 #include <atomic>
 #include <memory>
 #include <unordered_map>
 #include <vector>
+
+#include "ui_log.h"
 
 #include <RmlUi/Core.h>
 #include <RmlUi/Debugger.h>
@@ -101,6 +104,19 @@ namespace crs
     void ProcessEvent(Rml::Event &event) override;
   };
 
+  class WidgetPickEventHandler : public OwnedEventListener
+  {
+  private:
+    RmlUserInterface *rml_ui = nullptr;
+    WidgetPickMode mode;
+
+  public:
+    WidgetPickEventHandler(RmlUserInterface *rml_ui, WidgetPickMode mode);
+
+  public:
+    void ProcessEvent(Rml::Event &event) override;
+  };
+
   //
   // An event listener that keeps track of a checkbox's state.
   //
@@ -135,16 +151,22 @@ namespace crs
   };
 
   //
-  // Allows for DOM nodes to be toggled visible/invisible.
+  // Allows for DOM nodes to be toggled visible/invisible (Chrome-style caret).
   //
   class ToggleDomNodeEventListener : public OwnedEventListener
   {
   private:
-    Rml::Element *element;
+    Rml::Element *wrapper = nullptr;
 
   public:
-    ToggleDomNodeEventListener(Rml::Element *element);
+    explicit ToggleDomNodeEventListener(Rml::Element *wrapper);
 
+  public:
+    void ProcessEvent(Rml::Event &event) override;
+  };
+
+  class ClearLogsEventListener : public OwnedEventListener
+  {
   public:
     void ProcessEvent(Rml::Event &event) override;
   };
@@ -161,6 +183,19 @@ namespace crs
 
   public:
     DragWindowEventListener(Rml::Element *element, Rml::Element *window);
+
+  public:
+    void ProcessEvent(Rml::Event &event) override;
+  };
+
+  class IconTooltipEventListener : public OwnedEventListener
+  {
+  private:
+    RmlUserInterface *rml_ui;
+    bool show = false;
+
+  public:
+    IconTooltipEventListener(RmlUserInterface *rml_ui, bool show);
 
   public:
     void ProcessEvent(Rml::Event &event) override;
@@ -354,6 +389,7 @@ namespace crs
 
     Rml::Element *selected_tab_button = nullptr;
     Rml::Element *selected_content = nullptr;
+    Rml::Element *icon_tooltip = nullptr;
 
     Rml::Element *selected_plugin_tab_button = nullptr;
     Rml::Element *selected_plugin_content = nullptr;
@@ -368,7 +404,15 @@ namespace crs
     Rml::Element *debug_tab_button = nullptr;
     Rml::Element *debug_content = nullptr;
 
+    Rml::Element *logs_tab_button = nullptr;
+    Rml::Element *logs_content = nullptr;
+    Rml::Element *log_list = nullptr;
+    Rml::Element *last_log_row = nullptr;
+    UiLogSyncState log_sync_state{};
+    size_t log_row_index = 0;
+
     Rml::Element *dom_inspector_content = nullptr;
+    Rml::Element *selected_dom_row = nullptr;
     std::weak_ptr<DomNode> inspected_dom_node;
 
     Rml::Element *last_hovered = nullptr;
@@ -385,6 +429,7 @@ namespace crs
 
   private:
     std::vector<std::function<void()>> reload_callbacks;
+    std::function<void(WidgetPickMode)> widget_pick_handler;
 
   private:
     uint64_t render_frame = 0;
@@ -404,6 +449,10 @@ namespace crs
     void init(const std::string &version, const std::string &config_folder, SDL_Window *window, int width, int height) override;
     void reload() override;
     void add_reload_callback(std::function<void()> function) override;
+    void set_widget_pick_handler(std::function<void(WidgetPickMode)> handler);
+    void on_widget_pick(WidgetPickMode mode);
+    // Activate a top-level tab by content element id (e.g. "debug_content", "logs_content").
+    void show_main_tab(const std::string &content_id);
 
   public:
     void process(SDL_Event *event) override;
@@ -420,6 +469,12 @@ namespace crs
     void rebuild_dom_node_values(DomNode *node, RmlDomNode *dom_node_ext);
     Rml::Element *get_dom_parent(Rml::Element *element);
     void inspect_dom_node(std::shared_ptr<DomNode> node);
+    void set_dom_row_selected(Rml::Element *row);
+    void sync_log_view();
+    void append_log_row(const UiLogEntry &entry);
+    void update_last_log_count(uint32_t count);
+    void show_icon_tooltip(Rml::Element *anchor, const Rml::String &text);
+    void hide_icon_tooltip();
 
   public:
     bool is_rendered(Rml::Element *element);
@@ -443,17 +498,17 @@ namespace crs
     void set_component_visible(uint64_t component_id, bool visible) override;
 
     void update_graph_map(uint64_t component_id, uint32_t center_x, uint32_t center_y, uint32_t radius_tiles,
-                          uint32_t selected_id, const std::vector<GraphMapNode> &nodes,
-                          const std::vector<GraphMapEdge> &edges,
-                          const std::vector<GraphMapObject> &objects) override;
+        uint32_t selected_id, const std::vector<GraphMapNode> &nodes,
+        const std::vector<GraphMapEdge> &edges,
+        const std::vector<GraphMapObject> &objects) override;
     void update_graph_map_primitives(uint64_t component_id, const std::vector<GraphMapPrimitive> &primitives) override;
     void register_graph_map_select_handler(uint64_t component_id, std::function<void(uint32_t)> handler) override;
     void register_graph_map_link_handler(uint64_t component_id, std::function<void(uint32_t, uint32_t)> handler) override;
     void register_graph_map_object_link_handler(uint64_t component_id,
-                                               std::function<void(uint32_t, uint32_t, uint32_t, uint32_t, uint32_t)> handler) override;
+        std::function<void(uint32_t, uint32_t, uint32_t, uint32_t, uint32_t)> handler) override;
     void register_graph_map_background_handler(uint64_t component_id, std::function<void(uint32_t, uint32_t)> handler) override;
     void register_graph_map_context_handler(uint64_t component_id,
-                                            std::function<void(uint32_t, uint32_t, uint32_t, int32_t)> handler) override;
+        std::function<void(uint32_t, uint32_t, uint32_t, int32_t)> handler) override;
     void register_graph_map_zoom_handler(uint64_t component_id, std::function<void(uint32_t)> handler) override;
     void on_graph_map_event(uint64_t component_id, Rml::Event &event);
     void on_graph_map_context_action(uint64_t component_id, uint32_t action);

@@ -115,9 +115,9 @@ namespace crs
   using FnPluginUserInterfaceSetVisible = void (*)(uint64_t component_id, bool visible);
   using FnPluginUserInterfaceSetActive = void (*)(uint64_t component_id, bool active);
   using FnPluginUserInterfaceUpdateGraphMap = void (*)(uint64_t component_id, uint32_t center_x, uint32_t center_y, uint32_t radius_tiles,
-                                                       uint32_t selected_id, const PluginGraphMapNode *nodes, size_t node_count,
-                                                       const PluginGraphMapEdge *edges, size_t edge_count,
-                                                       const PluginGraphMapObject *objects, size_t object_count);
+      uint32_t selected_id, const PluginGraphMapNode *nodes, size_t node_count,
+      const PluginGraphMapEdge *edges, size_t edge_count,
+      const PluginGraphMapObject *objects, size_t object_count);
   using FnPluginUserInterfaceUpdateGraphMapPrimitives = void (*)(uint64_t component_id, const PluginGraphMapPrimitive *primitives, size_t primitive_count);
   using FnPluginUserInterfaceRegisterGraphMapSelectHandler = void (*)(uint64_t component_id, FnPluginUserInterfaceGraphMapSelectHandler handler, void *user_data);
   using FnPluginUserInterfaceRegisterGraphMapLinkHandler = void (*)(uint64_t component_id, FnPluginUserInterfaceGraphMapLinkHandler handler, void *user_data);
@@ -132,6 +132,7 @@ namespace crs
   using FnPluginExposeFunction = void (*)(const char *name, FnPluginExposedFunction fn, void *context);
   using FnPluginGetExposedFunction = FnPluginExposedFunction (*)(const char *name);
   using FnPluginUiIsVisible = bool (*)();
+  using FnPluginWidgetIsVisible = bool (*)(const void *widget);
 
   using FnPluginResolve = void *(*)(const char *name);
 
@@ -170,6 +171,7 @@ namespace crs
     FnPluginExposeFunction expose_function = nullptr;
     FnPluginGetExposedFunction get_exposed_function = nullptr;
     FnPluginUiIsVisible ui_is_visible = nullptr;
+    FnPluginWidgetIsVisible widget_is_visible = nullptr;
   };
 
   struct Plugin

@@ -104,7 +104,7 @@ namespace crs
 
   public:
     template <std::derived_from<BaseHook> T>
-    const T *view_hook(const std::string &name)
+    T *view_hook(const std::string &name)
     {
       auto hook = hooks.find(name);
       if (hook == hooks.end())
@@ -112,7 +112,7 @@ namespace crs
         return nullptr;
       }
 
-      return static_cast<const T *>(hook->second.get());
+      return static_cast<T *>(hook->second.get());
     }
 
   public:

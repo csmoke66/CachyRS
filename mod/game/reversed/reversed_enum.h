@@ -25,7 +25,7 @@ enum class GameState : uint32_t
 
 enum class WidgetType : uint8_t
 {
-  container = 19,
+  container = 20,
   text = 2,
   media = 2,
 };

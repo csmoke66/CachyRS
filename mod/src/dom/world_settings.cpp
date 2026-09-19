@@ -48,8 +48,8 @@ namespace crs
           else
           {
             auto node = std::make_shared<WorldSettingDomNode>(tree, make_numeric_id("world_setting_", setting->id), "world_setting");
-            node->add_value(std::make_unique<UInt32DomValue>("id", setting->id));
-            add_hidden_uint32(*node, "value", setting->body.value);
+            add_inlined_uint32(*node, "id", setting->id);
+            add_uint32(*node, "value", setting->body.value);
             node->value = node->find_value<UInt32DomValue>("value");
             add_keyed_child(key, node);
           }

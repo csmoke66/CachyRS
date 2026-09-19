@@ -128,6 +128,9 @@ namespace crs
     dom_node_world_settings = std::make_shared<WorldSettingsDomNode>(dom_tree, "world_settings", "world_settings");
     dom_tree->add_dom_node(dom_node_world_settings);
 
+    dom_node_hovered_widgets = std::make_shared<HoveredWidgetsDomNode>(dom_tree, "hovered_widgets", "hovered_widgets");
+    dom_tree->add_dom_node(dom_node_hovered_widgets);
+
     dom_tree->set_listener(std::make_unique<CachyDomTreeListener>());
   }
 
@@ -181,9 +184,10 @@ namespace crs
 
     LOG(INFO, "Placing x86 hooks...");
     hook_manager->x86("menu_execute", &get_globals()->menu_execute, unique_hook<MenuExecuteHook>());
-    // hook_manager->x86("render_widget", &get_globals()->render_widget, unique_hook<RenderWidgetHook>());
+    hook_manager->x86("render_widget", &get_globals()->render_widget, unique_hook<RenderWidgetHook>());
     hook_manager->x86("set_varbit", &get_globals()->set_varbit, unique_hook<SetVarBitHook>());
     hook_manager->x86("engine_tick", &get_globals()->engine_tick, unique_hook<EngineTickHook>());
+    hook_manager->x86("menu_tick", &get_globals()->menu_tick, unique_hook<MenuTickHook>());
     hook_manager->x86("add_menu_option", &get_globals()->add_menu_option, unique_hook<AddMenuOptionHook>());
     hook_manager->x86("add_chat_message", &get_globals()->add_chat_message, unique_hook<AddChatMessageHook>());
   }
@@ -269,6 +273,10 @@ namespace crs
     dom_tree = rml_ui;
 
     rml_ui->pre_init();
+    rml_ui->set_widget_pick_handler([this](WidgetPickMode mode)
+    {
+      developer_overlay.arm_widget_pick(mode);
+    });
 
     LOG(INFO, "Binding plugin manager to UI...");
 
@@ -321,6 +329,7 @@ namespace crs
       dom_node_npcs->prune();
       dom_node_objects->prune();
       dom_node_world_settings->prune();
+      dom_node_hovered_widgets->prune();
 
       dom_tree->build_dom_node(dom_node_stats.get());
       dom_tree->build_dom_node(dom_node_item_containers.get());
@@ -328,6 +337,7 @@ namespace crs
       dom_tree->build_dom_node(dom_node_npcs.get());
       dom_tree->build_dom_node(dom_node_objects.get());
       dom_tree->build_dom_node(dom_node_world_settings.get());
+      dom_tree->build_dom_node(dom_node_hovered_widgets.get());
     }
   }
 } // namespace crs

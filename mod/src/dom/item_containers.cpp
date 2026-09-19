@@ -33,11 +33,11 @@ namespace crs
       else
       {
         auto node = std::make_shared<ItemDomNode>(tree, make_numeric_id(parent_id + "_", slot), "item");
-        node->add_value(std::make_unique<Int32DomValue>("id", item->id));
-        node->add_value(std::make_unique<Int32DomValue>("amount", item->amount));
+        add_inlined_int32(*node, "id", item->id);
+        add_inlined_int32(*node, "amount", item->amount);
         if (item->id != -1)
         {
-          add_hidden_pointer(*node, "desc", NRS.get_cache_data<void>(CacheIndexOrdinal::items, item->id));
+          add_pointer(*node, "desc", NRS.get_cache_data<void>(CacheIndexOrdinal::items, item->id));
         }
 
         add_keyed_child(key, node);
@@ -76,8 +76,8 @@ namespace crs
       {
         auto id = make_numeric_id("item_container_", container->id);
         auto node = std::make_shared<ItemContainerDomNode>(tree, id, "item_container");
-        add_hidden_pointer(*node, "address", container);
-        node->add_value(std::make_unique<UInt32DomValue>("id", container->id));
+        add_pointer(*node, "address", container);
+        add_inlined_uint32(*node, "id", container->id);
         add_keyed_child(key, node);
         node->update(id, *container);
 

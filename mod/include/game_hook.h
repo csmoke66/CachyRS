@@ -143,6 +143,12 @@ namespace crs
     void handler(CpuState *cpu_state) override;
   };
 
+  class MenuTickHook : public Hook<FnMenuTick>
+  {
+  public:
+    void handler(CpuState *cpu_state) override;
+  };
+
   class AddMenuOptionHook : public Hook<FnAddMenuOption>
   {
   public:
@@ -157,19 +163,27 @@ namespace crs
 
   struct RenderedWidgetSnapshot
   {
-    Widget *widget;
-    uint32_t time;
+    // Keys only after capture — do not dereference these pointers later.
+    Widget *widget = nullptr;
+    Widget *parent = nullptr;
+    int32_t absolute_x = 0;
+    int32_t absolute_y = 0;
+    uint32_t width = 0;
+    uint32_t height = 0;
+    uint32_t time = 0;
+    bool has_menu_options = false;
   };
 
   class RenderWidgetHook : public Hook<FnRenderWidget>
   {
   private:
-    std::map<const Widget *, RenderedWidgetSnapshot> snapshots;
+    std::unordered_map<const Widget *, RenderedWidgetSnapshot> snapshots;
 
   public:
     void handler(CpuState *cpu_state) override;
 
   public:
+    const std::unordered_map<const Widget *, RenderedWidgetSnapshot> &rendered() const;
     bool is_visible(const Widget *w) const;
     void remove_stale(uint32_t before);
   };

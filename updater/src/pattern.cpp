@@ -247,14 +247,19 @@ uint64_t DummyExtractor::extract(const ElfInterface &, const uint8_t *)
   return v;
 }
 
-Pattern::Pattern(std::string name, Type type, Extractor<uint64_t> *extractor) : name(std::move(name)),
-                                                                                type(std::move(type)),
-                                                                                extractor(extractor)
+Pattern::Pattern(std::string name, Type type, Extractor<uint64_t> *extractor, bool is_vtf) : name(std::move(name)),
+                                                                                             type(std::move(type)),
+                                                                                             extractor(extractor),
+                                                                                             is_vtf(is_vtf)
 {
 }
 
-DefaultPattern::DefaultPattern(std::string name, std::vector<int> pattern, Type type, Extractor<uint64_t> *extractor) : Pattern(std::move(name), std::move(type), extractor),
-                                                                                                                        pattern(std::move(pattern))
+DefaultPattern::DefaultPattern(std::string name, std::vector<int> pattern, Type type, Extractor<uint64_t> *extractor, bool is_vtf) : Pattern(
+                                                                                                                                         std::move(name),
+                                                                                                                                         std::move(type),
+                                                                                                                                         extractor,
+                                                                                                                                         is_vtf),
+                                                                                                                                     pattern(std::move(pattern))
 {
 }
 
@@ -270,7 +275,7 @@ const uint8_t *DefaultPattern::find_result(uint8_t *text, Elf64_Shdr text_hdr)
   return found;
 }
 
-DummyPattern::DummyPattern(std::string name, Type type, Extractor<uint64_t> *extractor) : Pattern(name, type, extractor)
+DummyPattern::DummyPattern(std::string name, Type type, Extractor<uint64_t> *extractor, bool is_vtf) : Pattern(name, type, extractor, is_vtf)
 {
 }
 

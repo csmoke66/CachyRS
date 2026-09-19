@@ -11,6 +11,12 @@
 
 namespace crs
 {
+  enum class WidgetPickMode
+  {
+    all,
+    with_menu_options,
+  };
+
   enum class ComponentType
   {
     container,

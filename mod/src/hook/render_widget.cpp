@@ -5,36 +5,31 @@ namespace crs
 {
   void RenderWidgetHook::handler(CpuState *cpu_state)
   {
-    BaseHook::handler(cpu_state);
-
-    auto widget = reinterpret_cast<Widget *>(CPU_FIRST_ARG(cpu_state));
     auto children = reinterpret_cast<JVector<WidgetChild> *>(CPU_THIRD_ARG(cpu_state));
     auto x = static_cast<int>(CPU_FOURTH_ARG(cpu_state));
     auto y = static_cast<int>(CPU_FIFTH_ARG(cpu_state));
 
-    auto engine = RS.get_globals()->engine;
-    auto time = engine->time;
+    auto *globals = reinterpret_cast<Globals *>(RS.pi.game_base());
+    auto time = globals->engine->time;
 
     for (auto c = children->begin(); c != children->end(); c++)
     {
       if (auto w = c->widget)
       {
-        auto it = snapshots.find(w);
-        if (it == snapshots.end())
-        {
-          auto n = RenderedWidgetSnapshot();
-          n.widget = w;
-
-          snapshots[w] = n;
-          it = snapshots.find(w);
-        }
-
-        it->second.time = time;
+        auto &snap = snapshots[w];
+        snap.widget = w;
+        snap.parent = w->parent;
+        snap.absolute_x = x + static_cast<int32_t>(w->x);
+        snap.absolute_y = y + static_cast<int32_t>(w->y);
+        snap.width = w->width;
+        snap.height = w->height;
+        snap.time = time;
+        snap.has_menu_options = !w->menu_options.empty();
       }
     }
 
     cpu_state->rax = reinterpret_cast<uint64_t>(trampoline(
-        widget,
+        reinterpret_cast<Widget *>(CPU_FIRST_ARG(cpu_state)),
         reinterpret_cast<void *>(CPU_SECOND_ARG(cpu_state)),
         children,
         x,
@@ -49,9 +44,20 @@ namespace crs
         reinterpret_cast<void *>(CPU_STACK_ARG(cpu_state, 6))));
   }
 
+  const std::unordered_map<const Widget *, RenderedWidgetSnapshot> &RenderWidgetHook::rendered() const
+  {
+    return snapshots;
+  }
+
   bool RenderWidgetHook::is_visible(const Widget *w) const
   {
-    return snapshots.find(w) != snapshots.end();
+    auto it = snapshots.find(w);
+    if (it == snapshots.end())
+    {
+      return false;
+    }
+
+    return it->second.width > 0 && it->second.height > 0;
   }
 
   void RenderWidgetHook::remove_stale(uint32_t before)
@@ -64,7 +70,7 @@ namespace crs
       }
       else
       {
-        it++;
+        ++it;
       }
     }
   }

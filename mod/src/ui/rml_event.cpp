@@ -1,4 +1,5 @@
 #include "rml_ui.h"
+#include "ui_log.h"
 
 namespace crs
 {
@@ -50,6 +51,19 @@ namespace crs
     rml_ui->reload();
   }
 
+  WidgetPickEventHandler::WidgetPickEventHandler(RmlUserInterface *rml_ui, WidgetPickMode mode) : rml_ui(rml_ui),
+                                                                                                  mode(mode)
+  {
+  }
+
+  void WidgetPickEventHandler::ProcessEvent(Rml::Event &)
+  {
+    if (rml_ui)
+    {
+      rml_ui->on_widget_pick(mode);
+    }
+  }
+
   ToggleFeatureEventListener::ToggleFeatureEventListener(bool *val) : val(val)
   {
   }
@@ -71,6 +85,11 @@ namespace crs
     {
       event.StopPropagation();
 
+      if (auto it = parent->dom_nodes.find(node.get()); it != parent->dom_nodes.end())
+      {
+        parent->set_dom_row_selected(it->second.wrapper_element);
+      }
+
       parent->inspect_dom_node(node);
       if (auto &listener = parent->dom_tree_listener)
       {
@@ -79,22 +98,26 @@ namespace crs
     }
   }
 
-  ToggleDomNodeEventListener::ToggleDomNodeEventListener(Rml::Element *element) : element(element)
+  ToggleDomNodeEventListener::ToggleDomNodeEventListener(Rml::Element *wrapper) : wrapper(wrapper)
   {
   }
 
   void ToggleDomNodeEventListener::ProcessEvent(Rml::Event &event)
   {
     event.StopPropagation();
+    event.StopImmediatePropagation();
+    if (!wrapper)
+    {
+      return;
+    }
 
-    if (element->GetLocalProperty("display"))
-    {
-      element->RemoveProperty("display");
-    }
-    else
-    {
-      element->SetProperty("display", "none");
-    }
+    // Class drives caret glyphs + show/hide via RCSS; avoids SetInnerRML (which can re-fire click).
+    wrapper->SetClass("dom-collapsed", !wrapper->IsClassSet("dom-collapsed"));
+  }
+
+  void ClearLogsEventListener::ProcessEvent(Rml::Event &)
+  {
+    ui_log_clear();
   }
 
   DragWindowEventListener::DragWindowEventListener(Rml::Element *, Rml::Element *window) : window(window)
@@ -127,6 +150,34 @@ namespace crs
           Rml::PropertyId::Top,
           Rml::Property(mouse_y - drag_offset_y, Rml::Unit::PX));
     }
+  }
+
+  IconTooltipEventListener::IconTooltipEventListener(RmlUserInterface *rml_ui, bool show) : rml_ui(rml_ui),
+                                                                                            show(show)
+  {
+  }
+
+  void IconTooltipEventListener::ProcessEvent(Rml::Event &event)
+  {
+    if (!rml_ui)
+    {
+      return;
+    }
+
+    if (!show)
+    {
+      rml_ui->hide_icon_tooltip();
+      return;
+    }
+
+    // Listener is on the button; current element is the button even when the img is hovered.
+    auto *target = event.GetCurrentElement();
+    if (!target || !target->HasAttribute("data-tooltip"))
+    {
+      return;
+    }
+
+    rml_ui->show_icon_tooltip(target, target->GetAttribute("data-tooltip", Rml::String()));
   }
 
   DropDownChangedEventListener::DropDownChangedEventListener(RmlUserInterface *parent, uint64_t component_id) : parent(parent),

@@ -26,26 +26,26 @@ using crs::Vec3;
 
 struct SDL_SysWMinfo;
 
-#include "reversed_cache.h"
-#include "reversed_entity.h"
-#include "reversed_entity_update_cache.h"
-#include "reversed_enum.h"
-#include "reversed_fn_decl.h"
-#include "reversed_fwd_decl.h"
-#include "reversed_item_cache.h"
-#include "reversed_linux.h"
-#include "reversed_local_player.h"
-#include "reversed_manual_base.h"
-#include "reversed_menu.h"
-#include "reversed_network.h"
-#include "reversed_render.h"
-#include "reversed_scene.h"
-#include "reversed_social.h"
-#include "reversed_traits.h"
 #include "reversed_util.h"
-#include "reversed_var.h"
-#include "reversed_widget.h"
+#include "reversed_enum.h"
+#include "reversed_manual_base.h"
+#include "reversed_fwd_decl.h"
 #include "reversed_world_setting.h"
+#include "reversed_social.h"
+#include "reversed_render.h"
+#include "reversed_cache.h"
+#include "reversed_entity_update_cache.h"
+#include "reversed_entity.h"
+#include "reversed_local_player.h"
+#include "reversed_var.h"
+#include "reversed_menu.h"
+#include "reversed_scene.h"
+#include "reversed_widget.h"
+#include "reversed_item_cache.h"
+#include "reversed_network.h"
+#include "reversed_linux.h"
+#include "reversed_fn_decl.h"
+#include "reversed_traits.h"
 
 static_assert(true);
 #pragma pack(push, 1)
@@ -57,10 +57,13 @@ class NamedEntity;
 class Player;
 class Npc;
 struct NpcUpdateCache;
+class Widget;
+class ContainerWidget;
 
 struct Globals
 {
-  PAD(0xf4320);
+  char menu_action_handler_test_dump;
+  PAD(0xf431f);
   char menu_action_handler_widget0;
   PAD(0x14f);
   char menu_action_handler_widget1;
@@ -102,7 +105,9 @@ struct Globals
   char add_chat_message;
   PAD(0x3278f);
   char add_menu_option;
-  PAD(0x7a4af);
+  PAD(0x3edf);
+  char menu_tick;
+  PAD(0x765cf);
   char render_widget;
   PAD(0x43d1df);
   char set_varbit;
@@ -113,12 +118,14 @@ struct Globals
   PAD(0x5b5bf);
   char heap_alloc_aligned;
   PAD(0x772f17);
-  Engine *engine;
+  Engine* engine;
   PAD(0x249318);
-  Linux001 *linux_001;
+  Linux001* linux_001;
   PAD(0xe290);
-  void *heap;
+  void* heap;
 };
+static_assert(sizeof(Globals) == 0x16b1d98, INVALID_SIZE);
+static_assert(off(Globals, menu_action_handler_test_dump) == 0x0, INVALID_OFFSET);
 static_assert(off(Globals, menu_action_handler_widget0) == 0xf4320, INVALID_OFFSET);
 static_assert(off(Globals, menu_action_handler_widget1) == 0xf4470, INVALID_OFFSET);
 static_assert(off(Globals, menu_action_handler_widget2) == 0x127100, INVALID_OFFSET);
@@ -140,6 +147,7 @@ static_assert(off(Globals, menu_action_handler_obj0) == 0x16ab10, INVALID_OFFSET
 static_assert(off(Globals, menu_execute) == 0x195b70, INVALID_OFFSET);
 static_assert(off(Globals, add_chat_message) == 0x1a2540, INVALID_OFFSET);
 static_assert(off(Globals, add_menu_option) == 0x1d4cd0, INVALID_OFFSET);
+static_assert(off(Globals, menu_tick) == 0x1d8bb0, INVALID_OFFSET);
 static_assert(off(Globals, render_widget) == 0x24f180, INVALID_OFFSET);
 static_assert(off(Globals, set_varbit) == 0x68c360, INVALID_OFFSET);
 static_assert(off(Globals, engine_tick) == 0xbde0b0, INVALID_OFFSET);
@@ -154,32 +162,30 @@ struct Engine
   PAD(0x504);
   uint32_t time;
   PAD(0x187d0);
-  Cache001 *cache;
+  Cache001* cache;
   PAD(0x7c8);
-  WidgetCache *widget_cache;
+  WidgetCache* widget_cache;
   PAD(0x18);
-  VariableCache *variable_cache;
-  PAD(0x0);
-  Menu *menu;
-  PAD(0x0);
-  NpcUpdateCache *npc_update_cache;
+  VariableCache* variable_cache;
+  Menu* menu;
+  NpcUpdateCache* npc_update_cache;
   PAD(0x18);
-  PlayerUpdateCache *player_update_cache;
+  PlayerUpdateCache* player_update_cache;
   PAD(0x18);
-  SocialCache *social_cache;
+  SocialCache* social_cache;
   PAD(0x38);
-  void *world_a;
+  void* world_a;
   PAD(0x10);
-  ItemCache *item_cache;
-  PAD(0x0);
-  Scene001 *scene_001;
+  ItemCache* item_cache;
+  Scene001* scene_001;
   PAD(0x5c8);
   GameState state;
   PAD(0x4);
-  LocalPlayer *local_player;
+  LocalPlayer* local_player;
   PAD(0x8);
   WorldSettingCache world_settings;
 };
+static_assert(sizeof(Engine) == 0x19b94, INVALID_SIZE);
 static_assert(off(Engine, time) == 0x504, INVALID_OFFSET);
 static_assert(off(Engine, cache) == 0x18cd8, INVALID_OFFSET);
 static_assert(off(Engine, widget_cache) == 0x194a8, INVALID_OFFSET);
@@ -198,23 +204,23 @@ static_assert(off(Engine, world_settings) == 0x19b60, INVALID_OFFSET);
 struct Scene003
 {
   PAD(0x10170);
-  WorldNode *world_root;
+  WorldNode* world_root;
   PAD(0x3088);
   Matrix4x4 projection_matrix;
 };
+static_assert(sizeof(Scene003) == 0x13240, INVALID_SIZE);
 static_assert(off(Scene003, world_root) == 0x10170, INVALID_OFFSET);
 static_assert(off(Scene003, projection_matrix) == 0x13200, INVALID_OFFSET);
 
 struct Entity
 {
   PAD(0x18);
-  WorldNode *parent;
-  PAD(0x0);
+  WorldNode* parent;
   EntityType type;
   PAD(0x2f);
   uint32_t plane;
   PAD(0xc);
-  Terrain *terrain;
+  Terrain* terrain;
 };
 static_assert(sizeof(Entity) == 0x68, INVALID_SIZE);
 static_assert(off(Entity, parent) == 0x18, INVALID_OFFSET);
@@ -230,14 +236,13 @@ public:
   PAD(0x4);
   JString name;
   PAD(0x1c0);
-  MovementQueue *movement_queue;
-  PAD(0x0);
+  MovementQueue* movement_queue;
   Vec3<float> position;
   PAD(0x4c);
   JVector<const uint32_t> animation_queue;
   PAD(0xc18);
-  EntityStatus *status;
-  PAD(0x154);
+  EntityStatus* status;
+ PAD(0x154);
 };
 static_assert(sizeof(NamedEntity) == 0x1054, INVALID_SIZE);
 static_assert(off(NamedEntity, server_index) == 0x88, INVALID_OFFSET);
@@ -251,12 +256,12 @@ class Player : public NamedEntity
 {
 public:
   PAD(0x14);
-  Model *model;
+  Model* model;
   PAD(0x2c);
   int32_t combat_level;
   PAD(0x8);
   int32_t skill_level;
-  PAD(0x244);
+ PAD(0x244);
 };
 static_assert(sizeof(Player) == 0x12f0, INVALID_SIZE);
 static_assert(off(Player, model) == 0x1068, INVALID_OFFSET);
@@ -270,7 +275,7 @@ public:
   int32_t cache_id;
   PAD(0xf4);
   uint32_t visible_level;
-  PAD(0x26);
+ PAD(0x26);
 };
 static_assert(sizeof(Npc) == 0x1182, INVALID_SIZE);
 static_assert(off(Npc, cache_id) == 0x1060, INVALID_OFFSET);
@@ -279,14 +284,56 @@ static_assert(off(Npc, visible_level) == 0x1158, INVALID_OFFSET);
 struct NpcUpdateCache
 {
   PAD(0x10);
-  NpcUpdate **npcs;
-  PAD(0x0);
+  NpcUpdate** npcs;
   uint64_t size;
   PAD(0xb080);
   uint32_t valid_count;
 };
+static_assert(sizeof(NpcUpdateCache) == 0xb0a4, INVALID_SIZE);
 static_assert(off(NpcUpdateCache, npcs) == 0x10, INVALID_OFFSET);
 static_assert(off(NpcUpdateCache, size) == 0x18, INVALID_OFFSET);
 static_assert(off(NpcUpdateCache, valid_count) == 0xb0a0, INVALID_OFFSET);
 
+class Widget
+{
+public:
+  PAD_VT();
+  PAD_VT();
+  virtual WidgetType get_type() = 0;
+
+public:
+  PAD(0x10);
+  uint16_t parent_id;
+  uint16_t child_id;
+  PAD(0xc);
+  Widget* parent;
+  PAD(0x48);
+  uint32_t x;
+  uint32_t y;
+  uint32_t width;
+  uint32_t height;
+  PAD(0x18);
+  JVector<WidgetMenuOption> menu_options;
+};
+static_assert(sizeof(Widget) == 0xb8, INVALID_SIZE);
+static_assert(off(Widget, parent_id) == 0x18, INVALID_OFFSET);
+static_assert(off(Widget, child_id) == 0x1a, INVALID_OFFSET);
+static_assert(off(Widget, parent) == 0x28, INVALID_OFFSET);
+static_assert(off(Widget, x) == 0x78, INVALID_OFFSET);
+static_assert(off(Widget, y) == 0x7c, INVALID_OFFSET);
+static_assert(off(Widget, width) == 0x80, INVALID_OFFSET);
+static_assert(off(Widget, height) == 0x84, INVALID_OFFSET);
+static_assert(off(Widget, menu_options) == 0xa0, INVALID_OFFSET);
+
+class ContainerWidget : public Widget
+{
+public:
+  PAD(0xf8);
+  JVector<WidgetChild> children;
+};
+static_assert(sizeof(ContainerWidget) == 0x1c8, INVALID_SIZE);
+static_assert(off(ContainerWidget, children) == 0x1b0, INVALID_OFFSET);
+
 #pragma pack(pop)
+
+#pragma clang diagnostic pop

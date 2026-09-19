@@ -25,3 +25,4 @@ find_package(FakeIt CONFIG REQUIRED)
 
 add_subdirectory(mod)
 add_subdirectory(updater)
+add_subdirectory(ui-sandbox)

@@ -16,9 +16,9 @@ namespace crs
     dirty = true;
   }
 
-  void DomValue::mark_hidden()
+  void DomValue::mark_inlined()
   {
-    hidden = true;
+    inlined = true;
   }
 
   Int32DomValue::Int32DomValue(const std::string &name, int32_t val) : DomValue(name),

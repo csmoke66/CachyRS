@@ -18,31 +18,44 @@ namespace crs
     return vtable;
   }
 
-  inline void add_hidden_pointer(DomNode &node, const std::string &name, const void *value)
+  inline void add_pointer(DomNode &node, const std::string &name, const void *value)
   {
-    auto v = std::make_unique<PointerDomValue>(name, value);
-    v->mark_hidden();
+    node.add_value(std::make_unique<PointerDomValue>(name, value));
+  }
+
+  inline void add_float(DomNode &node, const std::string &name, float value)
+  {
+    node.add_value(std::make_unique<FloatDomValue>(name, value));
+  }
+
+  inline void add_int32(DomNode &node, const std::string &name, int32_t value)
+  {
+    node.add_value(std::make_unique<Int32DomValue>(name, value));
+  }
+
+  inline void add_uint32(DomNode &node, const std::string &name, uint32_t value)
+  {
+    node.add_value(std::make_unique<UInt32DomValue>(name, value));
+  }
+
+  inline void add_inlined_string(DomNode &node, const std::string &name, const std::string &value)
+  {
+    auto v = std::make_unique<StringDomValue>(name, value);
+    v->mark_inlined();
     node.add_value(std::move(v));
   }
 
-  inline void add_hidden_float(DomNode &node, const std::string &name, float value)
-  {
-    auto v = std::make_unique<FloatDomValue>(name, value);
-    v->mark_hidden();
-    node.add_value(std::move(v));
-  }
-
-  inline void add_hidden_int32(DomNode &node, const std::string &name, int32_t value)
+  inline void add_inlined_int32(DomNode &node, const std::string &name, int32_t value)
   {
     auto v = std::make_unique<Int32DomValue>(name, value);
-    v->mark_hidden();
+    v->mark_inlined();
     node.add_value(std::move(v));
   }
 
-  inline void add_hidden_uint32(DomNode &node, const std::string &name, uint32_t value)
+  inline void add_inlined_uint32(DomNode &node, const std::string &name, uint32_t value)
   {
     auto v = std::make_unique<UInt32DomValue>(name, value);
-    v->mark_hidden();
+    v->mark_inlined();
     node.add_value(std::move(v));
   }
 
@@ -58,15 +71,15 @@ namespace crs
 
   inline void add_named_entity_values(DomNode &node, const NamedEntity *entity)
   {
-    add_hidden_pointer(node, "address", entity);
-    add_hidden_pointer(node, "VT address", object_vtable(entity));
-    node.add_value(std::make_unique<StringDomValue>("name", entity->name.c_str()));
-    add_hidden_float(node, "scene x", entity->position.x);
-    add_hidden_float(node, "scene y", entity->position.y);
-    add_hidden_float(node, "scene z", entity->position.z);
-    add_hidden_int32(node, "tile x", static_cast<int32_t>(entity->position.x / 512.f));
-    add_hidden_int32(node, "tile y", static_cast<int32_t>(entity->position.z / 512.f));
-    add_hidden_int32(node, "animation id", named_animation_id(entity));
+    add_pointer(node, "address", entity);
+    add_pointer(node, "VT address", object_vtable(entity));
+    add_inlined_string(node, "name", entity->name.c_str());
+    add_float(node, "scene x", entity->position.x);
+    add_float(node, "scene y", entity->position.y);
+    add_float(node, "scene z", entity->position.z);
+    add_int32(node, "tile x", static_cast<int32_t>(entity->position.x / 512.f));
+    add_int32(node, "tile y", static_cast<int32_t>(entity->position.z / 512.f));
+    add_int32(node, "animation id", named_animation_id(entity));
   }
 
   inline void sync_named_entity_values(DomNode &node, const NamedEntity *entity)
@@ -105,9 +118,9 @@ namespace crs
 
   inline void add_object_cache_values(DomNode &node, const CacheBuffer<void, ObjectCacheDesc> &cache)
   {
-    add_hidden_pointer(node, "cache tag", cache.tag);
-    add_hidden_pointer(node, "cache body", cache.body);
-    add_hidden_uint32(node, "id", cache.body ? cache.body->id : 0);
+    add_pointer(node, "cache tag", cache.tag);
+    add_pointer(node, "cache body", cache.body);
+    add_uint32(node, "id", cache.body ? cache.body->id : 0);
   }
 
   inline void sync_object_cache_values(DomNode &node, const CacheBuffer<void, ObjectCacheDesc> &cache)
@@ -119,12 +132,12 @@ namespace crs
 
   inline void add_obj1_values(DomNode &node, const Obj1 *obj)
   {
-    add_hidden_pointer(node, "address", obj);
-    add_hidden_uint32(node, "type", static_cast<uint32_t>(obj->type));
-    add_hidden_uint32(node, "id_1", obj->id_1);
-    add_hidden_uint32(node, "id_2", obj->id_2);
-    add_hidden_uint32(node, "tile x", obj->tile_position.x);
-    add_hidden_uint32(node, "tile y", obj->tile_position.y);
+    add_pointer(node, "address", obj);
+    add_uint32(node, "type", static_cast<uint32_t>(obj->type));
+    add_uint32(node, "id_1", obj->id_1);
+    add_uint32(node, "id_2", obj->id_2);
+    add_uint32(node, "tile x", obj->tile_position.x);
+    add_uint32(node, "tile y", obj->tile_position.y);
     add_object_cache_values(node, obj->cache_buffer);
   }
 
@@ -139,12 +152,12 @@ namespace crs
 
   inline void add_obj2_values(DomNode &node, const Obj2 *obj)
   {
-    add_hidden_pointer(node, "address", obj);
-    add_hidden_uint32(node, "type", static_cast<uint32_t>(obj->type));
-    add_hidden_uint32(node, "tile x", obj->tile_position.x);
-    add_hidden_uint32(node, "tile y", obj->tile_position.y);
-    add_hidden_uint32(node, "tile 2 x", obj->tile_position_2.x);
-    add_hidden_uint32(node, "tile 2 y", obj->tile_position_2.y);
+    add_pointer(node, "address", obj);
+    add_uint32(node, "type", static_cast<uint32_t>(obj->type));
+    add_uint32(node, "tile x", obj->tile_position.x);
+    add_uint32(node, "tile y", obj->tile_position.y);
+    add_uint32(node, "tile 2 x", obj->tile_position_2.x);
+    add_uint32(node, "tile 2 y", obj->tile_position_2.y);
     add_object_cache_values(node, obj->cache_buffer);
   }
 

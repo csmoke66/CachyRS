@@ -478,20 +478,145 @@ namespace crs
   std::vector<ApiWidget> ApiWidget::children() const
   {
     std::vector<ApiWidget> out;
+    if (!widget || widget->get_type() != WidgetType::container)
+    {
+      return out;
+    }
+
+    auto *container = static_cast<ContainerWidget *>(widget);
+    for (auto child = container->children.begin(); child != container->children.end(); child++)
+    {
+      if (child->widget)
+      {
+        out.push_back(ApiWidget(child->widget));
+      }
+    }
+
+    return out;
+  }
+
+  std::optional<ApiWidget> ApiWidget::child(uint16_t id) const
+  {
+    for (auto &c : children())
+    {
+      if (c.child_id() == id)
+      {
+        return c;
+      }
+    }
+
+    return std::nullopt;
+  }
+
+  namespace
+  {
+    bool widget_option_name_equal(std::string_view a, std::string_view b)
+    {
+      if (a.size() != b.size())
+      {
+        return false;
+      }
+      for (size_t i = 0; i < a.size(); i++)
+      {
+        auto ca = static_cast<unsigned char>(a[i]);
+        auto cb = static_cast<unsigned char>(b[i]);
+        if (std::tolower(ca) != std::tolower(cb))
+        {
+          return false;
+        }
+      }
+      return true;
+    }
+  } // namespace
+
+  std::string ApiWidget::option_text(uint32_t option_index) const
+  {
+    if (!widget || option_index == 0)
+    {
+      return {};
+    }
+
+    auto *opt = widget->menu_options.reference(option_index - 1);
+    if (!opt)
+    {
+      return {};
+    }
+
+    return opt->text.str();
+  }
+
+  std::vector<std::pair<uint32_t, std::string>> ApiWidget::options() const
+  {
+    std::vector<std::pair<uint32_t, std::string>> out;
     if (!widget)
     {
       return out;
     }
 
-    for_each_widget(Api::raw_widget_cache(), [this, &out](Widget *child)
+    const auto count = widget->menu_options.size();
+    out.reserve(count);
+    for (size_t i = 0; i < count; i++)
     {
-      if (static_cast<Widget *>(child->parent) == widget)
+      auto *opt = widget->menu_options.reference(i);
+      if (!opt)
       {
-        out.push_back(ApiWidget(child));
+        continue;
       }
-    });
+      auto text = opt->text.str();
+      if (!text.empty())
+      {
+        out.emplace_back(static_cast<uint32_t>(i + 1), std::move(text));
+      }
+    }
 
     return out;
+  }
+
+  std::optional<uint32_t> ApiWidget::option_index(std::string_view option_name) const
+  {
+    if (!widget || option_name.empty())
+    {
+      return std::nullopt;
+    }
+
+    const auto count = widget->menu_options.size();
+    for (size_t i = 0; i < count; i++)
+    {
+      auto *opt = widget->menu_options.reference(i);
+      if (!opt)
+      {
+        continue;
+      }
+      auto text = opt->text.str();
+      if (!text.empty() && widget_option_name_equal(text, option_name))
+      {
+        return static_cast<uint32_t>(i + 1);
+      }
+    }
+
+    return std::nullopt;
+  }
+
+  bool ApiWidget::interact(uint32_t option_index, int32_t slot, uint32_t handler) const
+  {
+    if (!valid() || option_index == 0)
+    {
+      return false;
+    }
+
+    Api::interact_widget(parent_id(), child_id(), slot, option_index, handler);
+    return true;
+  }
+
+  bool ApiWidget::interact(std::string_view option_name, int32_t slot, uint32_t handler) const
+  {
+    auto idx = option_index(option_name);
+    if (!idx)
+    {
+      return false;
+    }
+
+    return interact(*idx, slot, handler);
   }
 
   std::optional<ApiWidget> Api::widget(uint16_t parent, uint16_t child)
@@ -506,6 +631,102 @@ namespace crs
     });
 
     return found;
+  }
+
+  std::optional<ApiWidget> Api::widget(uint16_t parent, const std::vector<uint16_t> &child_path)
+  {
+    if (child_path.empty())
+    {
+      return std::nullopt;
+    }
+
+    auto current = widget(parent, child_path.front());
+    if (!current)
+    {
+      return std::nullopt;
+    }
+
+    for (size_t i = 1; i < child_path.size(); i++)
+    {
+      current = current->child(child_path[i]);
+      if (!current)
+      {
+        return std::nullopt;
+      }
+    }
+
+    return current;
+  }
+
+  std::optional<ApiWidget> Api::widget(uint16_t parent, std::initializer_list<uint16_t> child_path)
+  {
+    return widget(parent, std::vector<uint16_t>(child_path));
+  }
+
+  std::vector<ApiWidget> Api::widgets(uint16_t parent)
+  {
+    std::vector<ApiWidget> out;
+    for_each_widget(raw_widget_cache(), [&](Widget *w)
+    {
+      if (w->parent_id != parent)
+      {
+        return;
+      }
+
+      // Interface roots: no parent, or parent belongs to a different interface.
+      if (!w->parent || w->parent->parent_id != parent)
+      {
+        out.push_back(ApiWidget(w));
+      }
+    });
+    return out;
+  }
+
+  std::optional<ApiWidget> Api::find_widget(uint16_t parent, std::function<bool(const ApiWidget &)> conditional)
+  {
+    std::optional<ApiWidget> found;
+
+    auto search = [&](auto &&self, const ApiWidget &node) -> void
+    {
+      if (found)
+      {
+        return;
+      }
+
+      if (conditional(node))
+      {
+        found = node;
+        return;
+      }
+
+      for (auto &child : node.children())
+      {
+        self(self, child);
+        if (found)
+        {
+          return;
+        }
+      }
+    };
+
+    for (auto &root : widgets(parent))
+    {
+      search(search, root);
+      if (found)
+      {
+        break;
+      }
+    }
+
+    return found;
+  }
+
+  std::optional<ApiWidget> Api::find_widget_by_option(uint16_t parent, std::string_view option_name)
+  {
+    return find_widget(parent, [option_name](const ApiWidget &w)
+    {
+      return w.option_index(option_name).has_value();
+    });
   }
 
   std::optional<Vec2<int32_t>> Api::window_size()

@@ -7,7 +7,17 @@
 
 #include "log.h"
 #include "util.h"
+
+#if __has_include("version.hpp")
 #include "version.hpp"
+#else
+#ifndef FEATURE_VERSION
+#define FEATURE_VERSION "0.0.0"
+#endif
+#ifndef CACHYRS_VERSION
+#define CACHYRS_VERSION "sandbox"
+#endif
+#endif
 
 #include <RmlUi_Platform_SDL.h>
 #include <SDL2/SDL.h>
@@ -134,7 +144,16 @@ namespace crs
       debug_tab_button = nullptr;
       debug_content = nullptr;
 
+      logs_tab_button = nullptr;
+      logs_content = nullptr;
+      log_list = nullptr;
+      last_log_row = nullptr;
+      log_sync_state = {};
+      log_row_index = 0;
+
       dom_inspector_content = nullptr;
+      selected_dom_row = nullptr;
+      icon_tooltip = nullptr;
       inspected_dom_node.reset();
 
       last_hovered = nullptr;
@@ -172,6 +191,13 @@ namespace crs
       debug_content = root_document->GetElementById("debug_content");
       dom_inspector_content = debug_content->GetElementById("dom-inspector");
 
+      logs_tab_button = root_document->GetElementById("logs_tab_button");
+      logs_content = root_document->GetElementById("logs_content");
+      log_list = logs_content ? logs_content->GetElementById("log-list") : nullptr;
+      last_log_row = nullptr;
+      log_sync_state = {};
+      log_row_index = 0;
+
       home_tab_button->AddEventListener(Rml::EventId::Click, new SwitchTabEventHandler(
                                                                  &selected_tab_button, &selected_content,
                                                                  home_tab_button, home_content));
@@ -184,14 +210,50 @@ namespace crs
                                                                   &selected_tab_button, &selected_content,
                                                                   debug_tab_button, debug_content));
 
+      if (logs_tab_button && logs_content)
+      {
+        logs_tab_button->AddEventListener(Rml::EventId::Click, new SwitchTabEventHandler(
+                                                                   &selected_tab_button, &selected_content,
+                                                                   logs_tab_button, logs_content));
+      }
+
+      if (auto *clear_logs = root_document->GetElementById("logs_clear_button"))
+      {
+        clear_logs->AddEventListener(Rml::EventId::Click, new ClearLogsEventListener());
+      }
+
       auto dom_node_ext = get_rml_dom_node(root_dom_node.get());
       dom_node_ext->element = debug_content->GetElementById("dom-tree");
+      root_dom_node->is_built = true;
+      root_dom_node->dirty = false;
 
       auto verify_button = root_document->GetElementById("verify_button");
       verify_button->AddEventListener(Rml::EventId::Click, new VerifyEventHandler(this));
 
       auto refresh_button = root_document->GetElementById("refresh_button");
       refresh_button->AddEventListener(Rml::EventId::Click, new RefreshEventHandler(this));
+
+      auto widget_pick_button = root_document->GetElementById("widget_pick_button");
+      if (widget_pick_button)
+      {
+        widget_pick_button->AddEventListener(Rml::EventId::Click, new WidgetPickEventHandler(this, WidgetPickMode::all));
+      }
+
+      auto widget_pick_menu_button = root_document->GetElementById("widget_pick_menu_button");
+      if (widget_pick_menu_button)
+      {
+        widget_pick_menu_button->AddEventListener(Rml::EventId::Click, new WidgetPickEventHandler(this, WidgetPickMode::with_menu_options));
+      }
+
+      icon_tooltip = root_document->GetElementById("icon_tooltip");
+      for (const char *id : { "verify_button", "refresh_button", "widget_pick_button", "widget_pick_menu_button" })
+      {
+        if (auto *button = root_document->GetElementById(id))
+        {
+          button->AddEventListener(Rml::EventId::Mouseover, new IconTooltipEventListener(this, true));
+          button->AddEventListener(Rml::EventId::Mouseout, new IconTooltipEventListener(this, false));
+        }
+      }
 
       root_document->Show();
     }
@@ -205,6 +267,80 @@ namespace crs
   void RmlUserInterface::add_reload_callback(std::function<void()> function)
   {
     reload_callbacks.push_back(std::move(function));
+  }
+
+  void RmlUserInterface::set_widget_pick_handler(std::function<void(WidgetPickMode)> handler)
+  {
+    widget_pick_handler = std::move(handler);
+  }
+
+  void RmlUserInterface::on_widget_pick(WidgetPickMode mode)
+  {
+    if (widget_pick_handler)
+    {
+      widget_pick_handler(mode);
+    }
+  }
+
+  void RmlUserInterface::show_main_tab(const std::string &content_id)
+  {
+    if (!root_document)
+    {
+      return;
+    }
+
+    struct Tab
+    {
+      Rml::Element *button;
+      Rml::Element *content;
+      const char *id;
+    };
+
+    const Tab tabs[] = {
+      { home_tab_button, home_content, "home_content" },
+      { plugins_tab_button, plugins_content, "plugins_content" },
+      { debug_tab_button, debug_content, "debug_content" },
+      { logs_tab_button, logs_content, "logs_content" },
+    };
+
+    Rml::Element *want_button = nullptr;
+    Rml::Element *want_content = nullptr;
+    for (const auto &tab : tabs)
+    {
+      if (tab.content && content_id == tab.id)
+      {
+        want_button = tab.button;
+        want_content = tab.content;
+        break;
+      }
+    }
+
+    if (!want_content)
+    {
+      return;
+    }
+
+    for (const auto &tab : tabs)
+    {
+      if (!tab.button || !tab.content)
+      {
+        continue;
+      }
+
+      if (tab.content == want_content)
+      {
+        tab.button->SetClass("selected", true);
+        tab.content->RemoveProperty("display");
+      }
+      else
+      {
+        tab.button->SetClass("selected", false);
+        tab.content->SetProperty("display", "none");
+      }
+    }
+
+    selected_tab_button = want_button;
+    selected_content = want_content;
   }
 
   void RmlUserInterface::release_keyboard_focus()
@@ -294,18 +430,7 @@ namespace crs
 
   static bool element_display_none(Rml::Element *element)
   {
-    if (!element)
-    {
-      return false;
-    }
-
-    auto property = element->GetLocalProperty(Rml::PropertyId::Display);
-    if (!property)
-    {
-      return false;
-    }
-
-    return property->Get<Rml::String>() == "none";
+    return element && element->GetDisplay() == Rml::Style::Display::None;
   }
 
   static bool element_below_viewport(Rml::Element *element)
@@ -331,7 +456,7 @@ namespace crs
     to_render.reserve(node->values.size());
     for (auto &value : node->values)
     {
-      if (!value->hidden)
+      if (value->inlined)
       {
         to_render.push_back(value.get());
       }
@@ -342,27 +467,30 @@ namespace crs
   static std::string format_dom_opening_prefix(DomNode *node, const std::vector<DomValue *> &to_render)
   {
     std::string inner_rml;
-    inner_rml += std::format("<span class=\"dom-node\">&lt;</span><span class=\"dom-node-type\">{}</span>", escape_rml_text(node->type));
-
-    if (!to_render.empty())
-    {
-      inner_rml += "<span>&nbsp;</span>";
-    }
+    inner_rml += std::format(
+        "<span class=\"dom-bracket\">&lt;</span><span class=\"dom-tag\">{}</span>",
+        escape_rml_text(node->type));
 
     for (size_t i = 0; i < to_render.size(); i++)
     {
       inner_rml += std::format(
-          "<span class=\"dom-node-key\">{}</span><span class=\"dom-node\">=</span><span class=\"dom-node-value\" id=\"{}\">&quot;{}&quot;</span>",
+          "<span>&nbsp;</span><span class=\"dom-attr-name\">{}</span><span class=\"dom-attr-eq\">=</span>"
+          "<span class=\"dom-attr-value\" id=\"{}\">&quot;{}&quot;</span>",
           escape_rml_text(to_render[i]->name),
           to_render[i]->id,
           escape_rml_text(to_render[i]->to_string()));
-      if (i + 1 != to_render.size())
-      {
-        inner_rml += "<span>&nbsp;</span>";
-      }
     }
 
+    inner_rml += "<span class=\"dom-bracket\">&gt;</span>";
     return inner_rml;
+  }
+
+  static std::string format_dom_collapsed_tail(DomNode *node)
+  {
+    return std::format(
+        "<span class=\"dom-ellipsis\">...</span>"
+        "<span class=\"dom-bracket\">&lt;/</span><span class=\"dom-tag\">{}</span><span class=\"dom-bracket\">&gt;</span>",
+        escape_rml_text(node->type));
   }
 
   static void bind_dom_value_elements(RmlDomNode *dom_node_ext, DomNode *node, Rml::Element *scope)
@@ -411,10 +539,22 @@ namespace crs
       auto element = root_document->CreateElement("div");
       element->SetProperty("decorator", "screen-tracker");
       element->SetClass("dom-row", true);
+      element->SetClass("dom-collapsed", true);
       element->SetInnerRML(std::format(
-          "<div>{}<span class=\"dom-node\" id=\"{}\">&gt;</span></div>"
-          "<div><span class=\"dom-node\">&lt;/</span><span class=\"dom-node-type\">{}</span><span class=\"dom-node\">&gt;</span></div>",
+          "<div class=\"dom-line\">"
+          "<span class=\"dom-caret\">"
+          "<span class=\"dom-caret-plus\">+</span>"
+          "<span class=\"dom-caret-minus\">-</span>"
+          "</span>"
+          "<span class=\"dom-tag-open\">{}</span>"
+          "<span class=\"dom-collapsed-tail\">{}</span>"
+          "</div>"
+          "<div class=\"dom-children\" id=\"{}\"></div>"
+          "<div class=\"dom-line dom-close\">"
+          "<span class=\"dom-bracket\">&lt;/</span><span class=\"dom-tag\">{}</span><span class=\"dom-bracket\">&gt;</span>"
+          "</div>",
           format_dom_opening_prefix(node, to_render),
+          format_dom_collapsed_tail(node),
           node->id,
           escape_rml_text(node->type)));
 
@@ -425,14 +565,22 @@ namespace crs
         return false;
       }
 
-      bind_dom_value_elements(dom_node_ext, node, element.get());
+      auto *opening = element->GetChild(0);
+      // Visibility of children/close/tail is owned by .dom-collapsed in RCSS.
+      bind_dom_value_elements(dom_node_ext, node, opening);
 
       dom_node_ext->wrapper_element = parent_node_ext->element->AppendChild(std::move(element));
       dom_node_ext->element = anchor;
 
       auto *listener = new DomNodeEventListener(this, node->shared_from_this());
       dom_node_ext->wrapper_element->AddEventListener(Rml::EventId::Click, listener);
-      dom_node_ext->wrapper_element->AddEventListener(Rml::EventId::Dblclick, new ToggleDomNodeEventListener(dom_node_ext->element));
+      if (opening)
+      {
+        if (auto *caret = opening->GetChild(0))
+        {
+          caret->AddEventListener(Rml::EventId::Click, new ToggleDomNodeEventListener(dom_node_ext->wrapper_element));
+        }
+      }
 
       node->is_built = true;
       node->dirty = false;
@@ -455,7 +603,7 @@ namespace crs
 
       for (auto &value : node->values)
       {
-        if (value->hidden || !value->dirty)
+        if (!value->inlined || !value->dirty)
         {
           continue;
         }
@@ -567,37 +715,47 @@ namespace crs
   {
     auto *wrapper = dom_node_ext->wrapper_element;
     auto *anchor = dom_node_ext->element;
-    if (!wrapper || !anchor)
+    if (!wrapper || !anchor || wrapper->GetNumChildren() < 1)
     {
       return;
     }
 
     auto *opening = wrapper->GetChild(0);
-    if (!opening || anchor->GetParentNode() != opening)
+    if (!opening || opening->GetNumChildren() < 2)
     {
       LOG(ERROR, "DOM opening tag layout mismatch for node: " << node->id);
       return;
     }
 
-    while (auto *first = opening->GetFirstChild())
+    auto *tag_open = opening->GetChild(1);
+    if (!tag_open)
     {
-      if (first == anchor)
-      {
-        break;
-      }
-
-      opening->RemoveChild(first);
+      LOG(ERROR, "DOM opening tag layout mismatch for node: " << node->id);
+      return;
     }
 
     auto to_render = visible_dom_values(node);
-    auto prefix = root_document->CreateElement("div");
-    prefix->SetInnerRML(format_dom_opening_prefix(node, to_render));
-    while (prefix->HasChildNodes())
+    tag_open->SetInnerRML(format_dom_opening_prefix(node, to_render));
+    bind_dom_value_elements(dom_node_ext, node, tag_open);
+  }
+
+  void RmlUserInterface::set_dom_row_selected(Rml::Element *row)
+  {
+    if (selected_dom_row == row)
     {
-      opening->InsertBefore(prefix->RemoveChild(prefix->GetFirstChild()), anchor);
+      return;
     }
 
-    bind_dom_value_elements(dom_node_ext, node, wrapper);
+    if (selected_dom_row)
+    {
+      selected_dom_row->SetClass("selected", false);
+    }
+
+    selected_dom_row = row;
+    if (selected_dom_row)
+    {
+      selected_dom_row->SetClass("selected", true);
+    }
   }
 
   void RmlUserInterface::inspect_dom_node(std::shared_ptr<DomNode> node)
@@ -622,12 +780,185 @@ namespace crs
       }
 
       auto element = root_document->CreateElement("div");
+      element->SetClass("dom-prop-row", true);
       element->SetInnerRML(std::format(
-          "<div class=\"dom-inspector-entry\"><div class=\"dom-inspector-key\">{}</div><div>{}</div></div>",
+          "<span class=\"dom-prop-name\">{}</span>"
+          "<span class=\"dom-prop-sep\">:&nbsp;</span>"
+          "<span class=\"dom-prop-value\">{}</span>",
           escape_rml_text(value->name),
           escape_rml_text(text)));
       dom_inspector_content->AppendChild(std::move(element));
     }
+  }
+
+  static const char *log_level_class(const std::string &level)
+  {
+    if (level == "ERROR")
+    {
+      return "log-level-ERROR";
+    }
+    if (level == "WARNING")
+    {
+      return "log-level-WARNING";
+    }
+    if (level == "DEBUG")
+    {
+      return "log-level-DEBUG";
+    }
+    if (level == "PLUGIN")
+    {
+      return "log-level-PLUGIN";
+    }
+    if (level == "UI")
+    {
+      return "log-level-UI";
+    }
+    if (level == "INFO")
+    {
+      return "log-level-INFO";
+    }
+    return "log-level-INFO";
+  }
+
+  void RmlUserInterface::append_log_row(const UiLogEntry &entry)
+  {
+    if (!log_list || !root_document)
+    {
+      return;
+    }
+
+    auto row = root_document->CreateElement("div");
+    row->SetClass("log-row", true);
+    row->SetClass(log_level_class(entry.level), true);
+    if ((log_row_index++ % 2) == 1)
+    {
+      row->SetClass("log-row-alt", true);
+    }
+
+    const auto count_style = entry.count > 1 ? "" : " style=\"display:none;\"";
+    row->SetInnerRML(std::format(
+        "<span class=\"log-level\">{}</span>"
+        "<span class=\"log-msg\">{}</span>"
+        "<span class=\"log-count\"{}>{}</span>",
+        escape_rml_text(entry.level),
+        escape_rml_text(entry.message),
+        count_style,
+        entry.count));
+
+    last_log_row = log_list->AppendChild(std::move(row));
+  }
+
+  void RmlUserInterface::update_last_log_count(uint32_t count)
+  {
+    if (!last_log_row || count < 1)
+    {
+      return;
+    }
+
+    if (auto *bubble = last_log_row->GetChild(last_log_row->GetNumChildren() - 1))
+    {
+      if (count <= 1)
+      {
+        bubble->SetProperty("display", "none");
+      }
+      else
+      {
+        bubble->RemoveProperty("display");
+        bubble->SetInnerRML(std::to_string(count));
+      }
+    }
+  }
+
+  void RmlUserInterface::sync_log_view()
+  {
+    if (!log_list)
+    {
+      return;
+    }
+
+    std::vector<UiLogEntry> neu;
+    uint32_t last_count = 0;
+    bool reset = false;
+    ui_log_sync(log_sync_state, neu, last_count, reset);
+
+    if (reset)
+    {
+      while (log_list->HasChildNodes())
+      {
+        log_list->RemoveChild(log_list->GetLastChild());
+      }
+      last_log_row = nullptr;
+      log_row_index = 0;
+    }
+
+    for (const auto &entry : neu)
+    {
+      append_log_row(entry);
+    }
+
+    if (!reset && last_count > 0)
+    {
+      update_last_log_count(last_count);
+    }
+
+    if (reset || !neu.empty())
+    {
+      log_list->SetScrollTop(log_list->GetScrollHeight());
+    }
+  }
+
+  void RmlUserInterface::show_icon_tooltip(Rml::Element *anchor, const Rml::String &text)
+  {
+    if (!icon_tooltip || !anchor || text.empty())
+    {
+      return;
+    }
+
+    auto *window = root_document ? root_document->GetElementById("main_window") : nullptr;
+    if (!window)
+    {
+      return;
+    }
+
+    // Avoid Context::Update() here — it re-enters layout during event dispatch and can crash.
+    icon_tooltip->SetInnerRML(escape_rml_text(text));
+    icon_tooltip->RemoveProperty(Rml::PropertyId::Width);
+
+    const auto window_pos = window->GetAbsoluteOffset(Rml::BoxArea::Border);
+    const auto window_size = window->GetBox().GetSize(Rml::BoxArea::Padding);
+    const auto anchor_pos = anchor->GetAbsoluteOffset(Rml::BoxArea::Border);
+    const auto anchor_size = anchor->GetBox().GetSize(Rml::BoxArea::Border);
+
+    // Height + clamp estimate only; actual width comes from shrink-to-fit against the window.
+    constexpr float tip_h = 22.f;
+    constexpr float tip_w_est = 7.f;
+    constexpr float pad_x = 16.f;
+    const auto tip_w = static_cast<float>(text.size()) * tip_w_est + pad_x;
+
+    constexpr float gap = 4.f;
+    auto left = anchor_pos.x - window_pos.x;
+    auto top = anchor_pos.y - window_pos.y - tip_h - gap;
+
+    const auto max_left = std::max(0.f, window_size.x - tip_w);
+    left = std::clamp(left, 0.f, max_left);
+    if (top < 0.f)
+    {
+      top = anchor_pos.y - window_pos.y + anchor_size.y + gap;
+    }
+
+    icon_tooltip->SetProperty(Rml::PropertyId::Left, Rml::Property(left, Rml::Unit::DP));
+    icon_tooltip->SetProperty(Rml::PropertyId::Top, Rml::Property(top, Rml::Unit::DP));
+    icon_tooltip->RemoveProperty("display");
+  }
+
+  void RmlUserInterface::hide_icon_tooltip()
+  {
+    if (!icon_tooltip)
+    {
+      return;
+    }
+
+    icon_tooltip->SetProperty("display", "none");
   }
 
   Rml::Element *RmlUserInterface::get_dom_parent(Rml::Element *element)
@@ -662,6 +993,8 @@ namespace crs
   void RmlUserInterface::render()
   {
     render_frame += 1;
+
+    sync_log_view();
 
     auto hovered = get_dom_parent(context->GetHoverElement());
     if (hovered != last_hovered)
@@ -1092,9 +1425,9 @@ namespace crs
   }
 
   void RmlUserInterface::update_graph_map(uint64_t component_id, uint32_t center_x, uint32_t center_y, uint32_t radius_tiles,
-                                          uint32_t selected_id, const std::vector<GraphMapNode> &nodes,
-                                          const std::vector<GraphMapEdge> &edges,
-                                          const std::vector<GraphMapObject> &objects)
+      uint32_t selected_id, const std::vector<GraphMapNode> &nodes,
+      const std::vector<GraphMapEdge> &edges,
+      const std::vector<GraphMapObject> &objects)
   {
     auto *component = find_graph_map_component(component_id);
     if (!component)
@@ -1150,7 +1483,7 @@ namespace crs
   }
 
   void RmlUserInterface::register_graph_map_object_link_handler(uint64_t component_id,
-                                                               std::function<void(uint32_t, uint32_t, uint32_t, uint32_t, uint32_t)> handler)
+      std::function<void(uint32_t, uint32_t, uint32_t, uint32_t, uint32_t)> handler)
   {
     if (auto *component = find_graph_map_component(component_id))
     {
@@ -1167,7 +1500,7 @@ namespace crs
   }
 
   void RmlUserInterface::register_graph_map_context_handler(uint64_t component_id,
-                                                           std::function<void(uint32_t, uint32_t, uint32_t, int32_t)> handler)
+      std::function<void(uint32_t, uint32_t, uint32_t, int32_t)> handler)
   {
     if (auto *component = find_graph_map_component(component_id))
     {

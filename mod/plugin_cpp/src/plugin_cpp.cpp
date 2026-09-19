@@ -73,7 +73,7 @@ namespace crs
     return is_enabled();
   }
 
-  static void event_handler_engine_tick(EngineTickArgs *, void *)
+  static void event_handler_menu_tick(MenuTickArgs *, void *)
   {
     const bool overlay_open = api.ui_is_visible && api.ui_is_visible();
     if (!forced_on && overlay_open)
@@ -222,6 +222,7 @@ namespace crs
     host.expose_function = resolve_fn<FnPluginExposeFunction>(table, "expose_function");
     host.get_exposed_function = resolve_fn<FnPluginGetExposedFunction>(table, "get_exposed_function");
     host.ui_is_visible = resolve_fn<FnPluginUiIsVisible>(table, "ui_is_visible");
+    host.widget_is_visible = resolve_fn<FnPluginWidgetIsVisible>(table, "widget_is_visible");
     return host;
   }
 
@@ -231,7 +232,7 @@ namespace crs
     crs::api = bind_host_api(loaded->api);
     if (type == crs::InitType::loaded)
     {
-      api.event_bus_register(EngineTickEvent::specific_id(), reinterpret_cast<void *>(event_handler_engine_tick), nullptr);
+      api.event_bus_register(MenuTickEvent::specific_id(), reinterpret_cast<void *>(event_handler_menu_tick), nullptr);
       api.event_bus_register(MenuActionEvent::pre_id(), reinterpret_cast<void *>(event_handler_menu_action), nullptr);
       api.event_bus_register(MenuOpenedEvent::specific_id(), reinterpret_cast<void *>(event_handler_menu_opened), nullptr);
       api.event_bus_register(WorldSettingChangedEvent::specific_id(), reinterpret_cast<void *>(event_handler_world_setting_changed), nullptr);
@@ -845,8 +846,7 @@ namespace crs
         }
         return true;
       });
-    },
-                                           from, max_dist);
+    }, from, max_dist);
   }
 
   std::optional<ApiNpc> Api::closest_npc(std::function<bool(const ApiNpc &)> conditional, uint32_t max_dist)
@@ -871,8 +871,7 @@ namespace crs
         }
         return true;
       });
-    },
-                                         from, max_dist);
+    }, from, max_dist);
   }
 
   std::optional<ApiObject> Api::closest_object(std::function<bool(const ApiObject &)> conditional, uint32_t max_dist)
@@ -897,8 +896,7 @@ namespace crs
         }
         return true;
       });
-    },
-                                           from, max_dist);
+    }, from, max_dist);
   }
 
   std::optional<ApiObject> Api::closest_object_id(uint32_t object_id, uint32_t max_dist)
@@ -906,8 +904,7 @@ namespace crs
     return closest_object([object_id](const ApiObject &obj)
     {
       return obj.matches_id(object_id);
-    },
-                          max_dist);
+    }, max_dist);
   }
 
   std::optional<ApiObject> Api::closest_object_id(Vec2<uint32_t> from, uint32_t object_id, uint32_t max_dist)
@@ -915,8 +912,7 @@ namespace crs
     return closest_object(from, [object_id](const ApiObject &obj)
     {
       return obj.matches_id(object_id);
-    },
-                          max_dist);
+    }, max_dist);
   }
 
   uint32_t Api::chebyshev(uint32_t ax, uint32_t ay, uint32_t bx, uint32_t by)
@@ -1160,6 +1156,16 @@ namespace crs
   void Api::log(const std::string &s)
   {
     crs::api.log(s.c_str());
+  }
+
+  bool ApiWidget::visible() const
+  {
+    if (!widget || !api.widget_is_visible)
+    {
+      return false;
+    }
+
+    return api.widget_is_visible(widget);
   }
 
   static void init_plugin_ui(std::function<void()> plugin_ui)

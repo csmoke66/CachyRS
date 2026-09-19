@@ -109,31 +109,27 @@ std::vector<Object *> match_to_object(const ElfInterface &elf, uint8_t *text, El
       }
       else
       {
-
         obj->size = sizepattern->extractor->extract_validated(elf, result);
-        obj->rel_size = obj->size;
-
-        if (pattern_obj.has_parent)
-        {
-          auto parent_matched = matched.find(pattern_obj.parent);
-          if (parent_matched != matched.end())
-          {
-            obj->rel_size -= parent_matched->second->size;
-          }
-        }
       }
     }
 
-    size_t size = 0;
+    // Field offsets are relative to the end of the parent subobject (or 0).
+    // A root class that declares virtuals also has a vptr before its fields.
+    size_t field_base = 0;
     if (pattern_obj.has_parent)
     {
       auto parent_matched = matched.find(pattern_obj.parent);
       if (parent_matched != matched.end())
       {
-        size = parent_matched->second->size;
+        field_base = parent_matched->second->size;
+      }
+      else
+      {
+        LOG(ERROR, "Parent '" << pattern_obj.parent << "' not matched before '" << pattern_obj.name << "'");
       }
     }
 
+    bool saw_vtf = false;
     for (auto pattern : pattern_obj.patterns)
     {
       auto result = pattern->find_result(text, text_hdr);
@@ -144,8 +140,59 @@ std::vector<Object *> match_to_object(const ElfInterface &elf, uint8_t *text, El
         continue;
       }
 
-      obj->fields[pattern->name] = { pattern->name, extracted, extracted - size, pattern->type };
+      if (pattern->is_vtf)
+      {
+        obj->virtual_functions[pattern->name] = { pattern->name, extracted, extracted, pattern->type, true };
+
+        // One vptr on the object that introduces the vtable — not on every derived class.
+        if (!saw_vtf && !pattern_obj.has_parent)
+        {
+          field_base += sizeof(void *);
+        }
+        saw_vtf = true;
+      }
+      else
+      {
+        if (extracted < field_base)
+        {
+          LOG(ERROR, "Field " << obj->name << "." << pattern->name << " offset 0x" << std::hex << extracted
+                              << " is before field base 0x" << field_base);
+        }
+        obj->fields[pattern->name] = { pattern->name, extracted, extracted - field_base, pattern->type };
+      }
     }
+
+    for (auto pattern : pattern_obj.patterns)
+    {
+      if (pattern->is_vtf)
+      {
+        continue;
+      }
+
+      auto it = obj->fields.find(pattern->name);
+      if (it != obj->fields.end())
+      {
+        obj->size = std::max(obj->size, static_cast<size_t>(it->second.offset + pattern->type.size));
+      }
+    }
+
+    if (saw_vtf && !pattern_obj.has_parent)
+    {
+      obj->size = std::max(obj->size, sizeof(void *));
+    }
+
+    // Derived / post-vptr payload size used for trailing PAD emission.
+    if (obj->size < field_base)
+    {
+      LOG(ERROR, "Object '" << obj->name << "' size 0x" << std::hex << obj->size
+                            << " is smaller than field base 0x" << field_base);
+      obj->rel_size = 0;
+    }
+    else
+    {
+      obj->rel_size = obj->size - field_base;
+    }
+
     matched[pattern_obj.name] = obj;
     linear.push_back(obj);
   }

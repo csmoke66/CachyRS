@@ -20,11 +20,18 @@ namespace crs
     auto ret = trampoline(event);
     while (ret)
     {
+      if (event->type == SDL_MOUSEMOTION)
+      {
+        mouse_pos.x = static_cast<float>(event->motion.x);
+        mouse_pos.y = static_cast<float>(event->motion.y);
+      }
+
       RS.event_ring_buffer.push(*event);
 
       auto steal_processing = RS.imgui_want_capture_mouse.load(std::memory_order_relaxed) ||
                               RS.imgui_want_capture_keyboard.load(std::memory_order_relaxed) ||
-                              (RS.ui_visible.load(std::memory_order_relaxed) && RS.ui->wants_input());
+                              (RS.ui_visible.load(std::memory_order_relaxed) && RS.ui->wants_input()) ||
+                              RS.developer_overlay.is_widget_pick_armed();
 
       if (!wants_event(event->type) || !steal_processing)
       {

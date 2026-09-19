@@ -4,6 +4,17 @@
 
 std::string compile_object_to_structure(const Object *object)
 {
+  std::vector<Field> virtual_functions;
+  for (auto &[key, vtf] : object->virtual_functions)
+  {
+    virtual_functions.push_back(vtf);
+  }
+
+  std::sort(virtual_functions.begin(), virtual_functions.end(), [](const Field &a, const Field &b)
+  {
+    return a.offset < b.offset;
+  });
+
   std::vector<Field> fields;
   for (auto &[key, field] : object->fields)
   {
@@ -37,6 +48,58 @@ std::string compile_object_to_structure(const Object *object)
     ss << "public:" << std::endl;
   }
 
+  if (!virtual_functions.empty())
+  {
+    auto replace_all = [](
+                           const std::string &haystack,
+                           const std::string &needle,
+                           const std::string &replacement)
+    {
+      auto rep = haystack;
+      if (needle.empty())
+        return rep;
+
+      size_t pos = 0;
+      while ((pos = rep.find(needle, pos)) != std::string::npos)
+      {
+        rep.replace(pos, needle.length(), replacement);
+        pos += replacement.length();
+      }
+
+      return rep;
+    };
+
+    for (size_t i = 0; i < virtual_functions.size(); i++)
+    {
+      auto &vtf = virtual_functions[i];
+      auto is_first = (i == 0);
+
+      uint32_t pad_amount;
+      if (is_first)
+      {
+        pad_amount = vtf.offset;
+      }
+      else
+      {
+        auto &prev = virtual_functions[i - 1];
+        pad_amount = vtf.offset - prev.offset - sizeof(void *);
+      }
+
+      auto pad_count = pad_amount / sizeof(void *);
+      for (auto j = 0ul; j < pad_count; j++)
+      {
+        ss << "  PAD_VT();" << std::endl;
+      }
+
+      ss << "  virtual " << replace_all(vtf.type.type, "{}", vtf.name) << " = 0;";
+      ss << std::endl;
+    }
+
+    ss << std::endl;
+    ss << "public:";
+    ss << std::endl;
+  }
+
   for (size_t i = 0; i < fields.size(); i++)
   {
     auto &field = fields[i];
@@ -44,7 +107,11 @@ std::string compile_object_to_structure(const Object *object)
     auto is_last = (i == fields.size() - 1);
     if (is_first)
     {
-      ss << "  PAD(0x" << std::hex << field.relative_offset << ");" << std::endl;
+      auto pad_amount = field.relative_offset;
+      if (pad_amount)
+      {
+        ss << "  PAD(0x" << std::hex << field.relative_offset << ");" << std::endl;
+      }
     }
     else
     {
@@ -54,7 +121,11 @@ std::string compile_object_to_structure(const Object *object)
         LOG(ERROR, "Field " << prev.name << " overlaps " << field.name << " in object " << object->name);
       }
 
-      ss << "  PAD(0x" << std::hex << (field.relative_offset - prev.relative_offset - prev.type.size) << ");" << std::endl;
+      auto pad_amount = field.relative_offset - prev.relative_offset - prev.type.size;
+      if (pad_amount)
+      {
+        ss << "  PAD(0x" << std::hex << pad_amount << ");" << std::endl;
+      }
     }
 
     ss << "  " << field.type.type << " " << field.name;

@@ -78,6 +78,7 @@ namespace crs
     std::shared_ptr<NpcsDomNode> dom_node_npcs;
     std::shared_ptr<ObjectsDomNode> dom_node_objects;
     std::shared_ptr<WorldSettingsDomNode> dom_node_world_settings;
+    std::shared_ptr<HoveredWidgetsDomNode> dom_node_hovered_widgets;
 
   public:
     std::atomic<bool> ui_visible{ false };

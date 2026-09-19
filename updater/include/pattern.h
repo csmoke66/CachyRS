@@ -190,9 +190,10 @@ public:
   std::string name;
   Type type;
   Extractor<uint64_t> *extractor;
+  bool is_vtf = false;
 
 public:
-  Pattern(std::string name, Type type, Extractor<uint64_t> *extractor);
+  Pattern(std::string name, Type type, Extractor<uint64_t> *extractor, bool is_vtf = false);
   virtual ~Pattern() = default;
 
 public:
@@ -209,7 +210,7 @@ public:
   std::vector<int> pattern;
 
 public:
-  DefaultPattern(std::string name, std::vector<int> pattern, Type type, Extractor<uint64_t> *extractor);
+  DefaultPattern(std::string name, std::vector<int> pattern, Type type, Extractor<uint64_t> *extractor, bool is_vtf = false);
 
 public:
   const uint8_t *find_result(uint8_t *text, Elf64_Shdr text_hdr) override;
@@ -221,7 +222,7 @@ public:
 class DummyPattern : public Pattern
 {
 public:
-  DummyPattern(std::string name, Type type, Extractor<uint64_t> *extractor);
+  DummyPattern(std::string name, Type type, Extractor<uint64_t> *extractor, bool is_vtf = false);
 
 public:
   const uint8_t *find_result(uint8_t *text, Elf64_Shdr text_hdr) override;
